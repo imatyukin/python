@@ -7,7 +7,7 @@ def make_album(artist_name, album_title, number_tracks = ''):
     return album
 
 while True:
-    print("\nПожалуйста введите описание музыкального альбома:")
+    print("\nПожалуйста, введите описание музыкального альбома:")
     print("(Нажмите 'q' в любое время для выхода)")
 
     artist_name = input("Имя исполнителя: ")
