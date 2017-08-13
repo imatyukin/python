@@ -1,0 +1,9 @@
+In Python you can develop a website with a backend supporting REST api.
+In Python you can develop a video game.
+In Python you can do interesting things such as Face detection, Color detection.
+In Python you can use web scraping.
+In Python you can do cool things such as predicting stocks, finger print identification, spam detection etc. using machine learning.
+In Python you can develop a cross-platform desktop application.
+In Python you can code on a Raspberry Pi.
+In Python you can do Data Analysis.
+In Python you can do Browser Automation.
