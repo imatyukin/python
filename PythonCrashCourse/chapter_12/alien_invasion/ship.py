@@ -13,8 +13,8 @@ class Ship():
         self.rect = self.image.get_rect()
         self.screen_rect = screen.get_rect()
 
-        # Каждый новый корабль появляется на cередине края экрана.
-        self.rect.centerx = self.screen_rect.centerx
+        # Каждый новый корабль появляется у левого края экрана.
+        self.rect.centerx = 10
         self.rect.centery = self.screen_rect.centery
 
         # Сохранение вещественной координаты центра корабля.
