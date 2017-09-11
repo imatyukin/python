@@ -48,12 +48,12 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, star):
     screen.fill(ai_settings.bg_color)
     screen.blit(ai_settings.bg_image, (0, 0))
 
+    star.blitme()
     # Все пули выводятся позади изображений корабля и пришельцев.
     for bullet in bullets.sprites():
         bullet.draw_bullet()
     ship.blitme()
     aliens.draw(screen)
-    star.blitme()
 
     # Отображение последнего прорисованного экрана.
     pygame.display.flip()
