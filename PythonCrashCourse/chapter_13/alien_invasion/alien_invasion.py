@@ -14,7 +14,7 @@ def run_game():
     ai_settings = Settings()
     screen = pygame.display.set_mode(
         (ai_settings.screen_width, ai_settings.screen_height))
-    pygame.display.set_caption("Ракета v2")
+    pygame.display.set_caption("Чужие")
 
     # Создание корабля, группы пуль и группы пришельцев.
     ship = Ship(ai_settings, screen)
