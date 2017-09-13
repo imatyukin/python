@@ -7,6 +7,7 @@ class Star(Sprite):
 
     def __init__(self, ai_settings, screen):
         """Инициализирует звезду и задает её начальную позицию."""
+
         super(Star, self).__init__()
         self.screen = screen
         self.ai_settings = ai_settings
@@ -24,4 +25,5 @@ class Star(Sprite):
 
     def blitme(self):
         """Выводит звезду в текущем положении."""
+
         self.screen.blit(self.image, self.rect)

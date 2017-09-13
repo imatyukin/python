@@ -5,6 +5,7 @@ class Ship():
 
     def __init__(self, ai_settings, screen):
         """Инициализирует корабль и задает его начальную позицию."""
+
         self.screen = screen
         self.ai_settings = ai_settings
 
@@ -28,6 +29,7 @@ class Ship():
 
     def update(self):
         """Обновляет позицию корабля с учетом флагов."""
+
         # Обновляется атрибут center, не rect.
         if self.moving_up and self.rect.top > 0:
             self.rect.y -= self.ai_settings.ship_speed_factor
@@ -43,4 +45,5 @@ class Ship():
 
     def blitme(self):
         """Рисует корабль в текущей позиции."""
+
         self.screen.blit(self.image, self.rect)

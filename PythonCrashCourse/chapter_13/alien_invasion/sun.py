@@ -7,6 +7,7 @@ class Sun(Sprite):
 
     def __init__(self, ai_settings, screen):
         """Инициализирует Солнце и задает его начальную позицию."""
+
         super(Sun, self).__init__()
         self.screen = screen
         self.ai_settings = ai_settings
@@ -24,4 +25,5 @@ class Sun(Sprite):
 
     def blitme(self):
         """Выводит Солнце в текущем положении."""
+
         self.screen.blit(self.image, self.rect)
