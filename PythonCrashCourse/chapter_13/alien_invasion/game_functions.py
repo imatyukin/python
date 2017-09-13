@@ -11,6 +11,7 @@ from star import Star
 
 def check_keydown_events(event, ai_settings, screen, ship, bullets):
     """Реагирует на нажатие клавиш."""
+
     if event.key == pygame.K_UP:
         ship.moving_up = True
     if event.key == pygame.K_DOWN:
@@ -26,6 +27,7 @@ def check_keydown_events(event, ai_settings, screen, ship, bullets):
 
 def check_keyup_events(event, ship):
     """Реагирует на отпускание клавиш."""
+
     if event.key == pygame.K_UP:
         ship.moving_up = False
     if event.key == pygame.K_DOWN:
@@ -37,6 +39,7 @@ def check_keyup_events(event, ship):
 
 def check_events(ai_settings, screen, ship, bullets):
     """Обрабатывает нажатия клавиш и события мыши."""
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
@@ -47,12 +50,14 @@ def check_events(ai_settings, screen, ship, bullets):
 
 def update_screen(ai_settings, screen, ship, aliens, bullets, stars, sun):
     """Обновляет изображения на экране и отображает новый экран."""
+
     # При каждом проходе цикла перерисовывается экран.
     screen.fill(ai_settings.bg_color)
     screen.blit(ai_settings.bg_image, (0, 0))
 
-    sun.blitme()
+    # Все звёзды выводятся позади всех изображений.
     stars.draw(screen)
+    sun.blitme()
     # Все пули выводятся позади изображений корабля и пришельцев.
     for bullet in bullets.sprites():
         bullet.draw_bullet()
@@ -64,8 +69,10 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, sun):
 
 def update_bullets(bullets):
     """Обновляет позиции пуль и уничтожает старые пули."""
+
     # Обновление позиций пуль.
     bullets.update()
+
     # Удаление пуль, вышедших за край экрана.
     for bullet in bullets.copy():
         if bullet.rect.bottom <= 0:
@@ -74,6 +81,7 @@ def update_bullets(bullets):
 
 def fire_bullet(ai_settings, screen, ship, bullets):
     """Выпускает пулю, если максимум еще не достигнут."""
+
     # Создание новой пули и включение ее в группу bullets.
     if len(bullets) < ai_settings.bullets_allowed:
         new_bullet = Bullet(ai_settings, screen, ship)
@@ -88,12 +96,14 @@ def get_number_aliens_x(ai_settings, alien_width):
 
 def get_number_rows(ai_settings, ship_height, alien_height):
     """Определяет количество рядов, помещающихся на экране."""
+
     available_space_y = (ai_settings.screen_height - (3 * alien_height) - ship_height)
     number_rows = int(available_space_y / (2 * alien_height))
     return number_rows
 
 def create_alien(ai_settings, screen, aliens, alien_number, row_number):
     """Создает пришельца и размещает его в ряду."""
+
     alien = Alien(ai_settings, screen)
     alien_width = alien.rect.width
     alien.x = alien_width + 2 * alien_width * alien_number
@@ -103,6 +113,7 @@ def create_alien(ai_settings, screen, aliens, alien_number, row_number):
 
 def create_fleet(ai_settings, screen, ship, aliens):
     """Создает флот пришельцев."""
+
     # Создание пришельца и вычисление количества пришельцев в ряду.
     alien = Alien(ai_settings, screen)
     number_aliens_x = get_number_aliens_x(ai_settings, alien.rect.width)
@@ -122,21 +133,25 @@ def get_number_stars_x(ai_settings, star_width):
 
 def get_number_stars_rows(ai_settings, ship_height, star_height):
     """Определяет количество рядов, помещающихся на экране."""
+
     available_space_y = (ai_settings.screen_height - (3 * star_height) - ship_height)
     number_stars_rows = int(available_space_y / (2 * star_height))
     return number_stars_rows
 
 def create_star(ai_settings, screen, stars, star_number, stars_row_number):
     """Создает звезду и размещает её в ряду."""
+
     star = Star(ai_settings, screen)
     star_width = star.rect.width
-    star.x = star_width + 2 * star_width * star_number
+    random_number = randint(-10, 10)
+    star.x = star_width + 2 * star_width * star_number * random_number
     star.rect.x = star.x
-    star.rect.y = star.rect.height + 2 * star.rect.height * stars_row_number
+    star.rect.y = star.rect.height + 2 * star.rect.height * stars_row_number * random_number
     stars.add(star)
 
 def create_galaxy(ai_settings, screen, ship, stars):
     """Создает галактику звёзд."""
+
     # Создание звезды и вычисление количества звёзд в ряду.
     star = Star(ai_settings, screen)
     number_stars_x = get_number_stars_x(ai_settings, star.rect.width)
