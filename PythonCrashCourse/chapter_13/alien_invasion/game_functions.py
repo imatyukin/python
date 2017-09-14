@@ -231,10 +231,12 @@ def check_meteors_edges(ai_settings, meteors):
 
     for meteor in meteors.sprites():
         if meteor.check_meteors_bottom():
-            change_meteors_direction(ai_settings)
+            # change_meteors_direction(ai_settings, meteors)
+            meteors.remove(meteors)
+            meteors.update()
             break
 
-def change_meteors_direction(ai_settings):
+def change_meteors_direction(ai_settings, meteors):
     """Меняет направление метеоритов."""
 
     ai_settings.meteors_direction *= -1
