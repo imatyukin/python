@@ -22,6 +22,11 @@ class Settings():
         # fleet_direction = 1 обозначает движение вправо; а -1 - влево.
         self.fleet_direction = 1
 
+        # Настройки метеорита
+        self.meteor_speed_factor = 10
+        # meteors_direction = 1 обозначает движение вниз; а -1 - наверх.
+        self.meteors_direction = 1
+
         # Параметры пули
         self.bullet_speed_factor = 2.5
         self.bullet_width = 3
