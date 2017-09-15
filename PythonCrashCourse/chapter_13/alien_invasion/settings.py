@@ -23,7 +23,8 @@ class Settings():
         self.fleet_direction = 1
 
         # Настройки метеорита
-        self.meteor_speed_factor = 10
+        self.meteor_speed_factor = 1
+        self.meteors_drop_speed = 10
         # meteors_direction = 1 обозначает движение вниз; а -1 - наверх.
         self.meteors_direction = 1
 

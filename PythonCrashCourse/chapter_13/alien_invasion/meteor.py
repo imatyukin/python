@@ -22,22 +22,18 @@ class Meteor(Sprite):
         self.rect.y = self.rect.height
 
         # Сохранение точной позиции метеорита.
-        self.y = float(self.rect.y)
+        self.x = float(self.rect.x)
 
     def check_meteors_bottom(self):
         """Возвращает True, если метеорит находится за краем экрана."""
 
-        if self.rect.bottom >= 400:
-            return True
-        elif self.rect.top <= 0:
+        if self.rect.bottom >= 1400:
             return True
 
-    def update(self):
+    def update(self, ai_settings):
         """Перемещает метеорит вниз."""
 
-        self.y += (self.ai_settings.meteor_speed_factor *
-                   self.ai_settings.meteors_direction)
-        self.rect.y = self.y
+        self.rect.y += ai_settings.meteors_drop_speed
 
     def blitme(self):
         """Выводит метеорит в текущем положении."""

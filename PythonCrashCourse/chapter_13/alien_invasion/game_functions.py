@@ -200,17 +200,18 @@ def get_number_meteors_rows(ai_settings, ship_height, meteor_height):
     """Определяет количество рядов, помещающихся на экране."""
 
     available_space_y = (ai_settings.screen_height - (3 * meteor_height) - ship_height)
-    number_rows = int(available_space_y / (2 * meteor_height))
-    return number_rows
+    number_meteors_rows = int(available_space_y / (2 * meteor_height))
+    return number_meteors_rows
 
-def create_meteor(ai_settings, screen, meteors, meteor_number, row_number):
+def create_meteor(ai_settings, screen, meteors, meteor_number, meteors_row_number):
     """Создает метеорит и размещает его в ряду."""
 
+    random_number = randint(-10, 10)
     meteor = Meteor(ai_settings, screen)
     meteor_width = meteor.rect.width
     meteor.x = meteor_width + 2 * meteor_width * meteor_number
     meteor.rect.x = meteor.x
-    meteor.rect.y = meteor.rect.height + 2 * meteor.rect.height * row_number
+    meteor.rect.y = meteor.rect.height + 2 * meteor.rect.height * meteors_row_number
     meteors.add(meteor)
 
 def create_meteors_net(ai_settings, screen, ship, meteors):
@@ -219,31 +220,34 @@ def create_meteors_net(ai_settings, screen, ship, meteors):
     # Создание метеорита и вычисление количества метеоритов в ряду.
     meteor = Meteor(ai_settings, screen)
     number_meteors_x = get_number_meteors_x(ai_settings, meteor.rect.width)
-    number_rows = get_number_meteors_rows(ai_settings, ship.rect.height, meteor.rect.height)
+    number_meteors_rows = get_number_meteors_rows(ai_settings, ship.rect.height,
+                                                  meteor.rect.height)
 
     # Создание сетки метеоритов.
-    for row_number in range(number_rows):
+    for meteors_row_number in range(number_meteors_rows):
         for meteor_number in range(number_meteors_x):
-            create_meteor(ai_settings, screen, meteors, meteor_number, row_number)
+            create_meteor(ai_settings, screen, meteors, meteor_number, meteors_row_number)
 
-def check_meteors_edges(ai_settings, meteors):
+def check_meteors_edges(ai_settings, meteors, screen, ship):
     """Реагирует на выход метеорита за нижний край экрана."""
 
     for meteor in meteors.sprites():
         if meteor.check_meteors_bottom():
-            # change_meteors_direction(ai_settings, meteors)
             meteors.remove(meteors)
-            meteors.update()
+            meteors.update(ai_settings)
+            create_meteors_net(ai_settings, screen, ship, meteors)
             break
 
 def change_meteors_direction(ai_settings, meteors):
-    """Меняет направление метеоритов."""
+    """Опускает все метеориты и меняет их направление."""
 
+    for meteor in meteors.sprites():
+        meteor.rect.y += ai_settings.meteors_drop_speed
     ai_settings.meteors_direction *= -1
 
-def update_meteors(ai_settings, meteors):
+def update_meteors(ai_settings, meteors, screen, ship):
     '''Проверяет, достиг ли метеорит края экрана,
     после чего обновляет позиции всех метеоритов.'''
 
-    check_meteors_edges(ai_settings, meteors)
-    meteors.update()
+    check_meteors_edges(ai_settings, meteors, screen, ship)
+    meteors.update(ai_settings)
