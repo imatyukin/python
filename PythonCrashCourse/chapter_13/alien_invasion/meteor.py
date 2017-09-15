@@ -27,7 +27,7 @@ class Meteor(Sprite):
     def check_meteors_bottom(self):
         """Возвращает True, если метеорит находится за краем экрана."""
 
-        if self.rect.bottom >= 1400:
+        if self.rect.bottom >= 2000:
             return True
 
     def update(self, ai_settings):
