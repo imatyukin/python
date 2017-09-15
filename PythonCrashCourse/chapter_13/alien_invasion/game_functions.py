@@ -194,6 +194,7 @@ def get_number_meteors_x(ai_settings, meteor_width):
 
     available_space_x = ai_settings.screen_width - 2 * meteor_width
     number_meteors_x = int(available_space_x / (2 * meteor_width))
+
     return number_meteors_x
 
 def get_number_meteors_rows(ai_settings, ship_height, meteor_height):
@@ -201,15 +202,16 @@ def get_number_meteors_rows(ai_settings, ship_height, meteor_height):
 
     available_space_y = (ai_settings.screen_height - (3 * meteor_height) - ship_height)
     number_meteors_rows = int(available_space_y / (2 * meteor_height))
+
     return number_meteors_rows
 
 def create_meteor(ai_settings, screen, meteors, meteor_number, meteors_row_number):
     """Создает метеорит и размещает его в ряду."""
 
-    random_number = randint(-10, 10)
+    random_number = randint(1, 100)
     meteor = Meteor(ai_settings, screen)
     meteor_width = meteor.rect.width
-    meteor.x = meteor_width + 2 * meteor_width * meteor_number
+    meteor.x = (meteor_width + 2 * meteor_width * meteor_number) * random_number
     meteor.rect.x = meteor.x
     meteor.rect.y = meteor.rect.height + 2 * meteor.rect.height * meteors_row_number
     meteors.add(meteor)
