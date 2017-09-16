@@ -15,6 +15,7 @@ class Settings():
 
         # Настройки корабля
         self.ship_speed_factor = 1.5
+        self.ship_limit = 3
 
         # Настройки пришельцев
         self.alien_speed_factor = 1
@@ -28,8 +29,8 @@ class Settings():
         # meteors_direction = 1 обозначает движение вниз; а -1 - наверх.
         self.meteors_direction = 1
 
-        # Параметры пули
-        self.bullet_speed_factor = 2.5
+        # Настройки пуль
+        self.bullet_speed_factor = 3
         self.bullet_width = 3
         self.bullet_height = 15
         self.bullet_color = 255, 255, 0
