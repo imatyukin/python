@@ -298,7 +298,7 @@ def change_meteors_direction(ai_settings, meteors):
         meteor.rect.y += ai_settings.meteors_drop_speed
     ai_settings.meteors_direction *= -1
 
-def update_meteors(ai_settings, meteors, screen, ship, aliens):
+def update_meteors(ai_settings, stats, screen, ship, aliens, bullets, meteors):
     '''Проверяет, достиг ли метеорит края экрана,
     после чего обновляет позиции всех метеоритов.'''
 
@@ -306,6 +306,10 @@ def update_meteors(ai_settings, meteors, screen, ship, aliens):
     meteors.update(ai_settings)
 
     check_meteor_alien_collisions(ai_settings, screen, ship, aliens, meteors)
+
+    # Проверка коллизий "метеорит-корабль".
+    if pygame.sprite.spritecollideany(ship, meteors):
+        ship_hit(ai_settings, stats, screen, ship, aliens, bullets)
 
 def check_meteor_alien_collisions(ai_settings, screen, ship, aliens, meteors):
     """Обработка коллизий метеоров с пришельцами."""
