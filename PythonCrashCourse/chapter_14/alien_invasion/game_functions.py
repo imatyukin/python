@@ -39,7 +39,7 @@ def check_keyup_events(event, ship):
     elif event.key == pygame.K_LEFT:
         ship.moving_left = False
 
-def check_events(ai_settings, screen, ship, bullets):
+def check_events(ai_settings, screen, stats, play_button, ship, aliens, bullets):
     """Обрабатывает нажатия клавиш и события мыши."""
 
     for event in pygame.event.get():
@@ -49,8 +49,17 @@ def check_events(ai_settings, screen, ship, bullets):
             check_keydown_events(event, ai_settings, screen, ship, bullets)
         elif event.type == pygame.KEYUP:
             check_keyup_events(event, ship)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            check_play_button(stats, play_button, mouse_x, mouse_y)
 
-def update_screen(ai_settings, screen, ship, aliens, bullets, stars, meteors, sun):
+def check_play_button(stats, play_button, mouse_x, mouse_y):
+    """Запускает новую игру при нажатии кнопки Play."""
+
+    if play_button.rect.collidepoint(mouse_x, mouse_y):
+        stats.game_active = True
+
+def update_screen(ai_settings, screen, stats, ship, aliens, bullets, stars, meteors, sun, play_button):
     """Обновляет изображения на экране и отображает новый экран."""
 
     # При каждом проходе цикла перерисовывается экран.
@@ -66,6 +75,10 @@ def update_screen(ai_settings, screen, ship, aliens, bullets, stars, meteors, su
         bullet.draw_bullet()
     ship.blitme()
     aliens.draw(screen)
+
+    # Кнопка Play отображается в том случае, если игра неактивна.
+    if not stats.game_active:
+        play_button.draw_button()
 
     # Отображение последнего прорисованного экрана.
     pygame.display.flip()

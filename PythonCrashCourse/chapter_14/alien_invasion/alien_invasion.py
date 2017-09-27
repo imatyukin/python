@@ -4,6 +4,7 @@ from pygame.sprite import Group
 
 from settings import Settings
 from game_stats import GameStats
+from button import Button
 from ship import Ship
 from sun import Sun
 import game_functions as gf
@@ -13,8 +14,12 @@ def run_game():
     pygame.init()
     ai_settings = Settings()
     screen = pygame.display.set_mode(
-        (ai_settings.screen_width, ai_settings.screen_height))
+        (ai_settings.screen_width, ai_settings.screen_height)
+    )
     pygame.display.set_caption("Чужие")
+
+    # Создание кнопки Play.
+    play_button = Button(ai_settings, screen, "Play")
 
     # Создание экземпляра для хранения игровой статистики.
     stats = GameStats(ai_settings)
@@ -40,7 +45,7 @@ def run_game():
 
     # Запуск основного цикла игры.
     while True:
-        gf.check_events(ai_settings, screen, ship, bullets)
+        gf.check_events(ai_settings, screen, stats, play_button, ship, aliens, bullets)
 
         if stats.game_active:
             ship.update()
@@ -48,6 +53,6 @@ def run_game():
             gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets)
             gf.update_meteors(ai_settings, stats, screen, ship, aliens, bullets, meteors)
 
-        gf.update_screen(ai_settings, screen, ship, aliens, bullets, stars, meteors, sun)
+        gf.update_screen(ai_settings, screen, stats, ship, aliens, bullets, stars, meteors, sun, play_button)
 
 run_game()
