@@ -4,6 +4,7 @@ from pygame.sprite import Group
 
 from settings import Settings
 from game_stats import GameStats
+from scoreboard import Scoreboard
 from button import Button
 from ship import Ship
 from sun import Sun
@@ -21,8 +22,9 @@ def run_game():
     # Создание кнопки Play.
     play_button = Button(ai_settings, screen, "Play")
 
-    # Создание экземпляра для хранения игровой статистики.
+    # Создание экземпляров GameStats и Scoreboard.
     stats = GameStats(ai_settings)
+    sb = Scoreboard(ai_settings, screen, stats)
 
     # Создание корабля, группы пуль и группы пришельцев.
     ship = Ship(ai_settings, screen)
@@ -53,6 +55,6 @@ def run_game():
             gf.update_aliens(ai_settings, stats, screen, ship, aliens, bullets)
             gf.update_meteors(ai_settings, stats, screen, ship, aliens, bullets, meteors)
 
-        gf.update_screen(ai_settings, screen, stats, ship, aliens, bullets, stars, meteors, sun, play_button)
+        gf.update_screen(ai_settings, screen, stats, sb, ship, aliens, bullets, stars, meteors, sun, play_button)
 
 run_game()
