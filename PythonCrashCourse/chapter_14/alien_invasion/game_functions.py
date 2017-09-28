@@ -11,7 +11,7 @@ from alien import Alien
 from star import Star
 from meteor import Meteor
 
-def check_keydown_events(event, ai_settings, screen, ship, bullets):
+def check_keydown_events(event, ai_settings, screen, stats, ship, aliens, bullets):
     """Реагирует на нажатие клавиш."""
 
     if event.key == pygame.K_UP:
@@ -24,6 +24,8 @@ def check_keydown_events(event, ai_settings, screen, ship, bullets):
         ship.moving_left = True
     elif event.key == pygame.K_SPACE:
         fire_bullet(ai_settings, screen, ship, bullets)
+    elif event.key == pygame.K_p:
+        start_game(ai_settings, screen, stats, ship, aliens, bullets)
     elif event.key == pygame.K_q:
         sys.exit()
 
@@ -46,7 +48,7 @@ def check_events(ai_settings, screen, stats, play_button, ship, aliens, bullets)
         if event.type == pygame.QUIT:
             sys.exit()
         elif event.type == pygame.KEYDOWN:
-            check_keydown_events(event, ai_settings, screen, ship, bullets)
+            check_keydown_events(event, ai_settings, screen, stats, ship, aliens, bullets)
         elif event.type == pygame.KEYUP:
             check_keyup_events(event, ship)
         elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -62,17 +64,23 @@ def check_play_button(ai_settings, screen, stats, play_button, ship, aliens, bul
         # Указатель мыши скрывается.
         pygame.mouse.set_visible(False)
 
-        # Сброс игровой статистики.
-        stats.reset_stats()
-        stats.game_active = True
+        # Запуск новой игры.
+        start_game(ai_settings, screen, stats, ship, aliens, bullets)
 
-        # Очистка списков пришельцев и пуль.
-        aliens.empty()
-        bullets.empty()
+def start_game(ai_settings, screen, stats, ship, aliens, bullets):
+    """Запуск новой игры."""
 
-        # Создание нового флота и размещение корабля в центре.
-        create_fleet(ai_settings, screen, ship, aliens)
-        ship.center_ship()
+    # Сброс игровой статистики.
+    stats.reset_stats()
+    stats.game_active = True
+
+    # Очистка списков пришельцев и пуль.
+    aliens.empty()
+    bullets.empty()
+
+    # Создание нового флота и размещение корабля в центре.
+    create_fleet(ai_settings, screen, ship, aliens)
+    ship.center_ship()
 
 def update_screen(ai_settings, screen, stats, ship, aliens, bullets, stars, meteors, sun, play_button):
     """Обновляет изображения на экране и отображает новый экран."""
