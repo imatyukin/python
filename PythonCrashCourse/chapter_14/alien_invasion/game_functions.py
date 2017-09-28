@@ -61,6 +61,9 @@ def check_play_button(ai_settings, screen, stats, play_button, ship, aliens, bul
 
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
     if button_clicked and not stats.game_active:
+        # Сброс игровых настроек.
+        ai_settings.initialize_dynamic_settings()
+
         # Указатель мыши скрывается.
         pygame.mouse.set_visible(False)
 
@@ -126,8 +129,9 @@ def check_bullet_alien_collisions(ai_settings, screen, ship, aliens, bullets):
     # Удаление пуль и пришельцев, участвующих в коллизиях.
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
     if len(aliens) == 0:
-        # Уничтожение существующих пуль и создание нового флота.
+        # Уничтожение пуль, повышение скорости и создание нового флота.
         bullets.empty()
+        ai_settings.increase_speed()
         create_fleet(ai_settings, screen, ship, aliens)
 
 def fire_bullet(ai_settings, screen, ship, bullets):
@@ -197,20 +201,20 @@ def ship_hit(ai_settings, screen, stats, ship, aliens, bullets):
         # Уменьшение ships_left.
         stats.ships_left -= 1
 
-        # Очистка списков пришельцев и пуль.
-        aliens.empty()
-        bullets.empty()
-
-        # Создание нового флота и размещение корабля в центре.
-        create_fleet(ai_settings, screen, ship, aliens)
-        ship.center_ship()
-
-        # Пауза.
-        sleep(0.5)
-
     else:
         stats.game_active = False
         pygame.mouse.set_visible(True)
+
+    # Очистка списков пришельцев и пуль.
+    aliens.empty()
+    bullets.empty()
+
+    # Создание нового флота и размещение корабля в центре.
+    create_fleet(ai_settings, screen, ship, aliens)
+    ship.center_ship()
+
+    # Пауза.
+    sleep(0.5)
 
 def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets):
     """Проверяет, добрались ли пришельцы до нижнего края экрана."""
@@ -233,7 +237,7 @@ def update_aliens(ai_settings, stats, screen, ship, aliens, bullets):
 
     # Проверка коллизий "пришелец-корабль".
     if pygame.sprite.spritecollideany(ship, aliens):
-        ship_hit(ai_settings, stats, screen, ship, aliens, bullets)
+        ship_hit(ai_settings, screen, stats, ship, aliens, bullets)
 
     # Проверка пришельцев, добравшихся до нижнего края экрана.
     check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets)
@@ -346,7 +350,7 @@ def update_meteors(ai_settings, stats, screen, ship, aliens, bullets, meteors):
 
     # Проверка коллизий "метеорит-корабль".
     if pygame.sprite.spritecollideany(ship, meteors):
-        ship_hit(ai_settings, stats, screen, ship, aliens, bullets)
+        ship_hit(ai_settings, screen, stats, ship, aliens, bullets)
 
 def check_meteor_alien_collisions(ai_settings, screen, ship, aliens, meteors):
     """Обработка коллизий метеоров с пришельцами."""
