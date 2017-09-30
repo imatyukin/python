@@ -17,7 +17,7 @@ def run_game():
     screen = pygame.display.set_mode(
         (ai_settings.screen_width, ai_settings.screen_height)
     )
-    pygame.display.set_caption("Чужие")
+    pygame.display.set_caption("Ракета")
 
     # Создание кнопки Play.
     play_button = Button(ai_settings, screen, "Play")
