@@ -321,6 +321,53 @@ def create_galaxy(ai_settings, screen, ship, stars):
         for star_number in range(number_stars_x):
             create_star(ai_settings, screen, stars, star_number, stars_row_number)
 
+def check_meteor_alien_collisions(ai_settings, screen, stats, sb, ship,
+                                  aliens, meteors):
+    """Обработка коллизий метеоров с пришельцами."""
+
+    # Удаление метеоров и пришельцев, участвующих в коллизиях.
+    collisions = pygame.sprite.groupcollide(meteors, aliens, True, True)
+
+    if len(aliens) == 0:
+        # Если весь флот уничтожен, начинается следующий уровень.
+        ai_settings.increase_speed()
+
+        # Увеличение уровня.
+        stats.level += 1
+        sb.prep_level()
+
+        create_fleet(ai_settings, screen, ship, aliens)
+
+def check_meteors_edges(ai_settings, meteors, screen, ship):
+    """Реагирует на выход метеорита за нижний край экрана."""
+
+    for meteor in meteors.sprites():
+        if meteor.check_meteors_bottom():
+            meteors.remove(meteors)
+            meteors.update(ai_settings)
+            create_meteors_net(ai_settings, screen, ship, meteors)
+            break
+
+def change_meteors_direction(ai_settings, meteors):
+    """Опускает все метеориты и меняет их направление."""
+
+    for meteor in meteors.sprites():
+        meteor.rect.y += ai_settings.meteors_drop_speed
+    ai_settings.meteors_direction *= -1
+
+def update_meteors(ai_settings, screen, stats, sb, ship, aliens, bullets, meteors):
+    '''Проверяет, достиг ли метеорит края экрана,
+    после чего обновляет позиции всех метеоритов.'''
+
+    check_meteors_edges(ai_settings, meteors, screen, ship)
+    meteors.update(ai_settings)
+
+    check_meteor_alien_collisions(ai_settings, screen, stats, sb, ship, aliens, meteors)
+
+    # Проверка коллизий "метеорит-корабль".
+    if pygame.sprite.spritecollideany(ship, meteors):
+        ship_hit(ai_settings, screen, stats, sb, ship, aliens, bullets)
+
 def get_number_meteors_x(ai_settings, meteor_width):
     """Вычисляет количество метеоритов в ряду."""
 
@@ -361,43 +408,3 @@ def create_meteors_net(ai_settings, screen, ship, meteors):
     for meteors_row_number in range(number_meteors_rows):
         for meteor_number in range(number_meteors_x):
             create_meteor(ai_settings, screen, meteors, meteor_number, meteors_row_number)
-
-def check_meteors_edges(ai_settings, meteors, screen, ship):
-    """Реагирует на выход метеорита за нижний край экрана."""
-
-    for meteor in meteors.sprites():
-        if meteor.check_meteors_bottom():
-            meteors.remove(meteors)
-            meteors.update(ai_settings)
-            create_meteors_net(ai_settings, screen, ship, meteors)
-            break
-
-def change_meteors_direction(ai_settings, meteors):
-    """Опускает все метеориты и меняет их направление."""
-
-    for meteor in meteors.sprites():
-        meteor.rect.y += ai_settings.meteors_drop_speed
-    ai_settings.meteors_direction *= -1
-
-def update_meteors(ai_settings, screen, stats, sb, ship, aliens, bullets, meteors):
-    '''Проверяет, достиг ли метеорит края экрана,
-    после чего обновляет позиции всех метеоритов.'''
-
-    check_meteors_edges(ai_settings, meteors, screen, ship)
-    meteors.update(ai_settings)
-
-    check_meteor_alien_collisions(ai_settings, screen, ship, aliens, meteors)
-
-    # Проверка коллизий "метеорит-корабль".
-    if pygame.sprite.spritecollideany(ship, meteors):
-        ship_hit(ai_settings, screen, stats, sb, ship, aliens, bullets)
-
-def check_meteor_alien_collisions(ai_settings, screen, ship, aliens, meteors):
-    """Обработка коллизий метеоров с пришельцами."""
-
-    # Удаление метеоров и пришельцев, участвующих в коллизиях.
-    collisions = pygame.sprite.groupcollide(meteors, aliens, True, True)
-    if len(aliens) == 0:
-        # Уничтожение существующих метеоров и создание нового флота.
-        meteors.empty()
-        create_fleet(ai_settings, screen, ship, aliens)
