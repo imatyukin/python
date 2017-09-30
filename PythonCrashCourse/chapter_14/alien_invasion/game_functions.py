@@ -326,7 +326,7 @@ def check_meteor_alien_collisions(ai_settings, screen, stats, sb, ship,
     """Обработка коллизий метеоров с пришельцами."""
 
     # Удаление метеоров и пришельцев, участвующих в коллизиях.
-    collisions = pygame.sprite.groupcollide(meteors, aliens, True, True)
+    pygame.sprite.groupcollide(meteors, aliens, True, True)
 
     if len(aliens) == 0:
         # Если весь флот уничтожен, начинается следующий уровень.
