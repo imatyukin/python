@@ -379,7 +379,8 @@ def get_number_meteors_x(ai_settings, meteor_width):
 def get_number_meteors_rows(ai_settings, ship_height, meteor_height):
     """Определяет количество рядов, помещающихся на экране."""
 
-    available_space_y = (ai_settings.screen_height - (3 * meteor_height) - ship_height)
+    available_space_y = (ai_settings.screen_height -
+                         (3 * meteor_height) - ship_height)
     number_meteors_rows = int(available_space_y / (2 * meteor_height))
 
     return number_meteors_rows
