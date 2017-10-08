@@ -32,7 +32,7 @@ class Settings():
         self.meteors_direction = 1
 
         # Темп ускорения игры
-        self.speedup_scale = 1.1
+        self.speedup_scale = 1.2
 
         # Темп роста стоимости пришельцев
         self.score_scale = 1.5

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 from time import sleep
+import random
 
 import pygame
 
@@ -60,6 +61,19 @@ def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens, bull
             check_play_button(ai_settings, screen, stats, sb, play_button,
                               ship, aliens, bullets, mouse_x, mouse_y)
 
+def music():
+    """Музыка в игре."""
+
+    pygame.mixer.music.stop()
+    if random.randint(0, 1) == 0:
+        pygame.mixer.music.load('music/cosmicsea.mid')
+        pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(0.2)
+    else:
+        pygame.mixer.music.load('music/ichruf.mid')
+        pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(0.2)
+
 def check_play_button(ai_settings, screen, stats, sb, play_button, ship,
                       aliens, bullets, mouse_x, mouse_y):
     """Запускает новую игру при нажатии кнопки Play."""
@@ -77,6 +91,9 @@ def check_play_button(ai_settings, screen, stats, sb, play_button, ship,
 
 def start_game(ai_settings, screen, stats, sb, ship, aliens, bullets):
     """Запуск новой игры."""
+
+    # Запуск музыки.
+    music()
 
     # Сброс игровой статистики.
     stats.reset_stats()
@@ -220,6 +237,9 @@ def ship_hit(ai_settings, screen, stats, sb, ship, aliens, bullets):
 
     # Пауза.
     sleep(0.5)
+
+    # Запуск музыки.
+    music()
 
 def check_aliens_bottom(ai_settings, screen, stats, sb, ship, aliens,
                         bullets):
