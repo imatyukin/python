@@ -13,7 +13,9 @@ class GameStats():
         self.game_active = False
 
         # Рекорд не должен сбрасываться.
-        self.high_score = 0
+        with open("high_score.txt") as f:
+            self.high_score = int(f.read())
+        # self.high_score = 0
 
     def reset_stats(self):
         """Инициализирует статистику, изменяющуюся в ходе игры."""
