@@ -83,10 +83,7 @@ def start_game(ai_settings, screen, stats, sb, ship, aliens, bullets):
     stats.game_active = True
 
     # Сброс изображений счетов и уровня.
-    sb.prep_score()
-    sb.prep_high_score()
-    sb.prep_level()
-    sb.prep_ships()
+    sb.prep_images()
 
     # Очистка списков пришельцев и пуль.
     aliens.empty()
@@ -169,15 +166,20 @@ def check_bullet_alien_collisions(ai_settings, screen, stats, sb, ship,
         check_high_score(stats, sb)
 
     if len(aliens) == 0:
-        # Если весь флот уничтожен, начинается следующий уровень.
-        bullets.empty()
-        ai_settings.increase_speed()
+        start_new_level(ai_settings, screen, stats, sb, ship, aliens, bullets)
 
-        # Увеличение уровня.
-        stats.level += 1
-        sb.prep_level()
+def start_new_level(ai_settings, screen, stats, sb, ship, aliens, bullets):
+    """Запускает новый уровень при уничтожении флота."""
 
-        create_fleet(ai_settings, screen, ship, aliens)
+    # Если весь флот уничтожен, начинается следующий уровень.
+    bullets.empty()
+    ai_settings.increase_speed()
+
+    # Увеличение уровня.
+    stats.level += 1
+    sb.prep_level()
+
+    create_fleet(ai_settings, screen, ship, aliens)
 
 def check_fleet_edges(ai_settings, aliens):
     """Реагирует на достижение пришельцем края экрана."""
