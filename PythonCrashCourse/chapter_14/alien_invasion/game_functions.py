@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys
+import sys, os
 from time import sleep
 import random
 
@@ -177,6 +177,25 @@ def check_bullet_alien_collisions(ai_settings, screen, stats, sb, ship,
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
 
     if collisions:
+
+        # Звуки взрыва корабля пришельцев.
+        if random.randint(0, 3) == 0:
+            explosion = pygame.mixer.Sound('sound/explosion1.wav')
+            explosion.set_volume(0.2)
+            explosion.play()
+        elif random.randint(0, 3) == 1:
+            explosion = pygame.mixer.Sound('sound/explosion2.wav')
+            explosion.set_volume(0.2)
+            explosion.play()
+        elif random.randint(0, 3) == 2:
+            explosion = pygame.mixer.Sound('sound/explosion3.wav')
+            explosion.set_volume(0.2)
+            explosion.play()
+        else:
+            explosion = pygame.mixer.Sound('sound/explosion4.wav')
+            explosion.set_volume(0.2)
+            explosion.play()
+
         for aliens in collisions.values():
             stats.score += ai_settings.alien_points * len(aliens)
             sb.prep_score()
