@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 import sys
-from time import sleep
 import random
+from time import sleep
 
 import pygame
-
-from random import randint
 
 from bullet import Bullet
 from alien import Alien
@@ -346,7 +344,7 @@ def create_star(ai_settings, screen, stars, star_number, stars_row_number):
 
     star = Star(ai_settings, screen)
     star_width = star.rect.width
-    random_number = randint(-10, 10)
+    random_number = random.randint(-10, 10)
     star.x = star_width + 2 * star_width * star_number * random_number
     star.rect.x = star.x
     star.rect.y = star.rect.height + 2 * star.rect.height * stars_row_number * random_number
@@ -433,7 +431,7 @@ def get_number_meteors_rows(ai_settings, ship_height, meteor_height):
 def create_meteor(ai_settings, screen, meteors, meteor_number, meteors_row_number):
     """Создает метеорит и размещает его в ряду."""
 
-    random_number = randint(1, 100)
+    random_number = random.randint(1, 100)
     meteor = Meteor(ai_settings, screen)
     meteor_width = meteor.rect.width
     meteor.x = (meteor_width + 2 * meteor_width * meteor_number) * random_number
