@@ -63,3 +63,4 @@ def run_game():
                          bullets, play_button, stars, meteors, sun)
 
 run_game()
+pygame.mixer.music.stop()

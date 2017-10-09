@@ -454,3 +454,15 @@ def create_meteors_net(ai_settings, screen, ship, meteors):
     for meteors_row_number in range(number_meteors_rows):
         for meteor_number in range(number_meteors_x):
             create_meteor(ai_settings, screen, meteors, meteor_number, meteors_row_number)
+            if random.randint(0, 2) == 0:
+                wind = pygame.mixer.Sound('sound/wind1.wav')
+                wind.set_volume(0.1)
+                wind.play()
+            elif random.randint(0, 2) == 1:
+                wind = pygame.mixer.Sound('sound/wind2.wav')
+                wind.set_volume(0.1)
+                wind.play()
+            else:
+                wind = pygame.mixer.Sound('sound/wind3.wav')
+                wind.set_volume(0.1)
+                wind.play()
