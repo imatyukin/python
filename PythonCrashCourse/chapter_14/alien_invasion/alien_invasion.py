@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-from time import sleep
-
 import pygame
 from pygame.sprite import Group
 
