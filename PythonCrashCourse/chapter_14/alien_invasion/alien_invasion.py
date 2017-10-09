@@ -42,18 +42,10 @@ def run_game():
     # Создание галактики звёзд.
     gf.create_galaxy(ai_settings, screen, ship, stars)
 
-    # "Houston we've had a problem"
-    houston_problem = pygame.mixer.Sound('sound/Apollo13_HoustonProblem.wav')
-    houston_problem.set_volume(0.2)
-    houston_problem.play()
-
-    # Создание сетки метеоритов.
-    gf.create_meteors_net(ai_settings, screen, ship, meteors)
-
     # Запуск основного цикла игры.
     while True:
         gf.check_events(ai_settings, screen, stats, sb, play_button, ship,
-                        aliens, bullets)
+                        aliens, bullets, meteors)
 
         if stats.game_active:
             ship.update()

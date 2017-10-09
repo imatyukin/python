@@ -42,7 +42,7 @@ def check_keyup_events(event, ship):
     elif event.key == pygame.K_LEFT:
         ship.moving_left = False
 
-def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens, bullets):
+def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens, bullets, meteors):
     """Обрабатывает нажатия клавиш и события мыши."""
 
     for event in pygame.event.get():
@@ -57,7 +57,7 @@ def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens, bull
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
             check_play_button(ai_settings, screen, stats, sb, play_button,
-                              ship, aliens, bullets, mouse_x, mouse_y)
+                              ship, aliens, bullets, meteors, mouse_x, mouse_y)
 
 def music():
     """Музыка в игре."""
@@ -73,7 +73,7 @@ def music():
         pygame.mixer.music.set_volume(0.2)
 
 def check_play_button(ai_settings, screen, stats, sb, play_button, ship,
-                      aliens, bullets, mouse_x, mouse_y):
+                      aliens, bullets, meteors, mouse_x, mouse_y):
     """Запускает новую игру при нажатии кнопки Play."""
 
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
@@ -85,13 +85,21 @@ def check_play_button(ai_settings, screen, stats, sb, play_button, ship,
         pygame.mouse.set_visible(False)
 
         # Запуск новой игры.
-        start_game(ai_settings, screen, stats, sb, ship, aliens, bullets)
+        start_game(ai_settings, screen, stats, sb, ship, aliens, bullets, meteors)
 
-def start_game(ai_settings, screen, stats, sb, ship, aliens, bullets):
+def start_game(ai_settings, screen, stats, sb, ship, aliens, bullets, meteors):
     """Запуск новой игры."""
+
+    # "Houston we've had a problem"
+    houston_problem = pygame.mixer.Sound('sound/Apollo13_HoustonProblem.wav')
+    houston_problem.set_volume(0.2)
+    houston_problem.play()
 
     # Запуск музыки.
     music()
+
+    # Создание сетки метеоритов.
+    create_meteors_net(ai_settings, screen, ship, meteors)
 
     # Сброс игровой статистики.
     stats.reset_stats()
