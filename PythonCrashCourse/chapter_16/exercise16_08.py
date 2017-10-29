@@ -16,4 +16,7 @@ class CountryCodesTestCase(unittest.TestCase):
         country_code = get_country_code('Afghanistan')
         self.assertEqual(country_code, 'af')
 
+        country_code = get_country_code('Yemen, Rep.')
+        self.assertEqual(country_code, 'ye')
+
 unittest.main()
