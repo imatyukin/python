@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-
 import urllib.request as urllib2
 try:
     import xml.etree.cElementTree as ET
