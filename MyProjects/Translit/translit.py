@@ -90,7 +90,6 @@ def transliterate(string):
     return string
 
 if __name__ == "__main__":
-
     with codecs.open('translit.csv', 'w', 'utf-8') as translit:
         with codecs.open('russian.csv', 'r', 'utf-8') as russian:
             for line in iter(russian.readline, ""):
