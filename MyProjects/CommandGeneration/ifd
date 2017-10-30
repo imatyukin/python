@@ -1,0 +1,19 @@
+xe-0/0/0        down  up   << 10GE ae0 >>
+xe-0/0/1        up    down << 10GE ae1 >>
+xe-0/0/2        down  down << 10GE ae0 >>
+xe-0/0/3        up    up   << 10GE ae2 >>
+xe-0/1/0        up    up   << 10GE ae2 >>
+xe-0/1/1        up    up   << 10GE ae0 >>
+xe-0/1/2        up    up   << 10GE ae2 >>
+xe-0/1/3        up    up   << 10GE ae1 >>
+xe-0/2/0        up    up   << 10GE ae1 >>
+xe-0/2/1        up    up   << 10GE ae0 >>
+xe-0/2/2        up    up   << 10GE ae2 >>
+xe-0/2/3        up    up   << 10GE ae1 >>
+xe-0/3/0        up    up   << 10GE ae1 >>
+xe-0/3/1        up    up   << 10GE ae0 >>
+xe-0/3/2        up    up   << 10GE >>
+xe-0/3/3        up    up   << 10GE >>
+ae0             up    up   << 5x10GE >>
+ae1             up    up   << 5x10GE >>
+ae2             up    up   << 4x10GE >>
