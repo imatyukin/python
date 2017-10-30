@@ -1,31 +1,34 @@
 #!/usr/bin/env python3
-import os
+import sys, os
+
 # package: dnspython
 import dns.resolver
 
-with open('hostnames') as hostnames:
-    hostname = hostnames.read().split( )
+class Tee(object):
+    def __init__(self, *files):
+        self.files = files
+    def write(self, obj):
+        for f in self.files:
+            f.write(obj)
+            f.flush() # The output to be visible immediately
+    def flush(self) :
+        for f in self.files:
+            f.flush()
+
+with open('hostnames') as host_names:
+    hostname = host_names.read().split( )
 
 def query(hosts_list=hostname):
     collection = []
     for host in hosts_list:
         ip = dns.resolver.query(host, "A")
         for i in ip:
-            collection.append(str(i))
+            collection.append(str(i) + '    ' + host)
     return collection
 
-with open('ip.tmp', 'w') as ip_tmp:
-    for arec in query():
-        ip_tmp.write(arec+'\n')
-
-with open('ip.tmp') as ip_tmp:
-    ip = ip_tmp.read().split()
-
 with open('ip-addresses', 'w') as ip_addresses:
-    for ip_tmp, hostnames in zip(ip, hostname):
-        print(ip_tmp, hostnames, file=ip_addresses)
-
-with open('ip-addresses') as ip_addresses:
-    print(ip_addresses.read())
-
-os.remove("ip.tmp")
+    original = sys.stdout
+    sys.stdout = Tee(sys.stdout, ip_addresses)
+    for arec in query():
+        print(arec)
+    sys.stdout = original
