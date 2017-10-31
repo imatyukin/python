@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 import sys
 
 lcc = {'0':'0','1':'1','2':'2','3':'3'}
