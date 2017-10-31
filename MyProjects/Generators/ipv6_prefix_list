@@ -1,0 +1,7 @@
+term prefixes {
+    from {
+        route-filter 2001:67c:233c::/48 exact;
+        route-filter 2a00:1640::/32 exact;
+    }
+    then next policy;
+}
