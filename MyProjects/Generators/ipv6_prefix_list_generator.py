@@ -2,35 +2,35 @@
 import sys
 
 with open("ipv6_prefix_list", 'w') as pl:
-    msg_begin = '''term prefixes {
+    term = '''term prefixes {
     from {
 '''
-    pl.write(msg_begin)
+    pl.write(term)
     try:
         while True:
             data = sys.stdin.readline()
             rm_asterisk = data[2:]
             data_split = rm_asterisk.split()
             prefix = data_split[0]
-            msg1 = '''        route-filter '''
-            msg2 = ''' exact;
+            rf = '''        route-filter '''
+            plength = ''' exact;
 '''
-            pl.write(msg1+prefix+msg2)
+            pl.write(rf+prefix+plength)
             if not data:
                 break
     except KeyboardInterrupt:
         sys.stdout.flush()
     except IndexError:
         sys.stdout.flush()
-    msg_end = '''    }
+    then = '''    }
     then next policy;
 }
 '''
-    pl.write(msg_end)
+    pl.write(then)
 
-msg_stdout = '''Prefix-list.out:
-----------------'''
-print(msg_stdout)
+msg = '''IPv6 prefix-list:
+-----------------'''
+print('\n'+msg)
 with open("ipv6_prefix_list") as pl:
     for line in pl:
         print(line, end='')
