@@ -8,10 +8,10 @@ username = input("Device username: ")
 password = getpass("Device password: ")
 
 # NETCONF session over SSH
-#dev = Device(host=hostname, user=username, passwd=password)
+dev = Device(host=hostname, user=username, passwd=password)
 
 # Telnet connection
-dev = Device(host=hostname, user=username, passwd=password, mode='telnet', port='23')
+#dev = Device(host=hostname, user=username, passwd=password, mode='telnet', port='23')
 
 # Serial console connection
 #dev = Device(host=hostname, user=username, passwd=password, mode='serial', port='/dev/ttyUSB0')
