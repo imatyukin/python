@@ -9,7 +9,6 @@ password = getpass("Device password: ")
 
 # NETCONF session over SSH
 dev = Device(host=hostname, user=username, passwd=password)
-
 try:
     dev.open()
 except Exception as err:
