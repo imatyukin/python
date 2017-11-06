@@ -1,0 +1,11 @@
+---
+STPInterfaces:
+  rpc: get-stp-bridge-interface-information
+  item: stp-instance/stp-interfaces/stp-interface-entry
+  key: interface-name
+  view: STPInterfacesView
+
+STPInterfacesView:
+  fields:
+    state: port-state
+    role: port-role
