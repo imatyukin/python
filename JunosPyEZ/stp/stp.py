@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
-from jnpr.junos import Device
 from getpass import getpass
+from jnpr.junos import Device
 from jnpr.junos.factory import loadyaml
 
 hostname = input("Device hostname: ")

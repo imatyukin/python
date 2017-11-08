@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from jnpr.junos import Device
-from getpass import getpass
 import sys
+from getpass import getpass
+from jnpr.junos import Device
 
 hostname = input("Device hostname: ")
 username = input("Device username: ")
