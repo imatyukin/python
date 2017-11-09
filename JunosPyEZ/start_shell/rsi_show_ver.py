@@ -12,7 +12,7 @@ dev = Device(host=hostname, user=username, passwd=password)
 dev.open()
 
 with StartShell(dev, timeout=60) as ss:
-    ss.run('cli -c "request support information | no-more | save /var/tmp/information.txt"')
+    ss.run('cli -c "request support information | no-more | save /var/tmp/rsi.txt"')
     version = ss.run('cli -c "show version | no-more"')
     print (version)
 
