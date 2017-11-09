@@ -18,6 +18,6 @@ except Exception as err:
     sys.exit(1)
 
 with SCP(dev) as scp:
-    scp.get('/var/log/messages', './messages')
+    scp.get('/var/log/messages', 'messages')
 
 dev.close()
