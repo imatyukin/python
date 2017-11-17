@@ -34,3 +34,6 @@ python3 manage.py migrate
 # Административный сайт Django
 # Создание суперпользователя
 # python3 manage.py createsuperuser
+
+# Интерактивная оболочка Django
+# python3 manage.py shell
