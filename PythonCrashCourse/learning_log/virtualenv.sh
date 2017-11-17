@@ -4,7 +4,7 @@
 # pip3 install --user virtualenv
 
 # Создание виртуальной среды
-# python -m venv ll_env
+# python3 -m venv ll_env
 
 # Активизация виртуальной среды
 source ll_env/bin/activate
