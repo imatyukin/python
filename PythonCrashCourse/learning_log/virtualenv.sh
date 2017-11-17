@@ -28,8 +28,8 @@ python3 manage.py runserver
 # python3 manage.py startapp learning_logs
 
 # Активизация моделей
-# python3 manage.py makemigrations learning_logs
-# python3 manage.py migrate
+python3 manage.py makemigrations learning_logs
+python3 manage.py migrate
 
 # Административный сайт Django
 # Создание суперпользователя
