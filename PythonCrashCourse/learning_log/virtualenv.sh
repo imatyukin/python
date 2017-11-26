@@ -42,3 +42,6 @@ python3 manage.py migrate
 # Создание нового приложения users
 # python manage.py startapp users
 # login/password: ll_user/SuperLL_User123
+
+# Сброс содержимого базы данных
+# python3 manage.py flush
