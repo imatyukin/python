@@ -34,9 +34,11 @@ python3 manage.py migrate
 # Административный сайт Django
 # Создание суперпользователя
 # python3 manage.py createsuperuser
+# login/password: ll_admin/ll_admin
 
 # Интерактивная оболочка Django
 # python3 manage.py shell
 
 # Создание нового приложения users
 # python manage.py startapp users
+# login/password: ll_user/SuperLL_User123
