@@ -93,5 +93,6 @@ def edit_entry(request, entry_id):
     return render(request, 'learning_logs/edit_entry.html', context)
 
 def check_topic_owner(owner, currentUser):
+    """Проверяет, что пользователь, связанный с темой, является текущим пользователем."""
     if owner != currentUser:
         raise Http404
