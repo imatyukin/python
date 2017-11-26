@@ -37,3 +37,6 @@ python3 manage.py migrate
 
 # Интерактивная оболочка Django
 # python3 manage.py shell
+
+# Создание нового приложения users
+# python manage.py startapp users
