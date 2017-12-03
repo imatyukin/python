@@ -25,7 +25,7 @@ SECRET_KEY = '#1&kp_^!_31&j09x0iu_jkh@vxk_df+rkf_y!=-4!@4_&otkgw'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost']
 
 
 # Application definition
@@ -59,7 +59,7 @@ ROOT_URLCONF = 'learning_log.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'learning_log/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -143,7 +143,9 @@ if os.getcwd() == '/app':
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
     # Разрешены все заголовки хостов.
-    ALLOWED_HOSTS = ['*']
+    ALLOWED_HOSTS = ['learning-log.herokuapp.com']
+
+    DEBUG = False
 
     # Конфигурация статических ресурсов
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
