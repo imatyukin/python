@@ -48,3 +48,16 @@ python3 manage.py migrate
 
 # Установка django-bootstrap3
 # pip3 install django-bootstrap3
+
+# Установка пакетов, упрощающих работу проектов Django на реальных серверах
+# Помогает Django взаимодействовать с базой данных, используемой Heroku
+# pip3 install dj-database-url
+# Позволяют Django правильно управлять статическими файлами
+# pip3 install dj-static
+# pip3 install static3
+# Сервер, способный предоставлять доступ к приложениям в реальной среде
+# pip3 install gunicorn
+
+# Создание списка пакетов с файлом requirements.txt
+# pip3 freeze > requirements.txt
+
