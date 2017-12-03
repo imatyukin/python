@@ -61,3 +61,21 @@ python3 manage.py migrate
 # Создание списка пакетов с файлом requirements.txt
 # pip3 freeze > requirements.txt
 
+# Локальное использование сервера gunicorn
+# heroku local
+
+# Закрепление состояния проекта
+# Инициализирует пустой репозиторий в каталоге
+# git init
+# Добавляет все файлы (кроме игнорируемых) в репозиторий
+# git add .
+# Флаг -a приказывает Git включить все измененные файлы в закрепленное состояние,
+# флаг -m приказывает Git сохранить сообщение в журнале
+# git commit -am "Ready for deployment to heroku."
+# Сообщает статус
+# git status
+
+# Отправка проекта
+# heroku login
+# heroku create
+# git push heroku master
