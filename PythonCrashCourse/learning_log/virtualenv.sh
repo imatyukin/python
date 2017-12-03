@@ -76,6 +76,26 @@ python3 manage.py migrate
 # git status
 
 # Отправка проекта
+# Вход на сервер Heroku в терминальном сеансе
 # heroku login
+# Построение пустого проекта Heroku
 # heroku create
+# Приказывает Git отправить главную ветвь проекта в репозиторий
 # git push heroku master
+
+# Проверка, что серверный процесс был запущен правильно
+# heroku ps
+
+# Открыть приложение в браузере
+# heroku open
+
+# Подготовка базы данных в Heroku
+# heroku run python manage.py migrate
+
+# Выполнение команд в терминальном сеансе Bash при подключении к серверу Heroku
+# heroku run bash
+# Создание суперпользователя в Heroku
+# python manage.py createsuperuser
+
+# Создание удобного URL-адреса на Heroku
+# heroku apps:rename learning-log
