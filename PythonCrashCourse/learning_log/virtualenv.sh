@@ -45,3 +45,6 @@ python3 manage.py migrate
 
 # Сброс содержимого базы данных
 # python3 manage.py flush
+
+# Установка django-bootstrap3
+# pip3 install django-bootstrap3
