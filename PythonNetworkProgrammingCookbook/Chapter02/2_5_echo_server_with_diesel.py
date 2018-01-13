@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Python Network Programming Cookbook, Second Edition -- Chapter - 2
 # This program is optimized for Python 2.7.12.
 # It will work with Python 3.5.2 once the depedencies for diesel are sorted out.
