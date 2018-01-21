@@ -8,7 +8,7 @@ units = open('units', 'r').read()
 # вывод команды: show configuration interfaces xe-2/3/0 | display set
 interface = open('interface', 'r').read().splitlines()
 
-# Находит четвёртое поле (номер подинтерфейса)
+# Находит пятое поле (номер подинтерфейса)
 units = [fields.split()[4] for fields in units.splitlines()]
 # Сортирует по значению (в арифметическом порядке)
 units = [int(x) for x in units]
