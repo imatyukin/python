@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Программа берёт подинтерфейсы связанные с encapsulation ccc из файла units
+# Программа берёт подинтерфейсы (units) связанные с encapsulation ccc из файла units
 # и ищет строки связанные с ними в файле interface, содержащем все настройки интерфейса.
 from functools import reduce
 
