@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import re
 import operator
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 #  вывод команды: SPBR-AR1> show configuration | match xe-10/1/0 | match routing-instance | display set
 ifl_ri = open('ifl_ri', 'r').read()
@@ -45,12 +47,12 @@ for line in source_ri_line:
 
 # сравнение списка list_vrf с ключом словаря dict_vrf_num (поиск номеров только для l3vpn)
 dict_vrf = {k: dict_vrf_num[k] for k in dict_vrf_num.keys() & set(list_vrf)}
-# print(dict_vrf)
+pp.pprint(dict_vrf)
 
 # сортировка словаря
 sorted_dict_vrf = sorted(dict_vrf.items(), key=operator.itemgetter(1))
 # sorted_dict_vrf = sorted(dict_vrf.items(), key=lambda x: int(x[1]))
-print(sorted_dict_vrf)
+# print(sorted_dict_vrf)
 
 # вывод команды: SPBR-AR2> show configuration routing-instances | display set
 target_ri = open('target_ri', 'r').read()
@@ -80,4 +82,12 @@ dict_target_vrf = {k: dict_target_vrf_num[k] for k in dict_target_vrf_num.keys()
 # сортировка словаря
 sorted_dict_target_vrf = sorted(dict_target_vrf.items(), key=operator.itemgetter(1))
 # sorted_dict_target_vrf = sorted(dict_target_vrf.items(), key=lambda x: int(x[1]))
-print(sorted_dict_target_vrf)
+# print(sorted_dict_target_vrf)
+
+# Одинаковые VRF на разных маршрутизаторах
+shared_items = set(dict_vrf.items()) & set(dict_target_vrf.items())
+not_shared_items = set(dict_vrf.items()) | set(dict_target_vrf.items())
+# print(shared_items)
+# pp.pprint(shared_items)
+# pp.pprint(not_shared_items)
+
