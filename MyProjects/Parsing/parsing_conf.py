@@ -2,6 +2,9 @@
 import codecs
 import re
 
+def default(a):
+    pass
+
 # show | display set | save /var/tmp/spbr-ar1.conf
 srouter = codecs.open('spbr-ar1.conf', 'r', encoding='utf-8', errors='ignore').read()
 # show | display set | save /var/tmp/spbr-ar4.conf
@@ -9,7 +12,9 @@ trouter = codecs.open('spbr-ar4.conf', 'r', encoding='utf-8', errors='ignore').r
 
 ifl_regex=re.compile("xe-10/1/0.*")
 ifd_regex=re.compile("xe-10/1/0")
-ifl_spec_regex=re.compile("xe-10/1/0.+11763")
+# специфический ifl
+ifl_spec_regex=re.compile("xe-10/1/0.+11217")
+# ifl_spec_regex=re.compile("xe-10/1/0.+11763")
 
 # поиск всех ifd и ifl
 srouter_setline = srouter.splitlines()
@@ -30,7 +35,7 @@ srouter_ifl = [x for x in srouter_ifl if x not in used and (used.add(x) or True)
 # поиск всех ifl на специфическом ifd
 ifl = ([m.group(0) for l in srouter_ifl for m in [ifl_regex.search(l)] if m])
 # print(ifl)
-'''
+
 # вывод настроек специфического ifl
 for setline in srouter_setline:
     for i in re.findall(ifl_spec_regex, setline):
@@ -42,8 +47,14 @@ for setline in srouter_setline:
     for i in re.findall(ifl_spec_regex, setline):
         if 'set class-of-service' in setline:
             print(setline)
+
+# вывод настроек vrf l2vpn специфического ifl (активировать при l2vpn)
+for setline in srouter_setline:
+    for i in re.findall(ifl_spec_regex, setline):
+        if 'set protocols l2circuit' in setline:
+            print(setline)
 '''
-# вывод настроек vrf специфического ifl
+# вывод настроек vrf l3vpn специфического ifl (активировать при l3vpn)
 for setline in srouter_setline:
     for i in re.findall(ifl_spec_regex, setline):
         if 'routing-instances' in setline:
@@ -51,3 +62,4 @@ for setline in srouter_setline:
 for setline in srouter_setline:
     if str(vrf_name)[2:-2] in setline:
         print(setline)
+'''
