@@ -12,7 +12,8 @@ ifl_regex=re.compile("xe-10/1/0.*")
 # специфический ifd
 ifd_regex=re.compile("xe-10/1/0")
 # специфический ifl
-ifl_spec_regex=re.compile("xe-10/1/0.+14750")
+ifl_unit_regex=re.compile("xe-10/1/0 unit 14844")
+ifl_spec_regex=re.compile("xe-10/1/0\.14844")
 
 # поиск всех ifd и ifl
 srouter_setline = srouter.splitlines()
@@ -34,33 +35,54 @@ srouter_ifl = [x for x in srouter_ifl if x not in used and (used.add(x) or True)
 ifl = ([m.group(0) for l in srouter_ifl for m in [ifl_regex.search(l)] if m])
 # print(ifl)
 
+print("---------- Настройки интерфейса ----------")
 # вывод настроек специфического ifl
 for setline in srouter_setline:
-    for i in re.findall(ifl_spec_regex, setline):
+    for i in re.findall(ifl_unit_regex, setline):
         if 'set interfaces' in setline:
             print(setline)
 
+print("---------- Настройки CoS ----------")
 # вывод настроек cos специфического ifl
 for setline in srouter_setline:
-    for i in re.findall(ifl_spec_regex, setline):
+    for i in re.findall(ifl_unit_regex, setline):
         if 'set class-of-service' in setline:
             print(setline)
 
+print("---------- Настройки L2VPN ----------")
 # вывод настроек vrf l2vpn специфического ifl
 for setline in srouter_setline:
     for i in re.findall(ifl_spec_regex, setline):
         if 'set protocols l2circuit' in setline:
             print(setline)
-            break
 
-# вывод настроек vrf l3vpn специфического ifl (активировать при l3vpn)
+print("---------- Настройки L3VPN ----------")
+# вывод настроек vrf l3vpn специфического ifl
 for setline in srouter_setline:
     for i in re.findall(ifl_spec_regex, setline):
         if 'routing-instances' in setline:
             vrf_name = [fields.split()[2] for fields in setline.splitlines()]
 for setline in srouter_setline:
-    try:
-        if str(vrf_name)[2:-2] in setline:
-            print(setline)
-    except:
-        pass
+        try:
+            if str(vrf_name)[2:-2] in setline:
+                print(setline)
+        except:
+            pass
+
+print("---------- Остальные настройки ----------")
+# вывод остальных настроек специфического ifl
+for setline in srouter_setline:
+    for i in re.findall(ifl_unit_regex, setline):
+        if 'set interfaces' not in setline:
+            if 'set class-of-service' not in setline:
+                if 'set protocols l2circuit' not in setline:
+                    if 'routing-instances' not in setline:
+                        print(setline)
+for setline in srouter_setline:
+    for i in re.findall(ifl_spec_regex, setline):
+        if 'set interfaces' not in setline:
+            if 'set class-of-service' not in setline:
+                if 'set protocols l2circuit' not in setline:
+                    if 'routing-instances' not in setline:
+                        print(setline)
+
