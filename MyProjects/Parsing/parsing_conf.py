@@ -7,7 +7,9 @@ srouter = codecs.open('spbr-ar1.conf', 'r', encoding='utf-8', errors='ignore').r
 # show | display set | save /var/tmp/spbr-ar4.conf
 trouter = codecs.open('spbr-ar4.conf', 'r', encoding='utf-8', errors='ignore').read()
 
+# все логические ifl на ifd
 ifl_regex=re.compile("xe-10/1/0.*")
+# специфический ifd
 ifd_regex=re.compile("xe-10/1/0")
 # специфический ifl
 ifl_spec_regex=re.compile("xe-10/1/0.+14750")
