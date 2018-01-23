@@ -10,7 +10,7 @@ trouter = codecs.open('spbr-ar4.conf', 'r', encoding='utf-8', errors='ignore').r
 ifl_regex=re.compile("xe-10/1/0.*")
 ifd_regex=re.compile("xe-10/1/0")
 # специфический ifl
-ifl_spec_regex=re.compile("xe-10/1/0.+11763")
+ifl_spec_regex=re.compile("xe-10/1/0.+14750")
 
 # поиск всех ifd и ifl
 srouter_setline = srouter.splitlines()
@@ -49,6 +49,7 @@ for setline in srouter_setline:
     for i in re.findall(ifl_spec_regex, setline):
         if 'set protocols l2circuit' in setline:
             print(setline)
+            break
 
 # вывод настроек vrf l3vpn специфического ifl (активировать при l3vpn)
 for setline in srouter_setline:
@@ -56,6 +57,8 @@ for setline in srouter_setline:
         if 'routing-instances' in setline:
             vrf_name = [fields.split()[2] for fields in setline.splitlines()]
 for setline in srouter_setline:
-    if str(vrf_name)[2:-2] in setline:
-        print(setline)
-
+    try:
+        if str(vrf_name)[2:-2] in setline:
+            print(setline)
+    except:
+        pass
