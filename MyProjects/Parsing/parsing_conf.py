@@ -117,13 +117,76 @@ local_switch_ifl_filtered = list(filter(lambda i: not ifl_regex.search(i), local
 
 # разделяем ifl на ifd и unit
 l2circuit_ifl_unit = []
+replace_l2circuit_ifd_unit = []
 for n in l2circuit_ifl:
-    n = n.split('.')[0] + ' unit ' + n.split('.')[1]
+    n = ' ' + n.split('.')[0] + ' unit ' + n.split('.')[1] + ' '
     l2circuit_ifl_unit.append(n)
-print(l2circuit_ifl_unit)
+# print(l2circuit_ifl_unit)
+local_switch_ifl_ifd_unit = []
+replace_local_switch_ifl_ifd_unit = []
+for n in local_switch_ifl_ifd:
+    n = ' ' + n.split('.')[0] + ' unit ' + n.split('.')[1] + ' '
+    local_switch_ifl_ifd_unit.append(n)
+# print(local_switch_ifl_ifd_unit)
 
-# выводим конфигурацию интерфейсов l2circuit для специфичесого ifd
+# выводим конфигурацию интерфейсов l2circuit для специфичесого ifd с заменой его имени
 for line in srouter_setline:
     for unit in l2circuit_ifl_unit:
-        unit = re.compile(r'\b(?:%s)\b' % '|'.join(l2circuit_ifl_unit))
-        print(unit)
+        if unit in line:
+            print(line.replace(unit.split( )[0], 'xe-1/2/0'))
+for line in srouter_setline:
+    for unit in l2circuit_ifl:
+        unit = ' ' + unit + ' '
+        if unit in line:
+            print(line.replace(unit.split('.')[0], ' xe-1/2/0'))
+
+# выводим конфигурацию интерфейсов local-switching для специфичесого ifd с заменой его имени
+for line in srouter_setline:
+    for unit in local_switch_ifl_ifd_unit:
+        if unit not in (' xe-10/1/0 unit 4700 ', ' xe-10/1/0 unit 4800 ', ' xe-10/1/0 unit 4900 ', ' xe-10/1/0 unit 11000 '):
+            if unit in line:
+                print(line.replace(unit.split( )[0], 'xe-1/2/0'))
+
+print("\nКонфигурация для нового маршрутизатора SPBR-AR4\n")
+# если local-switching на одном и том же ifd
+local_switch_list = []
+for line in srouter_setline:
+    for unit in local_switch_ifl_ifd:
+        if 'neighbor 95.167.88.60' not in line:
+            unit = ' ' + unit
+            if line.endswith(unit):
+                local_switch_list.append(line)
+for item in local_switch_list:
+    if 'set protocols l2circuit local-switching interface xe-10/1/0' in item:
+        print(item.replace('xe-10/1/0', 'xe-1/2/0'))
+
+# если local-switching на разных ifd
+local_switch_unit_start = []
+for line in srouter_setline:
+    for unit in local_switch_ifl_ifd:
+        if unit not in (' xe-10/1/0.4700 ', ' xe-10/1/0.4800 ', ' xe-10/1/0.4900 ', ' xe-10/1/0.11000 '):
+            unit = ' ' + unit + ' '
+            if unit in line:
+                if 'set protocols l2circuit local-switching interface xe-10/1/0' in line:
+                    if 'end-interface interface xe-10/1/0' not in line:
+                        local_switch_unit_start.append(unit)
+                        if 'description' in line:
+                            print(line.replace('set protocols l2circuit local-switching interface xe-10/1/0', 'set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0'))
+
+used = set()
+local_switch_unit_start = [x for x in local_switch_unit_start if x not in used and (used.add(x) or True)]
+for unit in local_switch_unit_start:
+    if unit not in (' xe-10/1/0.4700 ', ' xe-10/1/0.4800 ', ' xe-10/1/0.4900 ', ' xe-10/1/0.11000 '):
+        print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + 'ignore-mtu-mismatch')
+        print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + 'virtual-circuit-id ' + unit.split('.')[1])
+
+# если ifd end-interface в local-switching
+local_switch_unit_end = []
+for line in srouter_setline:
+    for unit in local_switch_ifl_ifd:
+        if unit not in (' xe-10/1/0.4700 ', ' xe-10/1/0.4800 ', ' xe-10/1/0.4900 ', ' xe-10/1/0.11000 '):
+            unit = ' ' + unit
+            if unit in line:
+                if 'end-interface interface' + unit in line:
+                    print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + ' ignore-mtu-mismatch')
+                    print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + ' virtual-circuit-id ' + unit.split('.')[1])
