@@ -190,3 +190,5 @@ for line in srouter_setline:
                 if 'end-interface interface' + unit in line:
                     print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + ' ignore-mtu-mismatch')
                     print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + ' virtual-circuit-id ' + unit.split('.')[1])
+
+print("\nКонфигурация для старого маршрутизатора SPBR-AR1\n")
