@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+import sys
 import codecs
 import re
+
+sys.stdout = open('spbr-ar4', 'w')
 
 # show | display set | save /var/tmp/spbr-ar1.conf
 srouter = codecs.open('spbr-ar1.conf', 'r', encoding='utf-8', errors='ignore').read()
@@ -133,21 +136,20 @@ for n in local_switch_ifl_ifd:
 for line in srouter_setline:
     for unit in l2circuit_ifl_unit:
         if unit in line:
-            print(line.replace(unit.split( )[0], 'xe-1/2/0'))
+            print(line.replace(unit.split( )[0], 'xe-0/1/2'))
 for line in srouter_setline:
     for unit in l2circuit_ifl:
         unit = ' ' + unit + ' '
         if unit in line:
-            print(line.replace(unit.split('.')[0], ' xe-1/2/0'))
+            print(line.replace(unit.split('.')[0], ' xe-0/1/2'))
 
 # выводим конфигурацию интерфейсов local-switching для специфичесого ifd с заменой его имени
 for line in srouter_setline:
     for unit in local_switch_ifl_ifd_unit:
         if unit not in (' xe-10/1/0 unit 4700 ', ' xe-10/1/0 unit 4800 ', ' xe-10/1/0 unit 4900 ', ' xe-10/1/0 unit 11000 '):
             if unit in line:
-                print(line.replace(unit.split( )[0], 'xe-1/2/0'))
+                print(line.replace(unit.split( )[0], 'xe-0/1/2'))
 
-print("\nКонфигурация для нового маршрутизатора SPBR-AR4\n")
 # если local-switching на одном и том же ifd
 local_switch_list = []
 for line in srouter_setline:
@@ -158,27 +160,27 @@ for line in srouter_setline:
                 local_switch_list.append(line)
 for item in local_switch_list:
     if 'set protocols l2circuit local-switching interface xe-10/1/0' in item:
-        print(item.replace('xe-10/1/0', 'xe-1/2/0'))
+        print(item.replace('xe-10/1/0', 'xe-0/1/2'))
 
 # если local-switching на разных ifd
 local_switch_unit_start = []
 for line in srouter_setline:
     for unit in local_switch_ifl_ifd:
-        if unit not in (' xe-10/1/0.4700 ', ' xe-10/1/0.4800 ', ' xe-10/1/0.4900 ', ' xe-10/1/0.11000 '):
+        if unit not in (' xe-10/1/0.4700 ', ' xe-10/1/0.4800 ', ' xe-10/1/0.4900 ', ' xe-10/1/0.11000 ', ' xe-10/1/0.14700 '):
             unit = ' ' + unit + ' '
             if unit in line:
                 if 'set protocols l2circuit local-switching interface xe-10/1/0' in line:
                     if 'end-interface interface xe-10/1/0' not in line:
                         local_switch_unit_start.append(unit)
                         if 'description' in line:
-                            print(line.replace('set protocols l2circuit local-switching interface xe-10/1/0', 'set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0'))
+                            print(line.replace('set protocols l2circuit local-switching interface xe-10/1/0', 'set protocols l2circuit neighbor 87.226.134.133 interface xe-0/1/2'))
 
 used = set()
 local_switch_unit_start = [x for x in local_switch_unit_start if x not in used and (used.add(x) or True)]
 for unit in local_switch_unit_start:
     if unit not in (' xe-10/1/0.4700 ', ' xe-10/1/0.4800 ', ' xe-10/1/0.4900 ', ' xe-10/1/0.11000 '):
-        print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + 'ignore-mtu-mismatch')
-        print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + 'virtual-circuit-id ' + unit.split('.')[1])
+        print('set protocols l2circuit neighbor 87.226.134.133 interface xe-0/1/2' + '.' + unit.split('.')[1] + 'ignore-mtu-mismatch')
+        print('set protocols l2circuit neighbor 87.226.134.133 interface xe-0/1/2' + '.' + unit.split('.')[1] + 'virtual-circuit-id ' + unit.split('.')[1])
 
 # если ifd end-interface в local-switching
 local_switch_unit_end = []
@@ -188,7 +190,41 @@ for line in srouter_setline:
             unit = ' ' + unit
             if unit in line:
                 if 'end-interface interface' + unit in line:
-                    print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + ' ignore-mtu-mismatch')
-                    print('set protocols l2circuit neighbor 87.226.134.133 interface xe-1/2/0' + '.' + unit.split('.')[1] + ' virtual-circuit-id ' + unit.split('.')[1])
+                    print('set protocols l2circuit neighbor 87.226.134.133 interface xe-0/1/2' + '.' + unit.split('.')[1] + ' ignore-mtu-mismatch')
+                    print('set protocols l2circuit neighbor 87.226.134.133 interface xe-0/1/2' + '.' + unit.split('.')[1] + ' virtual-circuit-id ' + unit.split('.')[1])
 
-print("\nКонфигурация для старого маршрутизатора SPBR-AR1\n")
+sys.stdout.close()
+
+sys.stdout = open('spbr-ar1', 'w')
+
+make_l2circuit_start_dict = {}
+for line in srouter_setline:
+    for unit in local_switch_ifl:
+        if not line.startswith('set protocols l2circuit local-switching interface xe-10/1/0.'):
+            if 'end-interface interface xe-10/1/0' in line:
+                unit = ' ' + unit + ' '
+                if unit in line:
+                    match = re.search(ifl_regex, line).group(0)
+                    make_l2circuit_start_dict.update({unit : match})
+                    if 'description' in line:
+                        print(line.replace('set protocols l2circuit local-switching interface', 'set protocols l2circuit neighbor 213.59.207.99 interface'))
+make_l2circuit_end_dict = {}
+for line in srouter_setline:
+    for unit in local_switch_ifl:
+        unit = ' ' + unit
+        if line.startswith('set protocols l2circuit local-switching interface xe-10/1/0.'):
+            if 'end-interface interface xe-10/1/0' not in line:
+                if 'end-interface interface' + unit in line:
+                    match = re.search('xe-10/1/0.\w+', line).group(0)
+                    make_l2circuit_end_dict.update({unit: match})
+
+for k, v in make_l2circuit_start_dict.items():
+    print('set protocols l2circuit neighbor 213.59.207.99 interface' + k + 'virtual-circuit-id ' + v.split('.')[1])
+    print('set protocols l2circuit neighbor 213.59.207.99 interface' + k + 'ignore-mtu-mismatch')
+    print('deactivate protocols l2circuit neighbor 213.59.207.99 interface' + k)
+for k, v in make_l2circuit_end_dict.items():
+    print('set protocols l2circuit neighbor 213.59.207.99 interface' + k + ' virtual-circuit-id ' + v.split('.')[1])
+    print('set protocols l2circuit neighbor 213.59.207.99 interface' + k + ' ignore-mtu-mismatch')
+    print('deactivate protocols l2circuit neighbor 213.59.207.99 interface' + k)
+
+sys.stdout.close()
