@@ -100,6 +100,22 @@ with open('spbr-ar2', 'w') as target_router_conf:
     for i in local_switching_list:
         if 'set protocols l2circuit local-switching interface ' + ifd_source in i:
             print(i.replace(ifd_source, ifd_target))
+        local_switching_ifl_description = []
+    for conf_line in router_conf_line:
+        for unit in local_switching_ifl_ifd:
+            if unit not in ifl_except_short:
+                if 'set protocols l2circuit local-switching interface ' + ifd_source in conf_line:
+                    if 'end-interface interface ' + ifd_source in conf_line:
+                        local_switching_ifl_description.extend(([fields.split()[5] for fields in conf_line.splitlines()]))
+    used = set()
+    local_switching_ifl_description = [x for x in local_switching_ifl_description if x not in used and (used.add(x) or True)]
+    for conf_line in router_conf_line:
+        for unit in local_switching_ifl_description:
+            if 'set protocols l2circuit local-switching interface ' + ifd_source in conf_line:
+                if unit in conf_line:
+                    if 'description' in conf_line:
+                        print(conf_line.replace('set protocols l2circuit local-switching interface ' + ifd_source,
+                                                'set protocols l2circuit local-switching interface ' + ifd_target))
 
     # если local-switching на разных ifd делаем neighbor к новому маршрутизатору
     # для front-interface в local-switching
