@@ -1,29 +1,34 @@
 #!/usr/bin/env python3
-''' Перенос L2VPN с SPBR-AR1@xe-9/1/0 на SPBR-AR2@xe-4/1/2 '''
+# Перенос L2VPN с SPBR-AR1@xe-9/1/0 на SPBR-AR2@xe-4/1/2
 import sys
 import codecs
 import re
 
+
 class Tee(object):
     def __init__(self, *files):
         self.files = files
+
     def write(self, obj):
         for f in self.files:
             f.write(obj)
             f.flush() # The output to be visible immediately
-    def flush(self) :
+
+    def flush(self):
         for f in self.files:
             f.flush()
+
 
 with open('spbr-ar2', 'w') as target_router_conf:
     original = sys.stdout
     sys.stdout = Tee(sys.stdout, target_router_conf)
 
-    # show | display set | save /var/tmp/spbr-ar1.conf
+    # Файл источник
+    # SPBR-AR1# show | display set | save /var/tmp/spbr-ar1.conf
     router_conf = codecs.open('spbr-ar1.conf', 'r', encoding='utf-8', errors='ignore').read()
     router_conf_line = router_conf.splitlines()
 
-    # Регулярные выражения
+    # Объявление регулярных выражений и переменных
     ifl_regex = re.compile('xe-9/1/0.\w+')
     ifd_source = 'xe-9/1/0'
     ifd_target = 'xe-4/1/2'
@@ -31,7 +36,7 @@ with open('spbr-ar2', 'w') as target_router_conf:
     ifl_except_short = 'xe-9/1/0.4700', 'xe-9/1/0.4800', 'xe-9/1/0.4900', 'xe-9/1/0.11000', 'xe-9/1/0.14700'
     ip_neighbor = '95.167.88.60'
 
-    # Логические интерфейсы L2VPN (ifl) связанные с физическим интерфейсом ifd
+    # Логические интерфейсы (ifl) протокола l2circuit связанные с физическим интерфейсом (ifd)
     neighbor_ifl = []
     local_switching_ifl = []
     for conf_line in router_conf_line:
@@ -45,28 +50,27 @@ with open('spbr-ar2', 'w') as target_router_conf:
                         for fields in conf_line.splitlines():
                             local_switching_ifl.append(fields.split()[5])
                             local_switching_ifl.append(fields.split()[8])
+
     # Уникальные значения ifl для l2circuit neighbor
     used = set()
     neighbor_ifl = [x for x in neighbor_ifl if x not in used and (used.add(x) or True)]
-    # print(neighbor_ifl)
+
     # local-switching ifl связанные с ifd
     local_switching_ifl_ifd = list(filter(ifl_regex.search, local_switching_ifl))
-    # print(local_switching_ifl_ifd)
+
     # ifl других ifd с которыми настроен local-switching
-    local_switching_ifl_filtered = list(filter(lambda i: not ifl_regex.search(i), local_switching_ifl))
-    # print(local_switching_ifl_filtered)
+    # local_switching_ifl_filtered = list(filter(lambda i: not ifl_regex.search(i), local_switching_ifl))
 
     # разделяем ifl на ifd и unit
     neighbor_ifd_unit = []
     for ifl in neighbor_ifl:
         ifl = ' ' + ifl.split('.')[0] + ' unit ' + ifl.split('.')[1] + ' '
         neighbor_ifd_unit.append(ifl)
-    # print(neighbor_ifd_unit)
+
     local_switching_ifd_unit = []
     for ifl in local_switching_ifl_ifd:
         ifl = ' ' + ifl.split('.')[0] + ' unit ' + ifl.split('.')[1] + ' '
         local_switching_ifd_unit.append(ifl)
-    # print(local_switching_ifd_unit)
 
     # выводим конфигурацию l2circuit neighbor для ifd с заменой его имени на новое
     for conf_line in router_conf_line:
@@ -86,7 +90,7 @@ with open('spbr-ar2', 'w') as target_router_conf:
                 if unit in conf_line:
                     print(conf_line.replace(unit.split( )[0], ifd_target))
 
-    # если local-switching на одном ifd заменяем его имя на новое
+    # если "front" и "end" ifl local-switching на одном ifd заменяем его имя на новое
     local_switching_list = []
     for conf_line in router_conf_line:
         for unit in local_switching_ifl_ifd:
@@ -135,11 +139,12 @@ with open('spbr-ar2', 'w') as target_router_conf:
 
     sys.stdout = original
 
+# изменения на старом маршрутизаторе для local-switching ifl в сторону нового neighbor
+
 with open('spbr-ar1', 'w') as source_router_conf:
     original = sys.stdout
     sys.stdout = Tee(sys.stdout, source_router_conf)
 
-    # изменения на старом маршрутизаторе для ifl в сторону нового neighbor
     local_switching_front_ifl_dict = {}
     for conf_line in router_conf_line:
         for unit in local_switching_ifl:
