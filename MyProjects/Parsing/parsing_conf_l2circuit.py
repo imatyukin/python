@@ -134,8 +134,11 @@ for conf_line in router_conf_line:
                 if unit in conf_line:
                     match_ifl = re.search(ifl_regex, conf_line).group(0)
                     local_switching_front_ifl_dict.update({unit : match_ifl})
-                    if 'description' in conf_line:
-                        print(conf_line.replace('set protocols l2circuit local-switching interface', 'set protocols l2circuit neighbor ' + ip_neighbor + ' interface'))
+for conf_line in router_conf_line:
+    for key in local_switching_front_ifl_dict.keys():
+        if key in conf_line:
+            if 'description' in conf_line:
+                print(conf_line.replace('set protocols l2circuit local-switching interface', 'set protocols l2circuit neighbor ' + ip_neighbor + ' interface'))
 local_switching_end_ifl_dict = {}
 for conf_line in router_conf_line:
     for unit in local_switching_ifl:
