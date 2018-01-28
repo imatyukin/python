@@ -121,6 +121,7 @@ for conf_line in router_conf_line:
                     print('set protocols l2circuit neighbor ' + ip_neighbor + ' interface ' + ifd_target + '.' + unit.split('.')[1] + ' virtual-circuit-id ' + unit.split('.')[1])
 
 sys.stdout.close()
+
 sys.stdout = open('spbr-ar1', 'w')
 
 # изменения на старом маршрутизаторе для ifl в сторону нового neighbor
