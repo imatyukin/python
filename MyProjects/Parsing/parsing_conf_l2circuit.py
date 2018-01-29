@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Перенос L2VPN с SPBR-AR1@xe-9/1/0 на SPBR-AR2@xe-4/1/2
+# Перенос L2VPN с одного интерфейса маршрутизатора на другой маршрутизатор
 import sys
 import codecs
 import re
@@ -36,12 +36,13 @@ with open(target_router_conf, 'w') as target_router_conf:
     ifl_regex = re.compile('xe-2/1/0.\w+')
     ifd_source = 'xe-2/1/0'
     ifd_target = 'xe-0/0/2'
+    ip_source_neighbor = '87.226.134.133'
+    ip_target_neighbor = '95.167.88.60'
+    # Интерфейсы, которые переносить не нужно
     ifl_except = ' xe-9/1/0 unit 4700 ', ' xe-9/1/0 unit 4800 ', ' xe-9/1/0 unit 4900 ', \
                  ' xe-9/1/0 unit 11000 ', ' xe-9/1/0 unit 14700 '
     ifl_except_short = 'xe-9/1/0.4700', 'xe-9/1/0.4800', 'xe-9/1/0.4900', \
                        'xe-9/1/0.11000', 'xe-9/1/0.14700'
-    ip_source_neighbor = '87.226.134.133'
-    ip_target_neighbor = '95.167.88.60'
 
     # Логические интерфейсы (ifl) протокола l2circuit связанные с физическим интерфейсом (ifd)
     neighbor_ifl = []
