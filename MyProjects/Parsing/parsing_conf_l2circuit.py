@@ -19,22 +19,29 @@ class Tee(object):
             f.flush()
 
 
-with open('spbr-ar2', 'w') as target_router_conf:
+# Файл источник: show | display set | save /var/tmp/router.conf
+router_conf = 'spbr-ar1.conf'
+# Целевые файлы: load set /var/tmp/router.conf
+source_router_conf = 'spbr-ar1'
+target_router_conf = 'spbr-ar2'
+
+with open(target_router_conf, 'w') as target_router_conf:
     original = sys.stdout
     sys.stdout = Tee(sys.stdout, target_router_conf)
 
-    # Файл источник
-    # SPBR-AR1# show | display set | save /var/tmp/spbr-ar1.conf
-    router_conf = codecs.open('spbr-ar1.conf', 'r', encoding='utf-8', errors='ignore').read()
+    router_conf = codecs.open(router_conf, 'r', encoding='utf-8', errors='ignore').read()
     router_conf_line = router_conf.splitlines()
 
     # Объявление регулярных выражений и переменных
-    ifl_regex = re.compile('xe-9/1/0.\w+')
-    ifd_source = 'xe-9/1/0'
-    ifd_target = 'xe-4/1/2'
-    ifl_except = ' xe-9/1/0 unit 4700 ', ' xe-9/1/0 unit 4800 ', ' xe-9/1/0 unit 4900 ', ' xe-9/1/0 unit 11000 ', ' xe-9/1/0 unit 14700 '
-    ifl_except_short = 'xe-9/1/0.4700', 'xe-9/1/0.4800', 'xe-9/1/0.4900', 'xe-9/1/0.11000', 'xe-9/1/0.14700'
-    ip_neighbor = '95.167.88.60'
+    ifl_regex = re.compile('xe-2/1/0.\w+')
+    ifd_source = 'xe-2/1/0'
+    ifd_target = 'xe-0/0/2'
+    ifl_except = ' xe-9/1/0 unit 4700 ', ' xe-9/1/0 unit 4800 ', ' xe-9/1/0 unit 4900 ', \
+                 ' xe-9/1/0 unit 11000 ', ' xe-9/1/0 unit 14700 '
+    ifl_except_short = 'xe-9/1/0.4700', 'xe-9/1/0.4800', 'xe-9/1/0.4900', \
+                       'xe-9/1/0.11000', 'xe-9/1/0.14700'
+    ip_source_neighbor = '87.226.134.133'
+    ip_target_neighbor = '95.167.88.60'
 
     # Логические интерфейсы (ifl) протокола l2circuit связанные с физическим интерфейсом (ifd)
     neighbor_ifl = []
@@ -75,13 +82,15 @@ with open('spbr-ar2', 'w') as target_router_conf:
     # выводим конфигурацию l2circuit neighbor для ifd с заменой его имени на новое
     for conf_line in router_conf_line:
         for unit in neighbor_ifd_unit:
-            if unit in conf_line:
-                print(conf_line.replace(unit.split( )[0], ifd_target))
+            if unit not in ifl_except:
+                if unit in conf_line:
+                    print(conf_line.replace(unit.split( )[0], ifd_target))
     for conf_line in router_conf_line:
         for unit in neighbor_ifl:
-            unit = ' ' + unit + ' '
-            if unit in conf_line:
-                print(conf_line.replace(unit.split('.')[0], ' ' + ifd_target))
+            if unit not in ifl_except_short:
+                unit = ' ' + unit + ' '
+                if unit in conf_line:
+                    print(conf_line.replace(unit.split('.')[0], ' ' + ifd_target))
 
     # выводим конфигурацию l2circuit local-switching для ifd с заменой его имени на новое
     for conf_line in router_conf_line:
@@ -106,9 +115,11 @@ with open('spbr-ar2', 'w') as target_router_conf:
             if unit not in ifl_except_short:
                 if 'set protocols l2circuit local-switching interface ' + ifd_source in conf_line:
                     if 'end-interface interface ' + ifd_source in conf_line:
-                        local_switching_ifl_description.extend(([fields.split()[5] for fields in conf_line.splitlines()]))
+                        local_switching_ifl_description.extend(([fields.split()[5] for fields in
+                                                                 conf_line.splitlines()]))
     used = set()
-    local_switching_ifl_description = [x for x in local_switching_ifl_description if x not in used and (used.add(x) or True)]
+    local_switching_ifl_description = [x for x in local_switching_ifl_description
+                                       if x not in used and (used.add(x) or True)]
     for conf_line in router_conf_line:
         for unit in local_switching_ifl_description:
             if 'set protocols l2circuit local-switching interface ' + ifd_source in conf_line:
@@ -137,11 +148,14 @@ with open('spbr-ar2', 'w') as target_router_conf:
                 if 'set protocols l2circuit local-switching interface ' + ifd_source in conf_line:
                     if 'description' in conf_line:
                         print(conf_line.replace('set protocols l2circuit local-switching interface ' + ifd_source,
-                                                'set protocols l2circuit neighbor ' + ip_neighbor + ' interface ' + ifd_target))
+                                                'set protocols l2circuit neighbor ' + ip_source_neighbor
+                                                + ' interface ' + ifd_target))
     for unit in local_switching_front_ifl:
         if unit not in ifl_except:
-            print('set protocols l2circuit neighbor ' + ip_neighbor + ' interface ' + ifd_target + '.' + unit.split('.')[1] + 'ignore-mtu-mismatch')
-            print('set protocols l2circuit neighbor ' + ip_neighbor + ' interface ' + ifd_target + '.' + unit.split('.')[1] + 'virtual-circuit-id ' + unit.split('.')[1])
+            print('set protocols l2circuit neighbor ' + ip_source_neighbor + ' interface ' + ifd_target + '.'
+                  + unit.split('.')[1] + 'ignore-mtu-mismatch')
+            print('set protocols l2circuit neighbor ' + ip_source_neighbor + ' interface ' + ifd_target + '.'
+                  + unit.split('.')[1] + 'virtual-circuit-id ' + unit.split('.')[1])
 
     # для end-interface в local-switching
     for conf_line in router_conf_line:
@@ -150,14 +164,16 @@ with open('spbr-ar2', 'w') as target_router_conf:
                 unit = ' ' + unit
                 if unit in conf_line:
                     if 'end-interface interface' + unit in conf_line:
-                        print('set protocols l2circuit neighbor ' + ip_neighbor + ' interface ' + ifd_target + '.' + unit.split('.')[1] + ' ignore-mtu-mismatch')
-                        print('set protocols l2circuit neighbor ' + ip_neighbor + ' interface ' + ifd_target + '.' + unit.split('.')[1] + ' virtual-circuit-id ' + unit.split('.')[1])
+                        print('set protocols l2circuit neighbor ' + ip_source_neighbor + ' interface ' + ifd_target
+                              + '.' + unit.split('.')[1] + ' ignore-mtu-mismatch')
+                        print('set protocols l2circuit neighbor ' + ip_source_neighbor + ' interface ' + ifd_target
+                              + '.' + unit.split('.')[1] + ' virtual-circuit-id ' + unit.split('.')[1])
 
     sys.stdout = original
 
 # изменения на старом маршрутизаторе для local-switching ifl в сторону нового neighbor
 
-with open('spbr-ar1', 'w') as source_router_conf:
+with open(source_router_conf, 'w') as source_router_conf:
     original = sys.stdout
     sys.stdout = Tee(sys.stdout, source_router_conf)
 
@@ -174,7 +190,8 @@ with open('spbr-ar1', 'w') as source_router_conf:
         for key in local_switching_front_ifl_dict.keys():
             if key in conf_line:
                 if 'description' in conf_line:
-                    print(conf_line.replace('set protocols l2circuit local-switching interface', 'set protocols l2circuit neighbor ' + ip_neighbor + ' interface'))
+                    print(conf_line.replace('set protocols l2circuit local-switching interface',
+                                            'set protocols l2circuit neighbor ' + ip_target_neighbor + ' interface'))
     local_switching_end_ifl_dict = {}
     for conf_line in router_conf_line:
         for unit in local_switching_ifl:
@@ -185,12 +202,14 @@ with open('spbr-ar1', 'w') as source_router_conf:
                         match_ifl = re.search(ifl_regex, conf_line).group(0)
                         local_switching_end_ifl_dict.update({unit: match_ifl})
     for k, v in local_switching_front_ifl_dict.items():
-        print('set protocols l2circuit neighbor ' + ip_neighbor + ' interface' + k + 'virtual-circuit-id ' + v.split('.')[1])
-        print('set protocols l2circuit neighbor ' + ip_neighbor + ' interface' + k + 'ignore-mtu-mismatch')
-        print('deactivate protocols l2circuit neighbor ' + ip_neighbor + ' interface' + k)
+        print('set protocols l2circuit neighbor ' + ip_target_neighbor + ' interface' + k + 'virtual-circuit-id '
+              + v.split('.')[1])
+        print('set protocols l2circuit neighbor ' + ip_target_neighbor + ' interface' + k + 'ignore-mtu-mismatch')
+        print('deactivate protocols l2circuit neighbor ' + ip_target_neighbor + ' interface' + k)
     for k, v in local_switching_end_ifl_dict.items():
-        print('set protocols l2circuit neighbor ' + ip_neighbor + ' interface' + k + ' virtual-circuit-id ' + v.split('.')[1])
-        print('set protocols l2circuit neighbor ' + ip_neighbor + ' interface' + k + ' ignore-mtu-mismatch')
-        print('deactivate protocols l2circuit neighbor ' + ip_neighbor + ' interface' + k)
+        print('set protocols l2circuit neighbor ' + ip_target_neighbor + ' interface' + k + ' virtual-circuit-id '
+              + v.split('.')[1])
+        print('set protocols l2circuit neighbor ' + ip_target_neighbor + ' interface' + k + ' ignore-mtu-mismatch')
+        print('deactivate protocols l2circuit neighbor ' + ip_target_neighbor + ' interface' + k)
 
     sys.stdout = original
