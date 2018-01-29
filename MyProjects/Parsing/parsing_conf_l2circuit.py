@@ -172,7 +172,7 @@ with open(target_router_conf, 'w') as target_router_conf:
 
     sys.stdout = original
 
-# изменения на старом маршрутизаторе для local-switching ifl в сторону нового neighbor
+# изменения на маршрутизаторе источнике для local-switching ifl в сторону нового neighbor
 
 with open(source_router_conf, 'w') as source_router_conf:
     original = sys.stdout
