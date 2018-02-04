@@ -21,7 +21,7 @@ class Tee(object):
 
 # Файл источник: show | display set | save /var/tmp/router.conf
 router_conf = 'spbr-ar1.conf'
-# Целевые файлы: load set /var/tmp/router.conf
+# Целевые файлы: load set /var/tmp/router
 source_router_conf = 'spbr-ar1'
 target_router_conf = 'spbr-ar2'
 
