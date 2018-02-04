@@ -3,6 +3,7 @@
 import sys
 import codecs
 import re
+import netaddr
 
 
 class Tee(object):
@@ -68,7 +69,7 @@ with open(target_router_conf, 'w') as target_router_conf:
             if ifl in conf_line:
                 print(conf_line)
 
-    # Словарь ifl:ri
+    # Словарь ifl : ri
     ifl_ri_dic = {}
     for conf_line in router_conf_line:
         for ifl in ri_ifl:
@@ -86,11 +87,45 @@ with open(target_router_conf, 'w') as target_router_conf:
 
     # IP-адреса ifl на ifd
     ip_addr = []
+    subnets = []
     for conf_line in router_conf_line:
         for unit in ifd_unit:
             if unit in conf_line:
                 if 'family inet address' in conf_line:
-                    ip_addr.extend([(fields.split()[8]).split('/')[0] for fields in conf_line.splitlines()])
+                    for fields in conf_line.splitlines():
+                        ip_addr.extend([(fields.split()[8]).split('/')[0]])
+                        subnets.extend([(fields.split()[8])])
+
+    # Словарь static route : ri
+    static_routes_dic = {}
+    for conf_line in router_conf_line:
+        if 'routing-instances' in conf_line:
+            if 'routing-options static' in conf_line:
+                for vrf in ri_names:
+                    if vrf in conf_line:
+                        if 'next-hop' in conf_line:
+                            match_static_route = list([fields.split()[6] for fields in conf_line.splitlines()])[0]
+                            static_routes_dic.update({match_static_route: vrf})
+
+    # Словарь static route : next-hop
+    next_hop_dic = {}
+    for conf_line in router_conf_line:
+        if 'routing-instances' in conf_line:
+            if 'routing-options static' in conf_line:
+                for vrf in ri_names:
+                    if vrf in conf_line:
+                        if 'next-hop' in conf_line:
+                            for k, v in static_routes_dic.items():
+                                if k in conf_line:
+                                    match_next_hop = list([fields.split()[8] for fields in
+                                                               conf_line.splitlines()])[0]
+                                    next_hop_dic.update({k: match_next_hop})
+
+    # Проверка вхождения next-hop в подсети
+    static_dic = {}
+    for k, v in next_hop_dic.items():
+        if v in netaddr.IPSet(subnets):
+            static_dic.update(({k: v}))
 
     # Вывод настроек ri
     bgp_neighbor = []
@@ -108,6 +143,8 @@ with open(target_router_conf, 'w') as target_router_conf:
                                             bgp_neighbor.append(fields.split()[8])
                                             bgp_group.append(fields.split()[6])
 
+
+
     # Уникальные значения bgp group и bgp neighbor
     used = set()
     bgp_neighbor = [x for x in bgp_neighbor if x not in used and (used.add(x) or True)]
@@ -118,6 +155,13 @@ with open(target_router_conf, 'w') as target_router_conf:
         if 'routing-instances' in conf_line:
             for vrf in ri_names:
                 if vrf in conf_line:
+                    if 'routing-options static' in conf_line:
+                        for k, v in static_dic.items():
+                            if k in conf_line:
+                                if v in conf_line:
+                                    print(conf_line)
+                                if v not in conf_line:
+                                    print(conf_line)
                     if 'routing-options static' not in conf_line:
                         if 'protocols bgp' not in conf_line:
                             if 'interface lo0' in conf_line:
