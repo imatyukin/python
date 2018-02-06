@@ -69,7 +69,7 @@ with open(target_router_conf, 'w') as target_router_conf:
             if ifl in conf_line:
                 print(conf_line)
 
-    # Словарь ifl : ri
+    # Словарь ifls : routing-instances
     ifl_ri_dic = {}
     for conf_line in router_conf_line:
         for ifl in ri_ifl:
@@ -80,12 +80,12 @@ with open(target_router_conf, 'w') as target_router_conf:
                             match_vrf = list([fields.split()[2] for fields in conf_line.splitlines()])[0]
                             ifl_ri_dic.update({ifl: match_vrf})
 
-    # Уникальные имена ri
+    # Уникальные имена routing-instances
     ifl_ri_list = []
     ifl_ri_list.append(ifl_ri_dic.copy())
     ri_names = list(set(val for dic in ifl_ri_list for val in dic.values()))
 
-    # Словарь ifl : ip-address
+    # Словарь ifls : ip-addresses
     ifl_ip_addr_dic = {}
     for conf_line in router_conf_line:
         for unit in ifd_unit:
@@ -94,17 +94,6 @@ with open(target_router_conf, 'w') as target_router_conf:
                     match_ip_addr = list([fields.split()[8] for fields in conf_line.splitlines()])[0]
                     ifl = unit.split(' ')[1] + '.' + unit.split(' ')[3]
                     ifl_ip_addr_dic.update({ifl: match_ip_addr})
-
-    # IP-адреса ifl на ifd
-    ip_addr = []
-    subnets = []
-    for conf_line in router_conf_line:
-        for unit in ifd_unit:
-            if unit in conf_line:
-                if 'family inet address' in conf_line:
-                    for fields in conf_line.splitlines():
-                        ip_addr.extend([(fields.split()[8]).split('/')[0]])
-                        subnets.extend([(fields.split()[8])])
 
     # Словарь static-routes : routing-instances
     static_routes_ri_dic = {}
@@ -131,41 +120,43 @@ with open(target_router_conf, 'w') as target_router_conf:
                                                                conf_line.splitlines()])[0]
                                     static_routes_nh_dic.update({static_route: match_next_hop})
 
-    # Проверка вхождения static-route next-hop в подсети ifl
-    # Словарь static-route : next-hop для ifd
+    # Проверка вхождения next-hops для static-routes в подсети ifl
+    # Словарь static-routes : next-hops для ifd
     static_routes_dic = {}
     for static_route, next_hop in static_routes_nh_dic.items():
         if next_hop in netaddr.IPSet(list(ifl_ip_addr_dic.values())):
             static_routes_dic.update(({static_route: next_hop}))
 
-    # Вывод настроек ri
-    bgp_neighbor = []
-    bgp_group = []
+    # Поиск bgp-neighbors и bgp-groups
+    bgp_neighbors = []
+    bgp_groups = []
     for conf_line in router_conf_line:
         if 'routing-instances' in conf_line:
             for vrf in ri_names:
                 if vrf in conf_line:
                     if 'protocols bgp' in conf_line:
                         if 'local-address' in conf_line:
-                            for ip in ip_addr:
-                                if ip in conf_line:
+                            ip_addresses = [ip_addr.split('/')[0] for ip_addr in list(ifl_ip_addr_dic.values())]
+                            for ip_addr in ip_addresses:
+                                if ip_addr in conf_line:
                                     for fields in conf_line.splitlines():
-                                        bgp_neighbor.append(fields.split()[8])
-                                        bgp_group.append(fields.split()[6])
+                                        bgp_neighbors.append(fields.split()[8])
+                                        bgp_groups.append(fields.split()[6])
 
-    # Уникальные значения bgp group и bgp neighbor
+    # Уникальные значения bgp-groups и bgp-neighbors
     used = set()
-    bgp_neighbor = [x for x in bgp_neighbor if x not in used and (used.add(x) or True)]
+    bgp_neighbors = [x for x in bgp_neighbors if x not in used and (used.add(x) or True)]
     used = set()
-    bgp_group = [x for x in bgp_group if x not in used and (used.add(x) or True)]
+    bgp_groups = [x for x in bgp_groups if x not in used and (used.add(x) or True)]
 
+    # Вывод настроек routing-instances
     for conf_line in router_conf_line:
         if 'routing-instances' in conf_line:
             for vrf in ri_names:
                 if vrf in conf_line:
                     if 'routing-options static' in conf_line:
-                        for k, v in static_routes_dic.items():
-                            if k in conf_line:
+                        for static_route, next_hop in static_routes_dic.items():
+                            if static_route in conf_line:
                                 print(conf_line)
                     if 'routing-options static' not in conf_line:
                         if 'protocols bgp' not in conf_line:
@@ -180,11 +171,11 @@ with open(target_router_conf, 'w') as target_router_conf:
                             if 'protocols bgp group' not in conf_line:
                                 print(conf_line)
                             if 'neighbor' not in conf_line:
-                                for group in bgp_group:
+                                for group in bgp_groups:
                                     if group in conf_line:
                                         print(conf_line)
                             if 'neighbor' in conf_line:
-                                for neighbor in bgp_neighbor:
+                                for neighbor in bgp_neighbors:
                                     if neighbor in conf_line:
                                         print(conf_line)
 
