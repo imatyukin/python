@@ -63,7 +63,7 @@ with open(target_router_conf, 'w') as target_router_conf:
         ifl = ' ' + ifl.split('.')[0] + ' unit ' + ifl.split('.')[1] + ' '
         ifd_unit.append(ifl)
 
-    # выводим конфигурацию ifl и CoS для ifd с заменой имени ifd на новое
+    # выводим конфигурацию ifl и CoS для ifd
     for conf_line in router_conf_line:
         for ifl in ifd_unit:
             if ifl in conf_line:
