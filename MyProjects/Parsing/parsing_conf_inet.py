@@ -23,10 +23,11 @@ class Tee(object):
 # Файл источник: show | display set | save /var/tmp/router.conf
 router_conf = 'spbr-ar1.conf'
 # Целевой файл: load set /var/tmp/router
-target_router_conf = 'spbr-ar1'
+target_router_conf = 'spbr-ar2'
 
-# Объявление регулярных выражений и переменных
+# Объявление переменных и регулярных выражений
 ifd_source = 'xe-2/3/0'
+ifd_target = 'xe-9/3/3'
 ifl_regex = re.compile('xe-2/3/0.\w+')
 
 with open(target_router_conf, 'w') as target_router_conf:
@@ -73,7 +74,7 @@ with open(target_router_conf, 'w') as target_router_conf:
     for conf_line in router_conf_line:
         for ifl in ifd_unit:
             if ifl in conf_line:
-                print(conf_line)
+                print(conf_line.replace(ifl.split( )[0], ifd_target))
 
     # Словарь ip-addresses : ifls
     ip_addr_ifl_dic = {}
