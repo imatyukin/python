@@ -33,9 +33,9 @@ with open(target_router_conf, 'w') as target_router_conf:
     router_conf_line = router_conf.splitlines()
 
     # Объявление регулярных выражений и переменных
-    ifl_regex = re.compile('ae6.\w+')
-    ifd_source = 'ae6'
-    ifd_target = 'ae9'
+    ifl_regex = re.compile('xe-2/3/0.\w+')
+    ifd_source = 'xe-2/3/0'
+    ifd_target = 'xe-9/3/3'
     ip_source_neighbor = '87.226.134.133'
     ip_target_neighbor = '95.167.88.60'
     # Интерфейсы, которые переносить не нужно
