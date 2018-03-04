@@ -12,7 +12,7 @@ def main():
     ip = '192.1.127.50'
     print('IPv4 address:', ip)
     # Non-contiguous subnet mask (SM)
-    sm = '255.252.0.88'
+    sm = '255.255.255.88'
     print('Non-contiguous subnet mask:', sm)
 
     # Convert IP address and Subnet Mask to binary
