@@ -3,7 +3,6 @@
 # Calculate:
 # Network-ID address (First IPv4 address)
 # Broadcast address (Last IPv4 address)
-# Number of available addresses for hosts
 import numpy as np
 
 
