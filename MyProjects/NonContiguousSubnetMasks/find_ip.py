@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Find IPv4 address in Non-contiguous IP-pools
+# Find IPv4 address in non-contiguous IP-pools
 import numpy as np
 
 
@@ -10,7 +10,7 @@ def main():
     ip = ''.join([bin(int(x)+256)[3:] for x in ip.split('.')])
     ip_bin = np.fromstring(ip, 'u1') - ord('0')
 
-    # Dictionary subnet/mask
+    # Create dictionary { subnet : mask }
     with open('ip_pools') as f:
         ip_pool_dic = {}
         for line in f.read().split( ):
