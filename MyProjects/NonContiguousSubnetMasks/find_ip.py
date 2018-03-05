@@ -29,6 +29,7 @@ def main():
         value = ''.join([bin(int(x) + 256)[3:] for x in value.split('.')])
         value_bin = np.fromstring(value, 'u1') - ord('0')
 
+        # RFC 950
         if str(np.bitwise_and(ip_bin, value_bin)) == str(np.bitwise_and(key_bin, value_bin)):
             # Convert Subnet and Mask back to decimal
             key_bin = np.split(key_bin, 4)
