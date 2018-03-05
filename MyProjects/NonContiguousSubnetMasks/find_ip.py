@@ -23,12 +23,14 @@ def main():
                 ip_pool_dic[key] = value
 
     for key, value in ip_pool_dic.items():
+        # Convert Subnet and Mask to binary
         key = ''.join([bin(int(x)+256)[3:] for x in key.split('.')])
         key_bin = np.fromstring(key, 'u1') - ord('0')
         value = ''.join([bin(int(x) + 256)[3:] for x in value.split('.')])
         value_bin = np.fromstring(value, 'u1') - ord('0')
 
         if str(np.bitwise_and(ip_bin, value_bin)) == str(np.bitwise_and(key_bin, value_bin)):
+            # Convert Subnet and Mask back to decimal
             key_bin = np.split(key_bin, 4)
             key_dec = np.packbits(key_bin)
             key = ".".join(str(x) for x in key_dec)
