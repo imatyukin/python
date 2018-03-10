@@ -150,17 +150,18 @@ def main():
         # print(sw_sw_vlans)
 
         # Сравниваем словарь r_sw_vlans и sw_sw_vlans
-        for sw_sw_k, sw_sw_v in sw_sw_vlans.items():
-            for r_sw_k, r_sw_v in r_sw_vlans.items():
-                # Если ifd смотрит на маршрутизатор, то выводим сразу
-                if re.findall(router_ifl_regex, r_sw_k):
-                    print(r_sw_k, r_sw_v)
-                else:
-                    # Или делаем проверку, что VLANы смотрят в сторону других коммутаторов
-                    for i in sw_sw_v:
-                        for j in r_sw_v:
-                            if i == j:
-                                print(r_sw_k, r_sw_v)
+        for r_sw_k, r_sw_v in r_sw_vlans.items():
+            # Если ifd смотрит на маршрутизатор, то выводим сразу
+            if re.findall(router_ifl_regex, r_sw_k):
+                print(r_sw_k, r_sw_v)
+            else:
+                # Или делаем проверку, что VLANы смотрят в сторону других коммутаторов
+                for sw_sw_k, sw_sw_v in sw_sw_vlans.items():
+                    if not re.findall(router_ifl_regex, r_sw_k):
+                        for i in sw_sw_v:
+                            for j in r_sw_v:
+                                if i == j:
+                                    print(r_sw_k, r_sw_v)
 
 
         sys.stdout = original
