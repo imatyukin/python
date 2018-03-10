@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+# Поиск VLANов коммутатора на терминирующем маршрутизаторе
 import sys
 import codecs
 
 
 class Tee(object):
+    # Output on the console and file
+
     def __init__(self, *files):
         self.files = files
 
@@ -17,27 +20,34 @@ class Tee(object):
             f.flush()
 
 
+# Конфигуационные файлы коммутатора и маршрутизатора
+# show | display set | save /var/tmp/switch.conf
 switch_conf = 'spbr-astk1.conf'
 router_conf = 'spbr-ar2.conf'
-target_conf = 'target.conf'
+# Файл вывода результатов
+f_out = 'a.out'
+# Интерфейс коммутатора
 switch_ifd = ' ge-0/0/1 '
+# Интерфейсы маршрутизатора
 router_ifd = ' xe-9/3/3 '
 
 
 def main():
-    global switch_conf, router_conf, target_conf
+    # Объявление глобальных переменных
+    global switch_conf, router_conf, f_out
     global switch_ifd, router_ifd
 
-    with open(target_conf, 'w') as target_conf:
+    with open(f_out, 'w') as f_out:
+        # This will go to stdout and the file
         original = sys.stdout
-        sys.stdout = Tee(sys.stdout, target_conf)
+        sys.stdout = Tee(sys.stdout, f_out)
 
         switch_conf = codecs.open(switch_conf, 'r', encoding='utf-8', errors='ignore').read()
         switch_conf = switch_conf.splitlines()
         router_conf = codecs.open(router_conf, 'r', encoding='utf-8', errors='ignore').read()
         router_conf = router_conf.splitlines()
 
-        # Находим все VLANs на физ. интерфейсе (ifd) коммутатора
+        # Находим все VLANы на физ. интерфейсе (ifd) коммутатора
         # Создаём словарь sw_vlans {ifd: [VLANs]}
         sw_vlans = {}
         for line in switch_conf:
@@ -61,7 +71,7 @@ def main():
                             sw_vlans[key].append(value)
         # print(sw_vlans)
 
-        # Находим все VLANs на физ. интерфейсе (ifd) маршрутизатора
+        # Находим все VLANы на физ. интерфейсах (ifd) маршрутизатора
         # Создаём словарь r_vlans {ifd.unit: [vlan]}
         r_vlans = {}
         for line in router_conf:
@@ -79,16 +89,17 @@ def main():
                                 r_vlans.key = value
         # print(r_vlans)
 
-        # Сравниваем значения двух словарей
-        for sw_k, sw_v in sw_vlans.items():
-            for r_k, r_v in r_vlans.items():
-                for i in sw_v:
-                    for j in r_v:
+        # Находим общие значения двух словарей (VLANы)
+        for sw_ifd, sw_vlan in sw_vlans.items():
+            for r_ifd, r_vlan in r_vlans.items():
+                for i in sw_vlan:
+                    for j in r_vlan:
                         if i == j:
-                            print(r_k, r_v)
+                            print(r_ifd, r_vlan)
 
 
         sys.stdout = original
+        # Only on stdout
 
 
 if __name__ == "__main__":
