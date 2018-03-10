@@ -76,18 +76,25 @@ def main():
         r_vlans = {}
         for line in router_conf:
             for ifd in router_ifd:
-                if 'set interfaces' + ifd in line:
-                    if 'unit' in line:
-                        if ' vlan-id ' in line:
-                            if 'input-vlan-map' not in line:
-                                line = str(line).split(' ')
-                                key = line[2].strip() + '.' + line[4].strip()
-                                value = line[6].strip()
-                                value = int(value.split()[-1])
-                                if key not in r_vlans:
-                                    r_vlans.setdefault(key, []).append(value)
-                                else:
-                                    r_vlans.key = value
+                if 'set interfaces' + ifd in line and 'unit' in line:
+                    if ' vlan-id ' in line and 'input-vlan-map' not in line:
+                        line = str(line).split(' ')
+                        key = line[2].strip() + '.' + line[4].strip()
+                        value = line[6].strip()
+                        value = int(value.split()[-1])
+                        if key not in r_vlans:
+                            r_vlans.setdefault(key, []).append(value)
+                        else:
+                            r_vlans.key = value
+                    elif 'vlan-tags outer' in line:
+                        line = str(line).split(' ')
+                        key = line[2].strip() + '.' + line[4].strip()
+                        value = line[7].strip()
+                        value = int(value.split()[-1])
+                        if key not in r_vlans:
+                            r_vlans.setdefault(key, []).append(value)
+                        else:
+                            r_vlans.key = value
         # print(r_vlans)
 
         # Находим общие значения двух словарей (VLANы)
