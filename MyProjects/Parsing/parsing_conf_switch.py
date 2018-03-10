@@ -29,7 +29,7 @@ f_out = 'a.out'
 # Интерфейс коммутатора
 switch_ifd = ' ge-0/0/1 '
 # Интерфейсы маршрутизатора
-router_ifd = ' xe-9/3/3 '
+router_ifd = [' xe-0/0/2 ', ' xe-4/1/2 ', ' xe-5/3/0 ', ' xe-8/0/0 ', ' xe-9/3/3 ']
 
 
 def main():
@@ -69,24 +69,25 @@ def main():
                                 sw_vlans[key].append(v)
                         else:
                             sw_vlans[key].append(value)
-        # print(sw_vlans)
+        print(sw_vlans)
 
         # Находим все VLANы на физ. интерфейсах (ifd) маршрутизатора
         # Создаём словарь r_vlans {ifd.unit: [vlan]}
         r_vlans = {}
         for line in router_conf:
-            if 'set interfaces' + router_ifd in line:
-                if 'unit' in line:
-                    if ' vlan-id ' in line:
-                        if 'input-vlan-map' not in line:
-                            line = str(line).split(' ')
-                            key = line[2].strip() + '.' + line[4].strip()
-                            value = line[6].strip()
-                            value = int(value.split()[-1])
-                            if key not in r_vlans:
-                                r_vlans.setdefault(key, []).append(value)
-                            else:
-                                r_vlans.key = value
+            for ifd in router_ifd:
+                if 'set interfaces' + ifd in line:
+                    if 'unit' in line:
+                        if ' vlan-id ' in line:
+                            if 'input-vlan-map' not in line:
+                                line = str(line).split(' ')
+                                key = line[2].strip() + '.' + line[4].strip()
+                                value = line[6].strip()
+                                value = int(value.split()[-1])
+                                if key not in r_vlans:
+                                    r_vlans.setdefault(key, []).append(value)
+                                else:
+                                    r_vlans.key = value
         # print(r_vlans)
 
         # Находим общие значения двух словарей (VLANы)
