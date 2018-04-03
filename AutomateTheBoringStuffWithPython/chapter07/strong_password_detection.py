@@ -4,8 +4,8 @@ import re
 
 def main():
     password = input("Enter password: ")
-    result = strong_password_detection(password)
-    if result is True:
+    password = strong_password_detection(password)
+    if password is True:
         print("The password is strong")
     else:
         print("The password isn't strong")
