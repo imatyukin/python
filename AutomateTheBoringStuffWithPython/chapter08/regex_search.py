@@ -6,6 +6,7 @@ import re
 def main():
 
     pattern = re.compile('^#')
+
     files = []
     for filename in os.listdir(os.getcwd()):
         if filename.endswith('.txt'):
