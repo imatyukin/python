@@ -521,6 +521,8 @@ def main():
                         print('set protocols l2circuit neighbor ' + ip_source_neighbor + ' interface ' + ifd_target
                                 + '.' + unit.split('.')[1] + ' virtual-circuit-id ' + unit.split('.')[1])
 
+        print("\nL2VPN completed.\n")
+
         sys.stdout = original
 
     # изменения на маршрутизаторе источнике для local-switching ifl в сторону нового neighbor
@@ -568,7 +570,7 @@ def main():
             print('set protocols l2circuit neighbor ' + ip_target_neighbor + ' interface' + k + ' ignore-mtu-mismatch')
             print('deactivate protocols l2circuit neighbor ' + ip_target_neighbor + ' interface' + k)
 
-        print("\nL2VPN completed.\n")
+
         sys.stdout = original
         # Only on stdout
 
