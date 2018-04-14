@@ -21,6 +21,11 @@ class Tee(object):
             f.flush()
 
 
+# VLAN'ы на access switch
+# show vlan
+access_switch_vlans = 'ud_spb-sw3_vlans.conf'
+access_switch_vlans = codecs.open(access_switch_vlans, 'r', encoding='utf-8', errors='ignore').read().splitlines()
+
 # Конфигуационные файлы коммутатора и маршрутизатора
 # show | display set | save /var/tmp/switch.conf
 switch_conf = 'spbr-astk1.conf'
@@ -35,32 +40,46 @@ f_out = 'a.out'
 # Целевые файлы: load set /var/tmp/router
 source_router_conf = 'spbr-ar2'
 target_router_conf = 'spbr-ar4'
+target_switch_conf = 'spbr-asw15'
 
 # Интерфейсы коммутатора
 # в сторону коммутаторов связанных с маршрутизатором
 switch_to_sw_ifd = ' ge-0/0/2 ', ' ge-0/0/3 '
 
 # Интерфейс маршрутизатора в сторону коммутатора
-router_ifd = ' xe-9/3/3 ',
+router_ifd = ' xe-9/3/3 ', ' xe-8/0/0 ', ' xe-5/3/0 '
+router_ifd_list = ['xe-9/3/3', 'xe-8/0/0', 'xe-5/3/0']
 
-# Интерфейс нового маршрутизатора
+# Интерфейсы старого и нового маршрутизатора
 ifd_source = 'xe-9/3/3'
-ifd_target = 'ae0'
+ifd_target = 'ae8'
 
 ip_source_neighbor = '95.167.88.60'
 ip_target_neighbor = '213.59.207.99'
 
+
 def main():
     # Объявление глобальных переменных
-    global switch_conf, router_conf, f_out, source_router_conf, target_router_conf
-    global switch_to_sw_ifd, router_ifd, ifd_source, ifd_target, ip_source_neighbor, ip_target_neighbor
+    global access_switch_vlans, switch_conf, router_conf, f_out, source_router_conf, target_router_conf, \
+        target_switch_conf
+    global switch_to_sw_ifd, router_ifd, router_ifd_list, ifd_source, ifd_target, ip_source_neighbor, \
+        ip_target_neighbor
 
     with open(f_out, 'w') as f_out:
         # This will go to stdout and the file
         original = sys.stdout
         sys.stdout = Tee(sys.stdout, f_out)
 
-        # Находим все VLANы на физ. интерфейсах (ifd) коммутатора
+        # Находим все VLANы на коммутаторе доступа
+        # Создаём словарь access_sw_vlans {VLAN: [Name]}
+        access_sw_vlan_name = {}
+        for line in access_switch_vlans:
+            vlan_id = line.split()[0]
+            vlan_name = line.split()[1]
+            access_sw_vlan_name.update({vlan_id: vlan_name})
+        #print(access_sw_vlan_name)
+
+        # Находим все VLANы на ifd коммутатора агрегации
         # Создаём словарь sw_vlans {ifd: [VLANs]}
         sw_vlans = {}
         for line in switch_conf:
@@ -83,53 +102,97 @@ def main():
                                     sw_vlans[key].append(v)
                             else:
                                 sw_vlans[key].append(value)
-        # print(sw_vlans)
+        #print(sw_vlans)
 
-        # Находим VLANы на физ. интерфейсах (ifd) маршрутизатора
-        # Создаём словарь r_vlans {ifl(ifd.unit): [VLAN]}
-        r_vlans = {}
+        # Находим все VLANы на коммутаторе агрегации
+        # Создаём словарь sw_vlans_name {VLAN: [Name]}
+        ag_sw_vlan_name = {}
+        for v in sw_vlans.values():
+            for vlan_id in v:
+                for line in switch_conf:
+                    if 'set vlans ' and ' vlan-id ' in line:
+                        vlan_id = str(vlan_id)
+                        line = line.split()
+                        vlan_id_temp = line[-1]
+                        if vlan_id == vlan_id_temp:
+                            vlan_name = line[2]
+                            ag_sw_vlan_name.update({vlan_id: vlan_name})
+        #print(ag_sw_vlan_name)
+
+        # Проверка: находим общие VLAN'ы на коммутаторе доступа и агрегации
+        # сравниваем keys в словарях access_sw_vlan_name и ag_sw_vlan_name
+        # создаём словарь для нового коммутатора агрегации new_ag_sw_vlan_name {VLAN: [Name]}
+        shared_vlans = set(access_sw_vlan_name.keys()) & set(ag_sw_vlan_name.keys())
+        shared_vlans = sorted([int(x) for x in shared_vlans])
+        #print(shared_vlans)
+        new_ag_sw_vlan_name = {}
+        for vlan_id in shared_vlans:
+            for line in switch_conf:
+                if 'set vlans ' and ' vlan-id ' in line:
+                    vlan_id = str(vlan_id)
+                    line = line.split()
+                    vlan_id_temp = line[-1]
+                    if vlan_id == vlan_id_temp:
+                        vlan_name = line[2]
+                        new_ag_sw_vlan_name.update({vlan_id: vlan_name})
+        #print(new_ag_sw_vlan_name)
+
+        # Находим общие VLANы на ifd маршрутизатора
+        # Создаём словарь r_sw_vlans {ifl(ifd.unit): [VLAN]}
+        r_sw_vlans = {}
         for line in router_conf:
-            for ifd in router_ifd:
-                if 'set interfaces' + ifd in line and 'unit' in line:
+            for ifd in router_ifd_list:
+                if 'set interfaces ' + ifd in line and ' unit' in line:
                     # Для vlan-id
                     if ' vlan-id ' in line and 'input-vlan-map' not in line:
-                        line = str(line).split(' ')
-                        key = line[2].strip() + '.' + line[4].strip()
-                        value = line[6].strip()
-                        value = int(value.split()[-1])
-                        if key not in r_vlans:
-                            r_vlans.setdefault(key, []).append(value)
-                        else:
-                            r_vlans.key = value
+                        line = str(line).split()
+                        key = line[2] + '.' + line[4]
+                        value = int(line[-1])
+                        for vlan_id in new_ag_sw_vlan_name.keys():
+                            if value == int(vlan_id):
+                                if key not in r_sw_vlans:
+                                    r_sw_vlans.setdefault(key, []).append(value)
+                                else:
+                                    r_sw_vlans.key = value
                     # Для QinQ
                     elif 'vlan-tags outer' in line:
-                        line = str(line).split(' ')
-                        key = line[2].strip() + '.' + line[4].strip()
-                        value = line[7].strip()
-                        value = int(value.split()[-1])
-                        if key not in r_vlans:
-                            r_vlans.setdefault(key, []).append(value)
-                        else:
-                            r_vlans.key = value
-        # print(r_vlans)
+                        line = str(line).split()
+                        key = line[2] + '.' + line[4]
+                        value = int(line[-1])
+                        for vlan_id in new_ag_sw_vlan_name.keys():
+                            if value == int(vlan_id):
+                                if key not in r_sw_vlans:
+                                    r_sw_vlans.setdefault(key, []).append(value)
+                                else:
+                                    r_sw_vlans.key = value
+        #print(r_sw_vlans)
 
-        # Находим общие значения двух словарей (VLANы) и создаём словарь r_sw_vlans {ifl(ifd.unit): [VLAN]}
-        r_sw_vlans = {}
-        for sw_k, sw_v in sw_vlans.items():
-            for r_k, r_v in r_vlans.items():
-                for i in sw_v:
-                    for j in r_v:
-                        if i == j:
-                            r_v = ''.join(str(e) for e in r_v)
-                            if r_k not in r_sw_vlans:
-                                r_sw_vlans.setdefault(r_k, []).append(int(r_v))
-                            else:
-                                r_sw_vlans.r_k = int(r_v)
-        # print(r_sw_vlans)
+        # Список совпадающих VLAN'ов для маршрутизатора и коммутатора
+        vlans = []
+        for k, v in r_sw_vlans.items():
+            ifd = k.split('.')[0]
+            for i in router_ifd_list:
+                if ifd == i:
+                    for j in v:
+                        vlans.append(j)
+        #print(sorted(vlans))
+
+
+        print("\nVLANs is starting. Please wait...\n")
+
+        for line in switch_conf:
+            if 'set vlans' and 'vlan-id' in line:
+                vlan = int(line.split()[-1])
+                for vlan_id in vlans:
+                    if vlan_id == vlan:
+                        print(line)
+
+        print("\nVLANs completed.\n")
+
 
         # INET
         print("\nINTERNET is starting. Please wait...\n")
-        # Находим все логические интерфейсы (ifl) c family inet, связанные с физическим интерфейсом (ifd)
+        # Находим все ifl c family inet, связанные с ifd
         ifl_inet = []
         for ifl in r_sw_vlans.keys():
             ifd = ifl.split('.')[0]
@@ -525,8 +588,23 @@ def main():
 
         sys.stdout = original
 
-    # изменения на маршрутизаторе источнике для local-switching ifl в сторону нового neighbor
 
+    # Формирование списка VLAN для нового коммутатора агрегации
+    with open(target_switch_conf, 'w') as target_switch_conf:
+        original = sys.stdout
+        sys.stdout = Tee(sys.stdout, target_switch_conf)
+
+        for line in switch_conf:
+            if 'set vlans' and 'vlan-id' in line:
+                vlan = int(line.split()[-1])
+                for vlan_id in vlans:
+                    if vlan_id == vlan:
+                        target_switch_conf.write(line + '\n')
+
+        sys.stdout = original
+
+
+    # изменения на маршрутизаторе источнике для local-switching ifl в сторону нового neighbor
     with open(source_router_conf, 'w') as source_router_conf:
         original = sys.stdout
         sys.stdout = Tee(sys.stdout, source_router_conf)
