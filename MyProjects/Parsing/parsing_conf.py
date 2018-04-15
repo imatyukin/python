@@ -217,7 +217,7 @@ def main():
                     if 'protocols' not in line:
                         if re.findall(ifl_regex, line):
                             ifl_ri.append(ifl)
-        # print(ifl_ri)
+        #print(ifl_ri)
 
         # Находим ifl связанные с GRT путём исключения ifl связанных с routing-instances
         ifl_grt = [x for x in ifl_inet if x not in ifl_ri]
@@ -330,7 +330,7 @@ def main():
                         if 'interface' in line:
                             if re.findall(ifl_regex, line):
                                 ifl_ri_vpls.extend(([fields.split()[8] for fields in line.splitlines()]))
-        # print(ifl_ri_vpls)
+        #print(ifl_ri_vpls)
 
         # Исключаем ifl связанные с VPLS
         ifl_ri = [x for x in ifl_ri if x not in ifl_ri_vpls]
