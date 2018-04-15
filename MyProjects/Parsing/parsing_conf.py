@@ -175,7 +175,8 @@ def main():
                 if ifd == i:
                     for j in v:
                         vlans.append(j)
-        #print(sorted(vlans))
+        print("Sorted VLANs:")
+        print(sorted(vlans))
 
 
         print("\nVLANs is starting. Please wait...\n")
@@ -210,7 +211,7 @@ def main():
         # Находим ifl находящиеся в routing-instances (ri) из списка ifl_inet
         ifl_ri = []
         for ifl in ifl_inet:
-            ifl_regex = re.compile(ifl+'$')
+            ifl_regex = re.compile(r"\b"+ifl+r"\b")
             for line in router_conf:
                 if 'routing-instances' and ' interface ' + ifl in line:
                     if 'protocols' not in line:
@@ -322,7 +323,7 @@ def main():
         # ifl связанные с VPLS
         ifl_ri_vpls = []
         for ifl in r_sw_vlans.keys():
-            ifl_regex = re.compile(ifl + '$')
+            ifl_regex = re.compile(r"\b"+ifl+r"\b")
             for line in router_conf:
                 if 'routing-instances' in line:
                     if 'protocols vpls' in line:
@@ -442,7 +443,7 @@ def main():
                                     print(line)
                                 if 'interface' in line:
                                     for ifl in ifl_ri:
-                                        ifl_regex = re.compile(ifl + '$')
+                                        ifl_regex = re.compile(r"\b"+ifl+r"\b")
                                         if re.findall(ifl_regex, line):
                                             print(line)
                                 if 'interface' not in line:
@@ -461,6 +462,7 @@ def main():
 
         print("\nIP/VPN completed.\n")
 
+
         # L2VPN
         print("\nL2VPN is starting. Please wait...\n")
 
@@ -468,27 +470,29 @@ def main():
         neighbor_ifl = []
         local_switching_ifl = []
         for line in router_conf:
-            if 'set protocols l2circuit' in line:
-                if 'set protocols l2circuit neighbor' in line:
+            if 'set protocols l2circuit neighbor' in line:
+                for ifl in r_sw_vlans.keys():
+                    ifl_regex = re.compile(r"\b"+ifl+r"\b")
+                    if re.findall(ifl_regex, line):
+                        neighbor_ifl.extend(([fields.split()[6] for fields in line.splitlines()]))
+            if 'set protocols l2circuit local-switching' in line:
+                if 'end-interface' in line:
                     for ifl in r_sw_vlans.keys():
-                        ifl_regex = re.compile(ifl + '$')
+                        ifl_regex = re.compile(r"\b"+ifl+r"\b")
                         if re.findall(ifl_regex, line):
-                            neighbor_ifl.extend(([fields.split()[6] for fields in line.splitlines()]))
-                if 'set protocols l2circuit local-switching' in line:
-                    if 'end-interface' in line:
-                        for ifl in r_sw_vlans.keys():
-                            ifl_regex = re.compile(ifl + '$')
-                            if re.findall(ifl_regex, line):
-                                for fields in line.splitlines():
-                                    local_switching_ifl.append(fields.split()[5])
-                                    local_switching_ifl.append(fields.split()[8])
+                            for fields in line.splitlines():
+                                local_switching_ifl.append(fields.split()[5])
+                                local_switching_ifl.append(fields.split()[8])
 
         # Уникальные значения ifl для l2circuit neighbor
         used = set()
         neighbor_ifl = [x for x in neighbor_ifl if x not in used and (used.add(x) or True)]
-        # print(neighbor_ifl)
+        print("L2circuit neighbor ifl (old ifd):\n")
+        print(neighbor_ifl, "\n")
+
         # local-switching ifl связанные с ifd
-        # print(local_switching_ifl)
+        print("Local-switching ifl (old ifd):\n")
+        print(local_switching_ifl, "\n")
 
         # разделяем ifl на ifd и unit
         neighbor_ifd_unit = []
@@ -502,6 +506,7 @@ def main():
             local_switching_ifd_unit.append(ifl)
 
         # выводим конфигурацию l2circuit neighbor для ifd с заменой его имени на новое
+        print("\nConfiguration l2circuit neighbor (new ifd):\n")
         for line in router_conf:
             for unit in neighbor_ifd_unit:
                 if unit in line:
@@ -510,9 +515,13 @@ def main():
             for unit in neighbor_ifl:
                 unit = ' ' + unit + ' '
                 if unit in line:
-                    print(line.replace(unit.split('.')[0], ' ' + ifd_target))
+                    if 'neighbor ' + ip_target_neighbor not in line:
+                        print(line.replace(unit.split('.')[0], ' ' + ifd_target))
+                    if 'neighbor ' + ip_target_neighbor in line:
+                        print(line.replace(unit.split('.')[0], ' ' + ifd_target), "// !!! Needs to change !!!")
 
         # выводим конфигурацию l2circuit local-switching для ifd с заменой его имени на новое
+        print("\nConfiguration l2circuit local-switching (new ifd):\n")
         for line in router_conf:
             for unit in local_switching_ifd_unit:
                 if unit in line:
@@ -617,7 +626,7 @@ def main():
                         unit = ' ' + unit + ' '
                         if unit in line:
                             for ifl in r_sw_vlans.keys():
-                                ifl_regex = re.compile(ifl + '$')
+                                ifl_regex = re.compile(r"\b"+ifl+r"\b")
                                 match_ifl = re.search(ifl_regex, line).group(0)
                                 local_switching_front_ifl_dict.update({unit: match_ifl})
         for line in router_conf:
@@ -625,7 +634,7 @@ def main():
                 if key in line:
                     if 'description' in line:
                         print(line.replace('set protocols l2circuit local-switching interface',
-                                            'set protocols l2circuit neighbor ' + ip_target_neighbor + ' interface'))
+                                           'set protocols l2circuit neighbor ' + ip_target_neighbor + ' interface'))
         local_switching_end_ifl_dict = {}
         for line in router_conf:
             for unit in local_switching_ifl:
@@ -634,9 +643,12 @@ def main():
                     if 'end-interface interface ' + ifd_source not in line:
                         if 'end-interface interface' + unit in line:
                             for ifl in r_sw_vlans.keys():
-                                ifl_regex = re.compile(ifl + '$')
-                                match_ifl = re.search(ifl_regex, line).group(0)
-                                local_switching_end_ifl_dict.update({unit: match_ifl})
+                                try:
+                                    ifl_regex = re.compile(r"\b"+ifl+r"\b")
+                                    match_ifl = re.search(ifl_regex, line).group(0)
+                                    local_switching_end_ifl_dict.update({unit: match_ifl})
+                                except AttributeError:
+                                    match_ifl = None
         for k, v in local_switching_front_ifl_dict.items():
             print('set protocols l2circuit neighbor ' + ip_target_neighbor + ' interface' + k + 'virtual-circuit-id '
                   + v.split('.')[1])
