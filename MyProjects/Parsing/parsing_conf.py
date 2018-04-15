@@ -47,8 +47,7 @@ target_switch_conf = 'spbr-asw15'
 switch_to_sw_ifd = ' ge-0/0/2 ', ' ge-0/0/3 '
 
 # Интерфейс маршрутизатора в сторону коммутатора
-router_ifd = ' xe-9/3/3 ', ' xe-8/0/0 ', ' xe-5/3/0 '
-router_ifd_list = ['xe-9/3/3', 'xe-8/0/0', 'xe-5/3/0']
+router_ifd = ['xe-9/3/3', 'xe-8/0/0', 'xe-5/3/0']
 
 # Интерфейсы старого и нового маршрутизатора
 ifd_source = 'xe-9/3/3'
@@ -62,7 +61,7 @@ def main():
     # Объявление глобальных переменных
     global access_switch_vlans, switch_conf, router_conf, f_out, source_router_conf, target_router_conf, \
         target_switch_conf
-    global switch_to_sw_ifd, router_ifd, router_ifd_list, ifd_source, ifd_target, ip_source_neighbor, \
+    global switch_to_sw_ifd, router_ifd, ifd_source, ifd_target, ip_source_neighbor, \
         ip_target_neighbor
 
     with open(f_out, 'w') as f_out:
@@ -141,7 +140,7 @@ def main():
         # Создаём словарь r_sw_vlans {ifl(ifd.unit): [VLAN]}
         r_sw_vlans = {}
         for line in router_conf:
-            for ifd in router_ifd_list:
+            for ifd in router_ifd:
                 if 'set interfaces ' + ifd in line and ' unit' in line:
                     # Для vlan-id
                     if ' vlan-id ' in line and 'input-vlan-map' not in line:
@@ -171,7 +170,7 @@ def main():
         vlans = []
         for k, v in r_sw_vlans.items():
             ifd = k.split('.')[0]
-            for i in router_ifd_list:
+            for i in router_ifd:
                 if ifd == i:
                     for j in v:
                         vlans.append(j)
