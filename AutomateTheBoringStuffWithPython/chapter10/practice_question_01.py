@@ -2,8 +2,8 @@
 
 
 def spam(spam):
-   assert (not isinstance(spam, int)), "AssertionError: the variable spam is an integer"
-   assert (spam > 10), "AssertionError: the variable spam is less than 10"
+   assert (not isinstance(spam, int)), "The variable spam is an integer"
+   assert (spam > 10), "The variable spam is less than 10"
 
    return spam
 
