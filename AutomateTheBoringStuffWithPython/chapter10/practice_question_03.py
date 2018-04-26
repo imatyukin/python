@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Q: 3. Write an assert statement that always triggers an AssertionError.
 
 
 class Always:
