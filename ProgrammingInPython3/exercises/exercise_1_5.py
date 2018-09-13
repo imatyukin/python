@@ -25,11 +25,6 @@ highest = None
 
 mean = number = input(prompt)
 
-def swap(x, y):
-    x = x + y;
-    y = x - y;
-    x = x - y;
-
 while(number):
     try:
         if lowest is None or lowest > int(number):
