@@ -41,8 +41,22 @@ else:
     x1 = (-b + root) / (2 * a)
     x2 = (-b - root) / (2 * a)
 
-equation = ("{0}x\N{SUPERSCRIPT TWO} + {1}x + {2} = 0"
-            " \N{RIGHTWARDS ARROW} x = {3}").format(a, b, c, x1)
+if b == 0 and c == 0:
+    equation = "{0}x\N{SUPERSCRIPT TWO} = 0 \N{RIGHTWARDS ARROW} x = {1}".format(a, x1)
+elif b == 0 and c > 0:
+    equation = "{0}x\N{SUPERSCRIPT TWO} + {1} = 0 \N{RIGHTWARDS ARROW} x = {2}".format(a, c, x1)
+elif b == 0 and c < 0:
+    equation = "{0}x\N{SUPERSCRIPT TWO} - {1} = 0 \N{RIGHTWARDS ARROW} x = {2}".format(a, abs(c), x1)
+elif b > 0 and c == 0:
+    equation = "{0}x\N{SUPERSCRIPT TWO} + {1}x = 0 \N{RIGHTWARDS ARROW} x = {2}".format(a, b, x1)
+elif b < 0 and c == 0:
+    equation = "{0}x\N{SUPERSCRIPT TWO} - {1}x = 0 \N{RIGHTWARDS ARROW} x = {2}".format(a, abs(b), x1)
+elif b > 0 > c:
+    equation = "{0}x\N{SUPERSCRIPT TWO} + {1}x - {2} = 0 \N{RIGHTWARDS ARROW} x = {3}".format(a, b, abs(c), x1)
+elif b < 0 < c:
+    equation = "{0}x\N{SUPERSCRIPT TWO} - {1}x + {2} = 0 \N{RIGHTWARDS ARROW} x = {3}".format(a, abs(b), c, x1)
+else:
+    equation = "{0}x\N{SUPERSCRIPT TWO} + {1}x + {2} = 0 \N{RIGHTWARDS ARROW} x = {3}".format(a, b, c, x1)
 if x2 is not None:
     equation += " or x = {0}".format(x2)
 print(equation)
