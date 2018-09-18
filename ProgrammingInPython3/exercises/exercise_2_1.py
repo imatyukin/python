@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # 1. Modify the print_unicode.py program so that the user can enter several
 #    separate words on the command line, and print rows only where the
 #    Unicode character name contains all the words the user has specified.
