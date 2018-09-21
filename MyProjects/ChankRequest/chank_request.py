@@ -7,7 +7,7 @@ import datetime
 fname = 'a.out'
 args = ['wget','-O']
 location = '/dev/null'
-url = '192.168.198.69:8802/hls/CH_C02_MIR/1537430400/1537441200.ts/0r2_643788516r11193.ts'
+url = '192.168.198.69:8802/hls/CH_R03_1TV/1537516800/1537520400.ts/0r2_655015876r11116.ts'
 
 
 def run():
