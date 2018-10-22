@@ -68,22 +68,40 @@ def generate_username(fields, usernames):
 
 
 def print_users(users):
-    namewidth = 32
+    namewidth = 17
     usernamewidth = 9
+    columngap = " " * 2
 
-    print("{0:<{nw}} {1:^6} {2:{uw}}".format(
-          "Name", "ID", "Username", nw=namewidth, uw=usernamewidth))
-    print("{0:-<{nw}} {0:-<6} {0:-<{uw}}".format(
-          "", nw=namewidth, uw=usernamewidth))
+    headline1 = "{0:<{nw}} {1:^6} {2:{uw}}".format("Name", "ID",
+            "Username", nw=namewidth, uw=usernamewidth)
+    headline2 = "{0:-<{nw}} {0:-<6} {0:-<{uw}}".format("",
+            nw=namewidth, uw=usernamewidth)
+    header = (headline1 + columngap + headline1 + "\n" +
+              headline2 + columngap + headline2)
 
+    lines = []
     for key in sorted(users):
         user = users[key]
         initial = ""
         if user.middlename:
             initial = " " + user.middlename[0]
         name = "{0.surname}, {0.forename}{1}".format(user, initial)
-        print("{0:.<{nw}} ({1.id:4}) {1.username:{uw}}".format(
-              name, user, nw=namewidth, uw=usernamewidth))
+        lines.append("{0:.<{nw}.{nw}} ({1.id:4}) "
+                     "{1.username:{uw}}".format(name, user,
+                     nw=namewidth, uw=usernamewidth))
+
+    lines_per_page = 64
+    lino = 0
+    for left, right in zip(lines[::2], lines[1::2]):
+        if lino == 0:
+            print(header)
+        print(left + columngap + right)
+        lino += 1
+        if lino == lines_per_page:
+            print("\f")
+            lino = 0
+    if lines[-1] != right:
+        print(lines[-1])
 
 
 main()
