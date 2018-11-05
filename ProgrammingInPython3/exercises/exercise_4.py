@@ -84,3 +84,92 @@
 #
 # A model solution is provided in listkeeper.py; it is less than 200 lines of code.
 
+import os
+
+
+def create_file():
+    f = input("Choose filename: ")
+    if not f.endswith(".lst"):
+        f = f + ".lst"
+    open(f, 'a').close()
+    show_message(f)
+    show_menu(f)
+
+
+def show_message(f):
+    print("\n-- no items are in the list --")
+    item = input("[A]dd [Q]uit [a]: ") or "a"
+    if item == "A" or "a":
+        add_elements(f)
+    #if item == "Q" or "q":
+        #quit_elements(f)
+
+
+def show_menu(f):
+    item = input("[A]dd [D]elete [S]ave [Q]uit [a]: ") or "a"
+    if item == "A" or "a":
+        add_elements(f)
+    elif item == "D" or "d":
+        del_element(f)
+    #elif item == "S" or "s":
+        #save_element(f)
+    #elif item == "Q" or "q":
+        #quit_element(f)
+
+
+def add_elements(f):
+    item = input("Add item: ")
+    with open(f, 'a') as fa:
+        fa.write(item)
+        fa.write("\n")
+    read_file_by_lines(f)
+
+
+def read_file_by_lines(f):
+    for i, line in enumerate(sorted(list(open(f)))):
+        print('{}: {}'.format(i + 1, line.rstrip()))
+    show_menu(f)
+
+
+def del_element(f):
+    data = input("Delete item number (or 0 to cancel: ")
+    if data == 0:
+        exit()
+    else:
+        with open(f, "a") as f:
+            for i, line in enumerate(f):
+                print('{} = {}'.format(i + 1, line.strip()))
+
+
+def show_lst(files):
+    count = 1
+    for i, filename in enumerate(files):
+        print('{0:3d}. {1}'.format(count, filename))
+        count += 1
+
+
+def main():
+    # список всех файлов с расширением .lst в текущем каталоге
+    files = []
+    for f in [f for f in os.listdir(".") if os.path.isfile(f)]:
+        if f.endswith(".lst"):
+            files.append(f)
+    if not files:
+        file = create_file()
+        add_elements(file)
+    else:
+        show_lst(files)
+        number = int(input("\nEnter the number of the file or 0: "))
+        if number == 0:
+            create_file()
+        else:
+            file = files[number-1]
+            if os.path.exists(file) and os.path.getsize(file) > 0:
+                with open(file) as fin:
+                    print(fin.read())
+            else:
+                add_elements(file)
+
+
+if __name__ == "__main__":
+    main()
