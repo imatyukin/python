@@ -122,10 +122,10 @@ def add_elements(f):
     with open(f, 'a') as fa:
         fa.write(item)
         fa.write("\n")
-    read_file_by_lines(f)
+    sort_file(f)
 
 
-def read_file_by_lines(f):
+def sort_file(f):
     for i, line in enumerate(sorted(list(open(f)))):
         print('{}: {}'.format(i + 1, line.rstrip()))
     show_menu(f)
