@@ -105,18 +105,6 @@ def show_message(f):
         #quit_elements(f)
 
 
-def show_menu(f):
-    item = input("[A]dd [D]elete [S]ave [Q]uit [a]: ") or "a"
-    if item == "A" or "a":
-        add_elements(f)
-    elif item == "D" or "d":
-        del_element(f)
-    #elif item == "S" or "s":
-        #save_element(f)
-    #elif item == "Q" or "q":
-        #quit_element(f)
-
-
 def add_elements(f):
     item = input("Add item: ")
     with open(f, 'a') as fa:
@@ -125,20 +113,45 @@ def add_elements(f):
     sort_file(f)
 
 
-def sort_file(f):
-    for i, line in enumerate(sorted(list(open(f)))):
-        print('{}: {}'.format(i + 1, line.rstrip()))
-    show_menu(f)
+def show_menu(f):
+    item = input("[A]dd [D]elete [S]ave [Q]uit [a]: ")
+    if item == "A" or item == "a":
+        add_elements(f)
+    elif item == "D" or item == "d":
+        del_element(f)
+    #elif item == "S" or "s":
+        #save_element(f)
+    #elif item == "Q" or "q":
+        #quit_element(f)
+    else:
+        print("ERROR: invalid choice--enter one of 'AaDdSsQq'")
+        input("Press Enter to continue...")
+        show_menu(f)
 
 
 def del_element(f):
-    data = input("Delete item number (or 0 to cancel: ")
-    if data == 0:
+    item = int(input("Delete item number (or 0 to cancel): "))
+    if item == 0:
         exit()
     else:
-        with open(f, "a") as f:
-            for i, line in enumerate(f):
-                print('{} = {}'.format(i + 1, line.strip()))
+        for i, line in enumerate(sorted(list(open(f)))):
+            if item-1 == i:
+                search = line.rstrip()
+        with open(f, "r+") as fin:
+            new_f = fin.readlines()
+            fin.seek(0)
+            for line in new_f:
+                if search not in line:
+                    fin.write(line)
+            fin.truncate()
+    sort_file(f)
+
+
+def sort_file(f):
+    print()
+    for i, line in enumerate(sorted(list(open(f)))):
+        print('{}: {}'.format(i + 1, line.rstrip()))
+    show_menu(f)
 
 
 def show_lst(files):
