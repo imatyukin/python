@@ -92,66 +92,105 @@ def create_file():
     if not f.endswith(".lst"):
         f = f + ".lst"
     open(f, 'a').close()
-    show_message(f)
-    show_menu(f)
+    elements = []
+    show_message(elements, f)
 
 
-def show_message(f):
+def show_message(elements, f):
     print("\n-- no items are in the list --")
-    item = input("[A]dd [Q]uit [a]: ") or "a"
-    if item == "A" or "a":
-        add_elements(f)
-    #if item == "Q" or "q":
-        #quit_elements(f)
+    item = input("[A]dd [Q]uit [a]: ")
+    if item == "" or item == "A" or item == "a":
+        add_elements(elements, f)
+    elif item == "Q" or item == "q":
+        quit(elements, f)
+    else:
+        print("ERROR: invalid choice--enter one of 'AaQq'")
+        input("Press Enter to continue...")
+        show_message(elements, f)
 
 
-def add_elements(f):
+def add_elements(elements, f):
     item = input("Add item: ")
-    with open(f, 'a') as fa:
-        fa.write(item)
-        fa.write("\n")
-    sort_file(f)
+    elements.append(item+"\n")
+    sort_elements(elements, f)
 
 
-def show_menu(f):
+def sort_elements(elements, f):
+    print()
+    for i, line in enumerate(sorted(elements)):
+        print('{}: {}'.format(i + 1, line.rstrip()))
+    show_menu(elements, f)
+
+
+def show_menu(elements, f):
     item = input("[A]dd [D]elete [S]ave [Q]uit [a]: ")
-    if item == "A" or item == "a":
-        add_elements(f)
+    if item == "" or item == "A" or item == "a":
+        add_elements(elements, f)
     elif item == "D" or item == "d":
-        del_element(f)
-    #elif item == "S" or "s":
-        #save_element(f)
-    #elif item == "Q" or "q":
-        #quit_element(f)
+        del_element(elements, f)
+    elif item == "S" or item == "s":
+        save_element(elements, f)
+    elif item == "Q" or item == "q":
+        quit(elements, f)
     else:
         print("ERROR: invalid choice--enter one of 'AaDdSsQq'")
         input("Press Enter to continue...")
-        show_menu(f)
+        show_menu(elements, f)
 
 
-def del_element(f):
+def del_element(elements, f):
     item = int(input("Delete item number (or 0 to cancel): "))
     if item == 0:
         exit()
     else:
-        for i, line in enumerate(sorted(list(open(f)))):
+        for i, line in enumerate(sorted(elements)):
             if item-1 == i:
-                search = line.rstrip()
-        with open(f, "r+") as fin:
-            new_f = fin.readlines()
-            fin.seek(0)
-            for line in new_f:
-                if search not in line:
-                    fin.write(line)
-            fin.truncate()
-    sort_file(f)
+                elements.remove(line)
+    sort_elements(elements, f)
 
 
-def sort_file(f):
+def save_element(elements, f):
+    count = 1
+    with open(f, 'a') as fa:
+        for i, line in enumerate(sorted(elements)):
+            fa.write(line.rstrip())
+            fa.write("\n")
+            count += i
+    print("Saved "+str(count)+" items to "+str(f))
+    input("Press Enter to continue...")
+    show_menu_without_save(elements, f)
+
+
+def show_menu_without_save(elements, f):
     print()
-    for i, line in enumerate(sorted(list(open(f)))):
+    for i, line in enumerate(sorted(elements)):
         print('{}: {}'.format(i + 1, line.rstrip()))
-    show_menu(f)
+    item = input("[A]dd [D]elete [Q]uit [a]: ")
+    if item == "" or item == "A" or item == "a":
+        add_elements(elements, f)
+    elif item == "D" or item == "d":
+        del_element(elements, f)
+    elif item == "Q" or item == "q":
+        quit(elements, f)
+    else:
+        print("ERROR: invalid choice--enter one of 'AaDdQq'")
+        input("Press Enter to continue...")
+        show_menu_without_save(elements, f)
+
+
+def quit(elements, f):
+    item = input("Save unsaved changes (y/n) [y]: ")
+    if item == "" or item == "Y" or item == "y":
+        count = 1
+        with open(f, 'a') as fa:
+            for i, line in enumerate(sorted(elements)):
+                fa.write(line.rstrip())
+                fa.write("\n")
+                count += i
+        print("Saved " + str(count) + " items to " + str(f))
+        exit(0)
+    elif item == "N" or item == "n":
+        exit(0)
 
 
 def show_lst(files):
@@ -168,8 +207,7 @@ def main():
         if f.endswith(".lst"):
             files.append(f)
     if not files:
-        file = create_file()
-        add_elements(file)
+        create_file()
     else:
         show_lst(files)
         number = int(input("\nEnter the number of the file or 0: "))
