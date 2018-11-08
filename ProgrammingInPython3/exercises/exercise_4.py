@@ -151,7 +151,7 @@ def del_element(elements, f):
 
 def save_element(elements, f):
     count = 1
-    with open(f, 'w') as fa:
+    with open(f, 'a') as fa:
         for i, line in enumerate(sorted(elements)):
             fa.write(line.rstrip())
             fa.write("\n")
@@ -182,7 +182,7 @@ def quit(elements, f):
     item = input("Save unsaved changes (y/n) [y]: ")
     if item == "" or item == "Y" or item == "y":
         count = 1
-        with open(f, 'a') as fa:
+        with open(f, 'w') as fa:
             for i, line in enumerate(sorted(elements)):
                 fa.write(line.rstrip())
                 fa.write("\n")
