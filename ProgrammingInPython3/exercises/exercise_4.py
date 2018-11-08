@@ -181,7 +181,7 @@ def show_menu_without_save(elements, f):
 def quit_program(elements, f):
     item = input("Save unsaved changes (y/n) [y]: ")
     if item == "" or item == "Y" or item == "y":
-        count = 1
+        count = 0
         with open(f, 'w') as fa:
             for i, line in enumerate(sorted(elements)):
                 fa.write(line.rstrip())
