@@ -102,7 +102,7 @@ def show_message(elements, f):
     if item == "" or item == "A" or item == "a":
         add_elements(elements, f)
     elif item == "Q" or item == "q":
-        quit(elements, f)
+        quit_program(elements, f)
     else:
         print("ERROR: invalid choice--enter one of 'AaQq'")
         input("Press Enter to continue...")
@@ -131,7 +131,7 @@ def show_menu(elements, f):
     elif item == "S" or item == "s":
         save_element(elements, f)
     elif item == "Q" or item == "q":
-        quit(elements, f)
+        quit_program(elements, f)
     else:
         print("ERROR: invalid choice--enter one of 'AaDdSsQq'")
         input("Press Enter to continue...")
@@ -171,14 +171,14 @@ def show_menu_without_save(elements, f):
     elif item == "D" or item == "d":
         del_element(elements, f)
     elif item == "Q" or item == "q":
-        quit(elements, f)
+        quit_program(elements, f)
     else:
         print("ERROR: invalid choice--enter one of 'AaDdQq'")
         input("Press Enter to continue...")
         show_menu_without_save(elements, f)
 
 
-def quit(elements, f):
+def quit_program(elements, f):
     item = input("Save unsaved changes (y/n) [y]: ")
     if item == "" or item == "Y" or item == "y":
         count = 1
@@ -191,6 +191,10 @@ def quit(elements, f):
         exit(0)
     elif item == "N" or item == "n":
         exit(0)
+    else:
+        print("ERROR: invalid choice--enter one of 'YyNn'")
+        input("Press Enter to continue...")
+        quit_program(elements, f)
 
 
 def show_lst(files):
