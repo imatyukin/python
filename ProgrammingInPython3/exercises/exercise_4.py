@@ -87,15 +87,28 @@
 import os
 
 
-def create_file():
+# Функция создания нового файла.
+def create_file(elements):
     f = input("Choose filename: ")
+    # Добавляет к файлу расширение .lst, если пользователь не сделал этого.
     if not f.endswith(".lst"):
         f = f + ".lst"
     open(f, 'a').close()
-    elements = []
     show_message(elements, f)
 
 
+# Функция чтения содержимого выбранного пользователем файла.
+def read_file(elements, f):
+    if os.path.exists(f) and os.path.getsize(f) > 0:
+        with open(f) as fin:
+            # Чтение содержимого файла.
+            print(fin.read())
+    else:
+        # Если файл пуст или указано имя нового файла.
+        show_message(elements, f)
+
+
+# Функция вывода сообщения и первоначального меню.
 def show_message(elements, f):
     print("\n-- no items are in the list --")
     item = input("[A]dd [Q]uit [a]: ")
@@ -109,19 +122,29 @@ def show_message(elements, f):
         show_message(elements, f)
 
 
+# Функция добавления элемента.
 def add_elements(elements, f):
     item = input("Add item: ")
     elements.append(item+"\n")
     sort_elements(elements, f)
 
 
+# Функция сортировки элементов в списке в алфавитном порядке.
 def sort_elements(elements, f):
     print()
+    # Ширина поля для вывода номеров строк.
+    width = 1 if len(elements) < 10 else 2 if len(elements) < 100 else 3
     for i, line in enumerate(sorted(elements)):
-        print('{}: {}'.format(i + 1, line.rstrip()))
+        if width == 1:
+            print('{:1d}: {}'.format(i + 1, line.rstrip()))
+        elif width == 2:
+            print('{:2d}: {}'.format(i + 1, line.rstrip()))
+        else:
+            print('{:3d}: {}'.format(i + 1, line.rstrip()))
     show_menu(elements, f)
 
 
+# Функция предлагающая варианты действий.
 def show_menu(elements, f):
     item = input("[A]dd [D]elete [S]ave [Q]uit [a]: ")
     if item == "" or item == "A" or item == "a":
@@ -129,7 +152,7 @@ def show_menu(elements, f):
     elif item == "D" or item == "d":
         del_element(elements, f)
     elif item == "S" or item == "s":
-        save_element(elements, f)
+        save_elements(elements, f)
     elif item == "Q" or item == "q":
         quit_program(elements, f)
     else:
@@ -138,10 +161,11 @@ def show_menu(elements, f):
         show_menu(elements, f)
 
 
+# Функция удаления элемента из нумерованного списка.
 def del_element(elements, f):
     item = int(input("Delete item number (or 0 to cancel): "))
     if item == 0:
-        exit()
+        sort_elements(elements, f)
     else:
         for i, line in enumerate(sorted(elements)):
             if item-1 == i:
@@ -149,7 +173,8 @@ def del_element(elements, f):
     sort_elements(elements, f)
 
 
-def save_element(elements, f):
+# Сохранение внесённых элементов списка в файл.
+def save_elements(elements, f):
     count = 1
     with open(f, 'a') as fa:
         for i, line in enumerate(sorted(elements)):
@@ -161,6 +186,7 @@ def save_element(elements, f):
     show_menu_without_save(elements, f)
 
 
+# Функция предлагающая варианты действий (без действия сохранить).
 def show_menu_without_save(elements, f):
     print()
     for i, line in enumerate(sorted(elements)):
@@ -178,6 +204,7 @@ def show_menu_without_save(elements, f):
         show_menu_without_save(elements, f)
 
 
+# Функция выхода из программы.
 def quit_program(elements, f):
     item = input("Save unsaved changes (y/n) [y]: ")
     if item == "" or item == "Y" or item == "y":
@@ -197,6 +224,7 @@ def quit_program(elements, f):
         quit_program(elements, f)
 
 
+# Вывод имён .lst файлов в виде списка пронумерованных строк, начиная с 1.
 def show_lst(files):
     count = 1
     for i, filename in enumerate(files):
@@ -205,25 +233,36 @@ def show_lst(files):
 
 
 def main():
-    # список всех файлов с расширением .lst в текущем каталоге
+    # Интерактивная программа обслуживания списков строк в файлах.
+    print("List Keeper")
+    print()
+    # Список всех файлов с расширением .lst в текущем каталоге.
     files = []
+    # Список добавленных элементов
+    elements = []
+    # os.listdir(".") получает список всех файлов.
     for f in [f for f in os.listdir(".") if os.path.isfile(f)]:
+        # Фильтр файлов, которые имеют расширение .lst
         if f.endswith(".lst"):
             files.append(f)
     if not files:
-        create_file()
+        # В случае отсутствия .lst файлов программа создаёт новый файл.
+        create_file(elements)
     else:
+        # В случае, если были найдены один или более файлов .lst.
         show_lst(files)
         number = int(input("\nEnter the number of the file or 0: "))
+        # Если пользователь ввёл 0, программа просит у пользователся ввести имя нового файла.
         if number == 0:
-            create_file()
+            create_file(elements)
         else:
-            file = files[number-1]
-            if os.path.exists(file) and os.path.getsize(file) > 0:
-                with open(file) as fin:
-                    print(fin.read())
-            else:
-                add_elements(file)
+            # При вводе номера желаемого файла, программа читает его содержимое.
+            try:
+                file = files[number - 1]
+                read_file(elements, file)
+            # Если пользователь указал несуществующий номер файла.
+            except IndexError:
+                print("ERROR: file not exist")
 
 
 if __name__ == "__main__":
