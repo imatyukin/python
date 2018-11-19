@@ -8,11 +8,11 @@
 #     Usage: ls.py [options] [path1 [path2 [... pathN]]]
 #     The paths are optional; if not given . is used.
 #     Options:
-#     -h, --help     show this help message and exit
-#     -H, --hidden   show hidden files [default: off]
-#     -m, --modified show last modified date/time [default: off]
+#     -h, --help      show this help message and exit
+#     -H, --hidden    show hidden files [default: off]
+#     -m, --modified  show last modified date/time [default: off]
 #     -o ORDER, --order=ORDER
-#     order by ('name', 'n', 'modified', 'm', 'size', 's') [default: name]
+#                     order by ('name', 'n', 'modified', 'm', 'size', 's') [default: name]
 #     -r, --recursive recurse into subdirectories [default: off]
 #     -s, --sizes     show sizes [default: off]
 #
@@ -51,3 +51,31 @@
 # module, call locale.setlocale() to get the user’s default locale, and use the n
 # format character. Overall, ls.py is about 130 lines split over four functions.
 
+import os
+import sys
+import argparse
+
+class MyParser(argparse.ArgumentParser):
+    def error(self, message):
+        sys.stderr.write('error: %s\n' % message)
+        self.print_help()
+        sys.exit(2)
+
+parser = MyParser()
+
+parser = argparse.ArgumentParser(description="ls.py")
+parser.add_argument('-h, --help', nargs='+', help="show this help message and exit")
+parser.add_argument('-H, --hidden', nargs='+', help="show hidden files [default: off]")
+parser.add_argument('-m, --modified', nargs='+', help="show last modified date/time [default: off]")
+parser.add_argument('-o ORDER, --order=ORDER', nargs='+', help="order by ('name', 'n', 'modified', 'm', 'size', 's') [default: name]")
+parser.add_argument('-r, --recursive', nargs='+', help="recurse into subdirectories [default: off]")
+parser.add_argument('-s, --sizes', nargs='+', help="show sizes [default: off]")
+
+if len(sys.argv)==1:
+    parser.print_help(sys.stderr)
+    sys.exit(1)
+args=parser.parse_args()
+
+for root, dirs, files in os.walk("."):
+    for filename in files:
+        print(filename)
