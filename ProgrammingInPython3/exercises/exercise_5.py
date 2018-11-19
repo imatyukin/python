@@ -65,9 +65,7 @@ class MyParser(argparse.ArgumentParser):
 
 parser = MyParser()
 
-parser = argparse.ArgumentParser(description="ls.py")
-parser.add_argument('-h, --help',
-                    help="show this help message and exit")
+parser = argparse.ArgumentParser(description="ls.py", usage=argparse.SUPPRESS)
 parser.add_argument('-H, --hidden',
                     help="show hidden files [default: off]")
 parser.add_argument('-m, --modified',
@@ -83,6 +81,7 @@ if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
 args=parser.parse_args()
+
 
 for root, dirs, files in os.walk("."):
     for filename in files:
