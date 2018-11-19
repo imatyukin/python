@@ -55,23 +55,31 @@ import os
 import sys
 import argparse
 
+
 class MyParser(argparse.ArgumentParser):
     def error(self, message):
         sys.stderr.write('error: %s\n' % message)
         self.print_help()
         sys.exit(2)
 
+
 parser = MyParser()
 
 parser = argparse.ArgumentParser(description="ls.py")
-parser.add_argument('-h, --help', help="show this help message and exit")
-parser.add_argument('-H, --hidden', help="show hidden files [default: off]")
-parser.add_argument('-m, --modified', help="show last modified date/time [default: off]")
-parser.add_argument('-o ORDER, --order=ORDER', help="order by ('name', 'n', 'modified', 'm', 'size', 's') [default: name]")
-parser.add_argument('-r, --recursive', help="recurse into subdirectories [default: off]")
-parser.add_argument('-s, --sizes', help="show sizes [default: off]")
+parser.add_argument('-h, --help',
+                    help="show this help message and exit")
+parser.add_argument('-H, --hidden',
+                    help="show hidden files [default: off]")
+parser.add_argument('-m, --modified',
+                    help="show last modified date/time [default: off]")
+parser.add_argument('-o ORDER, --order=ORDER',
+                    help="order by ('name', 'n', 'modified', 'm', 'size', 's') [default: name]")
+parser.add_argument('-r, --recursive',
+                    help="recurse into subdirectories [default: off]")
+parser.add_argument('-s, --sizes',
+                    help="show sizes [default: off]")
 
-if len(sys.argv)==1:
+if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
     sys.exit(1)
 args=parser.parse_args()
