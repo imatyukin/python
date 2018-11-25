@@ -52,37 +52,113 @@
 # format character. Overall, ls.py is about 130 lines split over four functions.
 
 import os
-import sys
+import time
 import argparse
 
 
-class MyParser(argparse.ArgumentParser):
-    def error(self, message):
-        sys.stderr.write('error: %s\n' % message)
-        self.print_help()
-        sys.exit(2)
+def file_processing(files, dirs, top, modified, order, sizes):
+    keys_lines = []
+    for name in files:
+        mtimestring = ""
+        if modified:
+            mtime = os.stat(name).st_mtime
+            mtimestring = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime(mtime))
+        size = ""
+        if sizes:
+            size = "{0:>15n} ".format(os.stat(name).st_size)
+        if os.path.islink(name):
+            name += " -> " + os.path.realpath(name)
+        if order in {"m", "modified1"}:
+            orderkey = mtimestring
+        elif order in {"s", "size"}:
+            orderkey = size
+        else:
+            orderkey = name
+        keys_lines.append((orderkey, "{mtimestring}{size}{name}".format(**locals())))
+    size = "" if not sizes else " " * 15
+    modified = "" if not modified else " " * 20
+    for name in sorted(dirs):
+        keys_lines.append((name, mtimestring + size + name + "/"))
+    for key, line in sorted(keys_lines):
+        print(line)
 
 
-parser = MyParser()
+def filter_walk(top, hidden=False, modified=False, order='name', recursive=False, sizes=False):
+    dirs_count = 0
+    files_count = 0
+    if recursive is False:
+        files = []
+        dirs = []
+        if hidden is False:
+            for item in os.listdir(top):
+                if os.path.isfile(item):
+                    if not item.startswith("."):
+                        files.append(item)
+                        files_count += 1
+                else:
+                    if not item.startswith("."):
+                        dirs.append(item)
+                        dirs_count += 1
+        else:
+            for item in os.listdir(top):
+                if os.path.isfile(item):
+                    files.append(item)
+                    files_count += 1
+                else:
+                    dirs.append(item)
+                    dirs_count += 1
+        file_processing(files, dirs, top, modified, order, sizes)
+        print('\n{} files, {} directories'.format(files_count, dirs_count))
 
-parser = argparse.ArgumentParser(description="ls.py", usage=argparse.SUPPRESS)
-parser.add_argument('-H, --hidden',
-                    help="show hidden files [default: off]")
-parser.add_argument('-m, --modified',
-                    help="show last modified date/time [default: off]")
-parser.add_argument('-o ORDER, --order=ORDER',
-                    help="order by ('name', 'n', 'modified', 'm', 'size', 's') [default: name]")
-parser.add_argument('-r, --recursive',
-                    help="recurse into subdirectories [default: off]")
-parser.add_argument('-s, --sizes',
-                    help="show sizes [default: off]")
-
-if len(sys.argv) == 1:
-    parser.print_help(sys.stderr)
-    sys.exit(1)
-args=parser.parse_args()
+    else:
+        for path, dirs, files in os.walk(top):
+            if hidden is False:
+                dirs[:] = [dir for dir in dirs if not dir.startswith(".")]
+            real_path = os.path.abspath(os.path.realpath(path))
+            print('Directory: {:s}'.format(real_path))
+            dirs_count += 1
+            for file in files:
+                fstat = os.stat(os.path.join(path, file))
+                fsize = fstat.st_size
+                mtime = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(fstat.st_mtime))
+                print('{:18s}\t{:10d}\t{:15.15s}'.format(mtime, fsize, file))
+                files_count += 1
+        print('\n{} files, {} directories'.format(files_count, dirs_count))
 
 
-for root, dirs, files in os.walk("."):
-    for filename in files:
-        print(filename)
+def parser_arguments():
+    usage = """%prog [options] [path1 [path2 [... pathN]]]
+
+The paths are optional; if not given . is used."""
+
+    parser = argparse.ArgumentParser(usage=usage)
+    parser.add_argument("-H", "--hidden", dest="hidden",
+                        action="store_true",
+                        help="show hidden files [default: off]")
+    parser.add_argument("-m", "--modified", dest="modified",
+                        action="store_true",
+                        help="show last modified date/time [default: off]")
+    orderlist = ["name", "n", "modified", "m", "size", "s"]
+    parser.add_argument("-o", "--order", dest="order",
+                        choices=orderlist,
+                        help=("order by ({0}) [default: %default]"
+                              .format(", ".join(["'" + x + "'" for x in orderlist]))))
+    parser.add_argument("-r", "--recursive", dest="recursive",
+                        action="store_true",
+                        help="recurse into subdirectories [default: off]")
+    parser.add_argument("-s", "--sizes", dest="sizes",
+                        action="store_true",
+                        help="show sizes [default: off]")
+    parser.set_defaults(order=orderlist[0])
+    args = parser.parse_args()
+    return args
+
+
+def main():
+    opts = parser_arguments()
+    filter_walk(top='.', hidden=opts.hidden, modified=opts.modified, order=opts.order,
+                recursive=opts.recursive, sizes=opts.sizes)
+
+
+if __name__ == "__main__":
+    main()
