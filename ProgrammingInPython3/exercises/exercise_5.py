@@ -148,6 +148,7 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                         filenames.append(fullname)
                         files_count += 1
                     dirs_count += 1
+            dirs_count = dirs_count - 1
             file_processing(filenames, dirnames, top, modified, order, sizes)
             if (files_count > 1 or files_count == 0) and (dirs_count > 1 or dirs_count == 0):
                 print(f'\n{files_count} files, {dirs_count} directories')
