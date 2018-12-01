@@ -135,16 +135,12 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                         if name.startswith("."):
                             continue
                         fullname = os.path.join(path, name)
-                        if fullname.startswith("./"):
-                            fullname = fullname[2:]
                         filenames.append(fullname)
                         files_count += 1
                     dirs_count += 1
                 else:
                     for name in files:
                         fullname = os.path.join(path, name)
-                        if fullname.startswith("./"):
-                            fullname = fullname[2:]
                         filenames.append(fullname)
                         files_count += 1
                     dirs_count += 1
