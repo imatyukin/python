@@ -86,65 +86,67 @@ def file_processing(files, dirs, top, modified, order, sizes):
 def filter_walk(top, hidden=False, modified=False, order='name', recursive=False, sizes=False):
     dirs_count = 0
     files_count = 0
-    files = []
-    dirs = []
+    filenames = []
+    dirnames = []
     for entry in top:
         if recursive is False:
             if hidden is False:
                 if os.path.isfile(entry):
                     if not entry.startswith("."):
-                        files.append(entry)
+                        filenames.append(entry)
                         files_count += 1
                 elif os.path.isdir(entry):
                     for name in os.listdir(entry):
                         if not name.startswith("."):
                             fullname = os.path.join(entry, name)
                             if os.path.isfile(fullname):
-                                files.append(fullname)
+                                filenames.append(fullname)
                                 files_count += 1
                             elif os.path.isdir(fullname):
-                                dirs.append(fullname)
+                                dirnames.append(fullname)
                                 dirs_count +=1
                 else:
                     print(f'File {entry} not found.')
             else:
                 if os.path.isfile(entry):
-                    files.append(entry)
+                    filenames.append(entry)
                     files_count += 1
                 elif os.path.isdir(entry):
                     for name in os.listdir(entry):
                         fullname = os.path.join(entry, name)
                         if os.path.isfile(fullname):
-                            files.append(fullname)
+                            filenames.append(fullname)
                             files_count += 1
                         elif os.path.isdir(fullname):
-                            dirs.append(fullname)
+                            dirnames.append(fullname)
                             dirs_count += 1
-            file_processing(files, dirs, top, modified, order, sizes)
-            if files_count > 1 and dirs_count > 1 or files_count == 0 and dirs_count == 0:
+            file_processing(filenames, dirnames, top, modified, order, sizes)
+            if (files_count > 1 or files_count == 0) and (dirs_count > 1 or dirs_count == 0):
                 print(f'\n{files_count} files, {dirs_count} directories')
-            elif files_count == 1 and dirs_count > 0 or dirs_count == 0:
+            elif (files_count == 1) and (dirs_count > 0 or dirs_count == 0):
                 print(f'\n{files_count} file, {dirs_count} directories')
-            elif files_count > 0 or files_count == 0 and dirs_count == 1:
+            elif (files_count > 0 or files_count == 0) and (dirs_count == 1):
                 print(f'\n{files_count} files, {dirs_count} directory')
         else:
             for path, dirs, files in os.walk(entry):
                 if hidden is False:
                     dirs[:] = [dir for dir in dirs if not dir.startswith(".")]
                 real_path = os.path.abspath(os.path.realpath(path))
-                print('Directory: {:s}'.format(real_path))
-                dirs_count += 1
-                for file in files:
-                    fstat = os.stat(os.path.join(path, file))
-                    fsize = fstat.st_size
-                    mtime = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(fstat.st_mtime))
-                    print('{:18s}\t{:10d}\t{:15.15s}'.format(mtime, fsize, file))
+                for name in files:
+                    if name.startswith("."):
+                        continue
+                    fullname = os.path.join(path, name)
+                    if fullname.startswith("./"):
+                        fullname = fullname[2:]
+                    filenames.append(fullname)
                     files_count += 1
-            if files_count > 1 and dirs_count > 1 or files_count == 0 and dirs_count == 0:
+                dirs_count +=1
+            file_processing(filenames, dirnames, top, modified, order, sizes)
+            if (files_count > 1 or files_count == 0) and (dirs_count > 1 or dirs_count == 0):
                 print(f'\n{files_count} files, {dirs_count} directories')
-            elif files_count == 1 and dirs_count > 0 or dirs_count == 0:
+            elif (files_count == 1) and (dirs_count > 0 or dirs_count == 0):
                 print(f'\n{files_count} file, {dirs_count} directories')
-            elif files_count > 0 or files_count == 0 and dirs_count == 1:
+            elif (files_count > 0 or files_count == 0) and (dirs_count == 1):
                 print(f'\n{files_count} files, {dirs_count} directory')
 
 
