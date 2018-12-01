@@ -111,13 +111,14 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                 if os.path.isfile(entry):
                     files.append(entry)
                     files_count += 1
-                else:
-                    for item in os.listdir(entry):
-                        if os.path.isfile(item):
-                            files.append(item)
+                elif os.path.isdir(entry):
+                    for name in os.listdir(entry):
+                        fullname = os.path.join(entry, name)
+                        if os.path.isfile(fullname):
+                            files.append(fullname)
                             files_count += 1
-                        else:
-                            dirs.append(item)
+                        elif os.path.isdir(fullname):
+                            dirs.append(fullname)
                             dirs_count += 1
             file_processing(files, dirs, top, modified, order, sizes)
             print(f'\n{files_count} files, {dirs_count} directories')
