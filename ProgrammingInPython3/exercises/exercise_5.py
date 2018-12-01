@@ -121,7 +121,12 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                             dirs.append(fullname)
                             dirs_count += 1
             file_processing(files, dirs, top, modified, order, sizes)
-            print(f'\n{files_count} files, {dirs_count} directories')
+            if files_count > 1 and dirs_count > 1 or files_count == 0 and dirs_count == 0:
+                print(f'\n{files_count} files, {dirs_count} directories')
+            elif files_count == 1 and dirs_count > 0 or dirs_count == 0:
+                print(f'\n{files_count} file, {dirs_count} directories')
+            elif files_count > 0 or files_count == 0 and dirs_count == 1:
+                print(f'\n{files_count} files, {dirs_count} directory')
         else:
             for path, dirs, files in os.walk(top):
                 if hidden is False:
