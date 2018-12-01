@@ -83,35 +83,35 @@ def file_processing(files, dirs, top, modified, order, sizes):
         print(line)
 
 
-def filter_walk(top, hidden=False, modified=False, order='name', recursive=False, sizes=False):
+def filter_walk(paths, hidden=False, modified=False, order='name', recursive=False, sizes=False):
     dirs_count = 0
     files_count = 0
     if recursive is False:
         files = []
         dirs = []
-        if hidden is False:
-            for item in os.listdir(top):
-                if os.path.isfile(item):
-                    if not item.startswith("."):
-                        files.append(item)
+        for path in paths:
+            if hidden is False:
+                for entry in os.listdir(path):
+                    if os.path.isfile(entry):
+                        if not entry.startswith("."):
+                            files.append(entry)
+                            files_count += 1
+                    else:
+                        if not entry.startswith("."):
+                            dirs.append(entry)
+                            dirs_count += 1
+            else:
+                for entry in os.listdir(path):
+                    if os.path.isfile(entry):
+                        files.append(entry)
                         files_count += 1
-                else:
-                    if not item.startswith("."):
-                        dirs.append(item)
+                    else:
+                        dirs.append(entry)
                         dirs_count += 1
-        else:
-            for item in os.listdir(top):
-                if os.path.isfile(item):
-                    files.append(item)
-                    files_count += 1
-                else:
-                    dirs.append(item)
-                    dirs_count += 1
-        file_processing(files, dirs, top, modified, order, sizes)
-        print('\n{} files, {} directories'.format(files_count, dirs_count))
-
+            file_processing(files, dirs, paths, modified, order, sizes)
+            print(f'\n{files_count} files, {dirs_count} directories')
     else:
-        for path, dirs, files in os.walk(top):
+        for path, dirs, files in os.walk(paths):
             if hidden is False:
                 dirs[:] = [dir for dir in dirs if not dir.startswith(".")]
             real_path = os.path.abspath(os.path.realpath(path))
@@ -150,13 +150,15 @@ The paths are optional; if not given . is used."""
                         action="store_true",
                         help="show sizes [default: off]")
     parser.set_defaults(order=orderlist[0])
-    args = parser.parse_args()
-    return args
+    args, paths = parser.parse_known_args()
+    if not paths:
+        paths = ["."]
+    return args, paths
 
 
 def main():
-    opts = parser_arguments()
-    filter_walk(top='.', hidden=opts.hidden, modified=opts.modified, order=opts.order,
+    opts, paths = parser_arguments()
+    filter_walk(paths=paths, hidden=opts.hidden, modified=opts.modified, order=opts.order,
                 recursive=opts.recursive, sizes=opts.sizes)
 
 
