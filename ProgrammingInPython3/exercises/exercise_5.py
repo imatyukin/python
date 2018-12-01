@@ -58,8 +58,8 @@ import argparse
 
 def file_processing(files, dirs, top, modified, order, sizes):
     keys_lines = []
+    mtimestring = ""
     for name in files:
-        mtimestring = ""
         if modified:
             mtime = os.stat(name).st_mtime
             mtimestring = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime(mtime))
