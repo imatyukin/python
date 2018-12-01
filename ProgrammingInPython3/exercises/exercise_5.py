@@ -106,7 +106,7 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                                 dirs.append(fullname)
                                 dirs_count +=1
                 else:
-                    print(f'Файл {entry} не найден.')
+                    print(f'File {entry} not found.')
             else:
                 if os.path.isfile(entry):
                     files.append(entry)
@@ -128,7 +128,7 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
             elif files_count > 0 or files_count == 0 and dirs_count == 1:
                 print(f'\n{files_count} files, {dirs_count} directory')
         else:
-            for path, dirs, files in os.walk(top):
+            for path, dirs, files in os.walk(entry):
                 if hidden is False:
                     dirs[:] = [dir for dir in dirs if not dir.startswith(".")]
                 real_path = os.path.abspath(os.path.realpath(path))
@@ -140,7 +140,12 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                     mtime = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(fstat.st_mtime))
                     print('{:18s}\t{:10d}\t{:15.15s}'.format(mtime, fsize, file))
                     files_count += 1
-            print('\n{} files, {} directories'.format(files_count, dirs_count))
+            if files_count > 1 and dirs_count > 1 or files_count == 0 and dirs_count == 0:
+                print(f'\n{files_count} files, {dirs_count} directories')
+            elif files_count == 1 and dirs_count > 0 or dirs_count == 0:
+                print(f'\n{files_count} file, {dirs_count} directories')
+            elif files_count > 0 or files_count == 0 and dirs_count == 1:
+                print(f'\n{files_count} files, {dirs_count} directory')
 
 
 def parser_arguments():
