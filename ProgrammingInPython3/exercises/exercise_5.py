@@ -127,7 +127,7 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
 
 
 def parser_arguments():
-    usage = """%prog [options] [path1 [path2 [... pathN]]]
+    usage = """%(prog)s [options] [path1 [path2 [... pathN]]]
 
 The paths are optional; if not given . is used."""
 
@@ -141,8 +141,8 @@ The paths are optional; if not given . is used."""
     orderlist = ["name", "n", "modified", "m", "size", "s"]
     parser.add_argument("-o", "--order", dest="order",
                         choices=orderlist,
-                        help=("order by ({0}) [default: %default]"
-                              .format(", ".join(["'" + x + "'" for x in orderlist]))))
+                        help=("order by ({0}) [default: %(default)s]".format(
+                            ", ".join(["'" + x + "'" for x in orderlist]))))
     parser.add_argument("-r", "--recursive", dest="recursive",
                         action="store_true",
                         help="recurse into subdirectories [default: off]")
