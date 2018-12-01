@@ -56,7 +56,7 @@ import time
 import argparse
 
 
-def file_processing(files, dirs, top, modified, order, sizes):
+def file_processing(files, dirs, modified, order, sizes):
     keys_lines = []
     mtimestring = ""
     for name in files:
@@ -65,10 +65,10 @@ def file_processing(files, dirs, top, modified, order, sizes):
             mtimestring = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime(mtime))
         size = ""
         if sizes:
-            size = "{0:>15n} ".format(os.stat(name).st_size)
+            size = f'{os.stat(name).st_size:>15n} '
         if os.path.islink(name):
             name += " -> " + os.path.realpath(name)
-        if order in {"m", "modified1"}:
+        if order in {"m", "modified"}:
             orderkey = mtimestring
         elif order in {"s", "size"}:
             orderkey = size
@@ -120,7 +120,7 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                         elif os.path.isdir(fullname):
                             dirnames.append(fullname)
                             dirs_count += 1
-            file_processing(filenames, dirnames, top, modified, order, sizes)
+            file_processing(filenames, dirnames, modified, order, sizes)
             if (files_count > 1 or files_count == 0) and (dirs_count > 1 or dirs_count == 0):
                 print(f'\n{files_count} files, {dirs_count} directories')
             elif (files_count == 1) and (dirs_count > 0 or dirs_count == 0):
@@ -145,7 +145,7 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                         files_count += 1
                     dirs_count += 1
             dirs_count = dirs_count - 1
-            file_processing(filenames, dirnames, top, modified, order, sizes)
+            file_processing(filenames, dirnames, modified, order, sizes)
             if (files_count > 1 or files_count == 0) and (dirs_count > 1 or dirs_count == 0):
                 print(f'\n{files_count} files, {dirs_count} directories')
             elif (files_count == 1) and (dirs_count > 0 or dirs_count == 0):
