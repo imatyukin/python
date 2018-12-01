@@ -131,16 +131,23 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
             for path, dirs, files in os.walk(entry):
                 if hidden is False:
                     dirs[:] = [dir for dir in dirs if not dir.startswith(".")]
-                real_path = os.path.abspath(os.path.realpath(path))
-                for name in files:
-                    if name.startswith("."):
-                        continue
-                    fullname = os.path.join(path, name)
-                    if fullname.startswith("./"):
-                        fullname = fullname[2:]
-                    filenames.append(fullname)
-                    files_count += 1
-                dirs_count +=1
+                    for name in files:
+                        if name.startswith("."):
+                            continue
+                        fullname = os.path.join(path, name)
+                        if fullname.startswith("./"):
+                            fullname = fullname[2:]
+                        filenames.append(fullname)
+                        files_count += 1
+                    dirs_count += 1
+                else:
+                    for name in files:
+                        fullname = os.path.join(path, name)
+                        if fullname.startswith("./"):
+                            fullname = fullname[2:]
+                        filenames.append(fullname)
+                        files_count += 1
+                    dirs_count += 1
             file_processing(filenames, dirnames, top, modified, order, sizes)
             if (files_count > 1 or files_count == 0) and (dirs_count > 1 or dirs_count == 0):
                 print(f'\n{files_count} files, {dirs_count} directories')
