@@ -5,20 +5,18 @@ from tracing import trace
 
 
 @trace
-def func(x, y):
+def func(x,y):
     print('x =', x)
     print('y =', y)
     return x+y
 
-
-@trace
-def func2(x, y, z):
-    print('Hello')
+# @trace
+def func2(x,y,z):
+    print('Hello!')
     return x*y*z
-    
 
+    
 z = func(2,3)
 print(z)
 
-v = func2(2,3, 4)
-print(v)
+func2(3,4,5)

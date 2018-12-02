@@ -4,4 +4,6 @@
 
 def words_from_file(source):
     for line in source:
-        yield from line.split(' ')
+        wrd = line.split()
+        for x in wrd:
+            yield x

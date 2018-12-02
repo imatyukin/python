@@ -4,8 +4,8 @@
 
 def trace(function):
     def traced(*args, **kwargs):
-        print(f'Function {function.__name__} called')
+        print(f'Функция {function.__name__} вызвана')
         result = function(*args, **kwargs)
-        print(f'Function {function.__name__} completed')
+        print(f'Функция {function.__name__} завершена')
         return result
     return traced

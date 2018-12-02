@@ -4,9 +4,9 @@
 import os
 from os.path import join
 
-root = 'C:\\'
+root = normpath(join('C:', '/', 'WORK'))
 
-os.walk(root)
+
 for path, dirs, files in os.walk(root):
     if 'Program Files' in dirs:
         dirs.remove('Program Files')

@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 def next_person():
-    fam = input('Фамилия: ')
+    fam = input('фамилия: ')
     if fam == 'end':
         return None
-    res = input('Результат: ')
+    res = input('результат: ')
     res = float(res)
-    return (res, fam, )
-    
-    
+    return ( res, fam, )
+
+
 def coming():
     while True:
         res = next_person()

@@ -11,10 +11,9 @@ def profile():
     try:
         yield None
     finally:
-        t = datetime.now() - start
+        t = datetime.now()-start
         print('>>>>', t, '<<<<')
 
-
 with profile():
-    for k in range(0, 100000):
+    for k in range(0,100000):
         print(k)
