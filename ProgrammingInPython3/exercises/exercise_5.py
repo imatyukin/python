@@ -59,11 +59,11 @@ import argparse
 def file_processing(files, dirs, modified, order, sizes):
     keys_lines = []
     mtimestring = ""
+    size = ""
     for name in files:
         if modified:
             mtime = os.stat(name).st_mtime
             mtimestring = time.strftime("%Y-%m-%d %H:%M:%S ", time.localtime(mtime))
-        size = ""
         if sizes:
             size = f'{os.stat(name).st_size:>15n} '
         if os.path.islink(name):
@@ -78,12 +78,12 @@ def file_processing(files, dirs, modified, order, sizes):
     size = "" if not sizes else " " * 15
     modified = "" if not modified else " " * 20
     for name in sorted(dirs):
-        keys_lines.append((name, mtimestring + size + name + "/"))
+        keys_lines.append((name, modified + size + name + "/"))
     for key, line in sorted(keys_lines):
         print(line)
 
 
-def filter_walk(top, hidden=False, modified=False, order='name', recursive=False, sizes=False):
+def filter_top(top, hidden=False, modified=False, order='name', recursive=False, sizes=False):
     dirs_count = 0
     files_count = 0
     filenames = []
@@ -99,6 +99,8 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                     for name in os.listdir(entry):
                         if not name.startswith("."):
                             fullname = os.path.join(entry, name)
+                            if fullname.startswith("./"):
+                                fullname = fullname[2:]
                             if os.path.isfile(fullname):
                                 filenames.append(fullname)
                                 files_count += 1
@@ -114,6 +116,8 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                 elif os.path.isdir(entry):
                     for name in os.listdir(entry):
                         fullname = os.path.join(entry, name)
+                        if fullname.startswith("./"):
+                            fullname = fullname[2:]
                         if os.path.isfile(fullname):
                             filenames.append(fullname)
                             files_count += 1
@@ -135,12 +139,16 @@ def filter_walk(top, hidden=False, modified=False, order='name', recursive=False
                         if name.startswith("."):
                             continue
                         fullname = os.path.join(path, name)
+                        if fullname.startswith("./"):
+                            fullname = fullname[2:]
                         filenames.append(fullname)
                         files_count += 1
                     dirs_count += 1
                 else:
                     for name in files:
                         fullname = os.path.join(path, name)
+                        if fullname.startswith("./"):
+                            fullname = fullname[2:]
                         filenames.append(fullname)
                         files_count += 1
                     dirs_count += 1
@@ -186,7 +194,7 @@ The paths are optional; if not given . is used."""
 
 def main():
     opts, top = parser_arguments()
-    filter_walk(top=top, hidden=opts.hidden, modified=opts.modified, order=opts.order,
+    filter_top(top=top, hidden=opts.hidden, modified=opts.modified, order=opts.order,
                 recursive=opts.recursive, sizes=opts.sizes)
 
 
