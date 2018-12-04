@@ -48,10 +48,10 @@ class Point:
         return self.x == other.x and self.y == other.y
 
     def __repr__(self):                 # специальный метод указанного объекта (возвращает его результат)
-        return "Point({0.x!r}, {0.y!r})".format(self)
+        return f'Point({self.x!r}, {self.y!r})'
 
     def __str__(self):                  # специальный метод (возвращает строку)
-        return "({0.x!r}, {0.y!r})".format(self)
+        return f'({self.x!r}, {self.y!r})'
 
 
 # Использование класса Point
