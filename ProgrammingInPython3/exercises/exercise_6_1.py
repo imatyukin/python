@@ -20,3 +20,46 @@
 #    new lines. A model solution is provided in Shape_ans.py; the same code is
 #    also in ShapeAlt_ans.py.
 
+import math
+
+
+class Point:
+
+    def __init__(self, x=0, y=0):       # метод инициализации (self - ссылка на сам объект)
+        """A 2D cartesian coordinate
+
+        >>> point = Point()
+        >>> point
+        Point(0, 0)
+        """
+        self.x = x                      # переменной экземпляра self.x присваивается значение параметра x
+        self.y = y                      # переменной экземпляра self.y присваивается значение параметра y
+
+    def distance_from_origin(self):     # метод, выполняющий вычисления на основе переменных экземпляра объекта
+        """Returns the distance of the point from the origin
+
+        >>> point = Point(3, 4)
+        >>> point.distance_from_origin()
+        5.0
+        """
+        return math.hypot(self.x, self.y)
+
+    def __eq__(self, other):            # специальный метод x == y (возвращает True, если x равно y)
+        return self.x == other.x and self.y == other.y
+
+    def __repr__(self):                 # специальный метод указанного объекта (возвращает его результат)
+        return "Point({0.x!r}, {0.y!r})".format(self)
+
+    def __str__(self):                  # специальный метод (возвращает строку)
+        return "({0.x!r}, {0.y!r})".format(self)
+
+
+# Использование класса Point
+a = Point()
+print(repr(a))                          # вернёт: 'Point(0, 0)'
+b = Point(3, 4)
+print(str(b))                           # вернёт: '(3, 4)'
+print(b.distance_from_origin())         # вернёт: 5.0
+b.x = -19
+print(str(b))                           # вернёт: '(-19, 4)'
+print(a == b, a != b)                   # вернёт: False True
