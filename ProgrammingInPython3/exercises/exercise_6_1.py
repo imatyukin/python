@@ -25,8 +25,10 @@ import math
 
 class Point:
 
-    def __init__(self, x=0, y=0):       # метод инициализации (self - ссылка на сам объект)
-        """A 2D cartesian coordinate
+    def __init__(self, x=0, y=0):
+        """
+        Метод инициализации (self - ссылка на сам объект)
+        A 2D cartesian coordinate
 
         >>> point = Point()
         >>> point
@@ -35,8 +37,10 @@ class Point:
         self.x = x                      # переменной экземпляра self.x присваивается значение параметра x
         self.y = y                      # переменной экземпляра self.y присваивается значение параметра y
 
-    def distance_from_origin(self):     # метод, выполняющий вычисления на основе переменных экземпляра объекта
-        """Returns the distance of the point from the origin
+    def distance_from_origin(self):
+        """
+        Метод, выполняющий вычисления на основе переменных экземпляра объекта
+        Returns the distance of the point from the origin
 
         >>> point = Point(3, 4)
         >>> point.distance_from_origin()
@@ -44,22 +48,28 @@ class Point:
         """
         return math.hypot(self.x, self.y)
 
-    # Специальный метод __eq__(self, other)
-    # x == y
-    # Возвращает True, если x равно y
     def __eq__(self, other):
+        """
+        Специальный метод __eq__(self, other)
+        Пример использования x == y
+        Возвращает True, если x равно y
+        """
         return self.x == other.x and self.y == other.y
 
-    # Специальный метод __repr__(self)
-    # repr(x)
-    # Возвращает строку с репрезентативной формой представления x, которая обеспечивает равенство eval(repr(x)) == x
     def __repr__(self):
+        """
+        Специальный метод __repr__(self)
+        Пример использования repr(x)
+        Возвращает строку с репрезентативной формой представления x, которая обеспечивает равенство eval(repr(x)) == x
+        """
         return f'Point({self.x!r}, {self.y!r})'
 
-    # Специальный метод __str__(self)
-    # str(x)
-    # Возвращает строковое представление x, пригодное для восприятия человеком
     def __str__(self):
+        """
+        Специальный метод __str__(self)
+        Пример использования str(x)
+        Возвращает строковое представление x, пригодное для восприятия человеком
+        """
         return f'({self.x!r}, {self.y!r})'
 
 
