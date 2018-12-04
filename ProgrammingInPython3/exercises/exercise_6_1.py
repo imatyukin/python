@@ -44,13 +44,22 @@ class Point:
         """
         return math.hypot(self.x, self.y)
 
-    def __eq__(self, other):            # специальный метод x == y (возвращает True, если x равно y)
+    # Специальный метод __eq__(self, other)
+    # x == y
+    # Возвращает True, если x равно y
+    def __eq__(self, other):
         return self.x == other.x and self.y == other.y
 
-    def __repr__(self):                 # специальный метод указанного объекта (возвращает его результат)
+    # Специальный метод __repr__(self)
+    # repr(x)
+    # Возвращает строку с репрезентативной формой представления x, которая обеспечивает равенство eval(repr(x)) == x
+    def __repr__(self):
         return f'Point({self.x!r}, {self.y!r})'
 
-    def __str__(self):                  # специальный метод (возвращает строку)
+    # Специальный метод __str__(self)
+    # str(x)
+    # Возвращает строковое представление x, пригодное для восприятия человеком
+    def __str__(self):
         return f'({self.x!r}, {self.y!r})'
 
 
