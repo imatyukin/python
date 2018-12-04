@@ -56,6 +56,18 @@ class Point:
         """
         return self.x == other.x and self.y == other.y
 
+    def __add__(self, other):
+        """
+        Специальный метод __add__(self, other)
+        Пример использования x + y
+
+        >>> p = Point(10, 20)
+        >>> q = p + Point(30, 40)
+        >>> q
+        Point(40, 60)
+        """
+        return Point(self.x + other.x, self.y + other.y)
+
     def __repr__(self):
         """
         Специальный метод __repr__(self)
@@ -82,3 +94,15 @@ print(b.distance_from_origin())         # вернёт: 5.0
 b.x = -19
 print(str(b))                           # вернёт: '(-19, 4)'
 print(a == b, a != b)                   # вернёт: False True
+
+# p, q и r являются объектами типа Point, а n - число
+
+# Поддержка операции p = q + r # Point.__add__()
+p = Point(10, 20)
+q = p + Point(30, 40)
+print(q)                                # вернёт: '(40, 60)'
+
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
