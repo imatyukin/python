@@ -267,11 +267,11 @@ print("Поддержка операции p /= n        # Point.__itruediv__()"
 p = Point(1, 2)
 p /= 3
 print(p)                                # вернёт: '(0.3333333333333333, 0.6666666666666666)'
-print("Поддержка операции p = q // n  # Point.__floordiv__():")
+print("Поддержка операции p = q // n    # Point.__floordiv__():")
 p = Point(1, 2)
 q = p // 3
 print(q)                                # вернёт: '(0, 0)'
-print("Поддержка операции p //= n     # Point.__ifloordiv__():")
+print("Поддержка операции p //= n       # Point.__ifloordiv__():")
 p = Point(1, 2)
 p //= 3
 print(p)                                # вернёт: '(0, 0)'
