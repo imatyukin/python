@@ -60,13 +60,151 @@ class Point:
         """
         Специальный метод __add__(self, other)
         Пример использования x + y
+        Returns a new Point whose coordinate are the sum of this
+        one's and the other one's
 
-        >>> p = Point(10, 20)
-        >>> q = p + Point(30, 40)
+        >>> p = Point(1, 2)
+        >>> q = p + Point(3, 4)
         >>> q
-        Point(40, 60)
+        Point(4, 6)
         """
         return Point(self.x + other.x, self.y + other.y)
+
+    def __iadd__(self, other):
+        """
+        Специальный метод __iadd__(self, other)
+        Пример использования x += y
+        Returns this Point with its coordinate set to the sum of this
+        one's and the other one's
+
+        >>> p = Point(1, 2)
+        >>> p += Point(3, 4)
+        >>> p
+        Point(4, 6)
+        """
+        self.x += other.x
+        self.y += other.y
+        return Point(self.x, self.y)
+
+    def __sub__(self, other):
+        """
+        Специальный метод __sub__(self, other)
+        Пример использования x - y
+        Returns a new Point whose coordinate are the difference of this
+        one's and the other one's
+
+        >>> p = Point(1, 2)
+        >>> q = p - Point(3, 4)
+        >>> q
+        Point(-2, -2)
+        """
+        return Point(self.x - other.x, self.y - other.y)
+
+    def __isub__(self, other):
+        """
+        Специальный метод __isub__(self, other)
+        Пример использования x -= y
+        Returns this Point with its coordinate set to the difference
+        of this one's and the other one's
+
+        >>> p = Point(1, 2)
+        >>> p -= Point(3, 4)
+        >>> p
+        Point(-2, -2)
+        """
+        self.x -= other.x
+        self.y -= other.y
+        return self
+
+    def __mul__(self, other):
+        """
+        Специальный метод __mul__(self, other)
+        Пример использования x * y
+        Returns a new Point whose coordinate is this one's multiplied
+        by the other number
+
+        >>> p = Point(1, 2)
+        >>> q = p * 3
+        >>> q
+        Point(3, 6)
+        """
+        return Point(self.x * other, self.y * other)
+
+    def __imul__(self, other):
+        """
+        Специальный метод __imul__(self, other)
+        Пример использования x *= y
+        Returns this Point with its coordinate set to this one's
+        multiplied by the other number
+
+        >>> p = Point(1, 2)
+        >>> p *= 3
+        >>> p
+        Point(3, 6)
+        """
+        self.x *= other
+        self.y *= other
+        return self
+
+    def __truediv__(self, other):
+        """
+        Специальный метод __truediv__(self, other)
+        Пример использования x / y
+        Returns a new Point whose coordinate is this one's divided
+        by the other number
+
+        >>> p = Point(1, 2)
+        >>> q = p / 3
+        >>> q
+        Point(0.3333333333333333, 0.6666666666666666)
+        """
+        return Point(self.x / other, self.y / other)
+
+    def __itruediv__(self, other):
+        """
+        Специальный метод __itruediv__(self, other)
+        Пример использования x /= y
+        Returns this Point with its coordinate set to this one's
+        divided by the other number
+
+        >>> p = Point(1, 2)
+        >>> p /= 3
+        >>> p
+        Point(0.3333333333333333, 0.6666666666666666)
+        """
+        self.x /= other
+        self.y /= other
+        return self
+
+    def __floordiv__(self, other):
+        """
+        Специальный метод __floordiv__(self, other)
+        Пример использования x // y
+        Returns a new Point whose coordinate is this one's floor
+        divided by the other number
+
+        >>> p = Point(1, 2)
+        >>> q = p // 3
+        >>> q
+        Point(0, 0)
+        """
+        return Point(self.x // other, self.y // other)
+
+    def __ifloordiv__(self, other):
+        """
+        Специальный метод __ifloordiv__(self, other)
+        Пример использования x //= y
+        Returns this Point with its coordinate set to this one's
+        floor divided by the other number
+
+        >>> p = Point(1, 2)
+        >>> p //= 3
+        >>> p
+        Point(0, 0)
+        """
+        self.x //= other
+        self.y //= other
+        return self
 
     def __repr__(self):
         """
@@ -97,10 +235,46 @@ print(a == b, a != b)                   # вернёт: False True
 
 # p, q и r являются объектами типа Point, а n - число
 
-# Поддержка операции p = q + r # Point.__add__()
-p = Point(10, 20)
-q = p + Point(30, 40)
-print(q)                                # вернёт: '(40, 60)'
+print("Поддержка операции p = q + r     # Point.__add__():")
+p = Point(1, 2)
+q = p + Point(3, 4)
+print(q)                                # вернёт: '(4, 6)'
+print("Поддержка операции p += q        # Point.__iadd__():")
+p = Point(1, 2)
+p += Point(3, 4)
+print(p)                                # вернёт: '(4, 6)'
+print("Поддержка операции p = q - r     # Point.__sub__():")
+p = Point(1, 2)
+q = p - Point(3, 4)
+print(q)                                # вернёт: '(-2, -2)'
+print("Поддержка операции p -= q        # Point.__isub__():")
+p = Point(1, 2)
+p -= Point(3, 4)
+print(p)                                # вернёт: '(-2, -2)'
+print("Поддержка операции p = q * n     # Point.__mul__():")
+p = Point(1, 2)
+q = p * 3
+print(q)                                # вернёт: '(3, 6)'
+print("Поддержка операции p *= n        # Point.__imul__():")
+p = Point(1, 2)
+p *= 3
+print(p)                                # вернёт: '(3, 6)'
+print("Поддержка операции p = q / n     # Point.__truediv__():")
+p = Point(1, 2)
+q = p / 3
+print(q)                                # вернёт: '(0.3333333333333333, 0.6666666666666666)'
+print("Поддержка операции p /= n        # Point.__itruediv__()")
+p = Point(1, 2)
+p /= 3
+print(p)                                # вернёт: '(0.3333333333333333, 0.6666666666666666)'
+print("Поддержка операции p = q // n  # Point.__floordiv__():")
+p = Point(1, 2)
+q = p // 3
+print(q)                                # вернёт: '(0, 0)'
+print("Поддержка операции p //= n     # Point.__ifloordiv__():")
+p = Point(1, 2)
+p //= 3
+print(p)                                # вернёт: '(0, 0)'
 
 
 if __name__ == "__main__":
