@@ -329,9 +329,24 @@ class Image:
             if fh is not None:
                 fh.close()
 
-    def resize(self, width, height):
+    def resize(self, width=None, height=None):
         """
         Метод resize(width, height)
+
+        Resizes to the given dimensions; returns True if changes made
+
+        If a dimension is None; keeps the original. Deletes all out of
+        range points.
+
+        >>> image = Image(10, 10)
+        >>> for x, y in zip(range(10), range(10)):
+        ...     image[x, y] = "#00FF00" if x < 5 else "#0000FF"
+        >>> image.width, image.height, len(image.colors)
+        (10, 10, 3)
+        >>> image.resize(5, 5)
+        True
+        >>> image.width, image.height, len(image.colors)
+        (5, 5, 2)
         """
 
 
