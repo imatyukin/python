@@ -332,6 +332,10 @@ class Image:
     def resize(self, width=None, height=None):
         """
         Метод resize(width, height)
+        Если новая ширина или высота меньше текущего значения, все цвета,
+        оказавшиеся за пределами новых границ изображения, удаляются.
+        Если в качестве нового значения ширины или высоты передаётся None,
+        соответсвующее значение ширины или высоты остаётся без изменений.
 
         Resizes to the given dimensions; returns True if changes made
 
