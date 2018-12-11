@@ -68,9 +68,11 @@ import pickle
 USE_GETATTR = False
 
 
+# Объявления собственных исключений
 class ImageError(Exception): pass
 
 
+# Наследуют исключение ImageError
 class CoordinateError(ImageError): pass
 
 
@@ -87,6 +89,11 @@ class NoFilenameError(ImageError): pass
 
 
 class Image:
+    """
+    Класс Image хранит одно значение цвета для фона плюс те пиксели изображения, цвет которых отличается от цвета фона.
+    Реализация с помощью словаря, разреженного массива, каждый ключ которого представляет координаты (x, y),
+    а значение определяет цвет в точке с этими координатами.
+    """
 
     def __init__(self, width, height, filename="",
                  background="#FFFFFF"):
@@ -274,8 +281,26 @@ class Image:
             if fh is not None:
                 fh.close()
 
+    def resize(self, width, height):
+        """
+        Метод resize(width, height)
+        """
+
 
 if __name__ == "__main__":
     import doctest
-
     doctest.testmod()
+
+    border_color = "#FF0000"  # red
+    square_color = "#0000FF"  # blue
+    width, height = 240, 60
+    midx, midy = width // 2, height // 2
+    image = Image(width, height, "square_eye.img")
+    for x in range(width):
+        for y in range(height):
+            if x < 5 or x >= width - 5 or y < 5 or y >= height - 5:
+                image[x, y] = border_color
+            elif midx - 20 < x < midx + 20 and midy - 20 < y < midy + 20:
+                image[x, y] = square_color
+    image.save()
+    image.export("square_eye.xpm")
