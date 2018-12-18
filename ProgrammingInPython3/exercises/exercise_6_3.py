@@ -27,6 +27,8 @@ class Transaction:
         self.__currency = currency
         self.__usd_conversion_rate = usd_conversion_rate
 
+    # @property отделяет свойства класса от методов,
+    # позволяя обращаться к свойствам не как к функциям, а как к атрибутам
     @property
     def amount(self):
         return self.__amount
