@@ -38,22 +38,3 @@ class View(QTableView):
         super().__init__(parent)
         model = Model(parent=self)
         self.setModel(model)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        

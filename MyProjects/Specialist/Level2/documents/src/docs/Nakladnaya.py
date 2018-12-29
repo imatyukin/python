@@ -75,11 +75,3 @@ class Nakladnaya(object):
         dat = self.__created.strftime('%Y.%m.%d %H:%M')
         s = '*' if self.__subscribed else ' '
         return f'{s} {num} -- {dat}'
-
-
-
-
-
-
-
-

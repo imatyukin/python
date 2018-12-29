@@ -132,20 +132,3 @@ class Application(object):
         if response == 'OK':
             self.__all_docs.remove(self.__current)
             self.__current = None
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        

@@ -59,13 +59,3 @@ class Dialog(QDialog):
     @property
     def y(self):
         return self.__frame.y
-
-
-
-
-
-
-
-
-
-

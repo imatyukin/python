@@ -29,4 +29,3 @@ class MainWindow(QMainWindow):
         if result == NewPoint.Accepted:
             # тут добавить точку
             pass
-    

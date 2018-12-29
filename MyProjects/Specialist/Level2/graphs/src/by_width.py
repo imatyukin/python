@@ -24,21 +24,3 @@ def by_width2(graph, start, finish):
             for vertex in graph[end]:
                 if vertex not in way:
                     candidates.append( way + [vertex] )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
