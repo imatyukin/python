@@ -39,24 +39,3 @@ class Flight(object):
         return f'{s} -> {f} -- {self.duration:.3f}'
 
     __repr__ = __str__
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

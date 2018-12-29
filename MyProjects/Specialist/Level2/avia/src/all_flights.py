@@ -25,24 +25,3 @@ def collect_flights(filepath):
         except KeyError:
             result[f.start] = [ f ]
     return result
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

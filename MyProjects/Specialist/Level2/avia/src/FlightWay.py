@@ -67,37 +67,3 @@ class FlightWay(Sequence):
         for k in range(0,len(self)-1):
             result += self.wait_time(k)
         return result
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
