@@ -80,23 +80,22 @@ class BinaryRecordFile:
         """Двоичный файл с произвольным доступом, который ведёт себя, как список,
         каждый элемент которого представляет собой bytes или bytesarray объект record_size.
         """
-        self.__record_size = record_size
-        mode = "w+b" if not os.path.exists(filename) else "r+b"
+        self.__record_size = record_size        # истинный размер записи, который не использует байт состояния
+        mode = "w+b" if not os.path.exists(filename) else "r+b" # предотвращение усечения файла при открытии
         self.__fh = open(filename, mode)
-        self.auto_flush = auto_flush
-
+        self.auto_flush = auto_flush            # выталкивание файла на диск
     @property
     def record_size(self):
-        "Размер каждого элемента"
+        """Размер каждого элемента"""
         return self.__record_size
 
     @property
     def name(self):
-        "Имя файла"
+        """Имя файла"""
         return self.__fh.name
 
     def flush(self):
-        """Flush пишет на диск
+        """Выталкивание файла на диск
         Совершается автоматически, если auto_flush равен True
         """
         self.__fh.flush()
@@ -173,6 +172,46 @@ class BinaryRecordFile:
 
 
 if __name__ == "__main__":
-    import doctest
+    import shutil
+    import sys
 
-    doctest.testmod()
+    S = struct.Struct("<15s")
+    fileA = os.path.join(tempfile.gettempdir(), "fileA.dat")
+    fileB = os.path.join(tempfile.gettempdir(), "fileB.dat")
+    for name in (fileA, fileB):
+        try:
+            os.remove(name)
+        except EnvironmentError:
+            pass
+
+    brf = BinaryRecordFile(fileA, S.size)
+    for text in ("Alpha", "Bravo", "Charlie", "Delta",
+                 "Echo", "Foxtrot", "Golf", "Hotel", "India", "Juliet",
+                 "Kilo", "Lima", "Mike", "November", "Oscar", "Papa",
+                 "Quebec", "Romeo", "Sierra", "Tango", "Uniform", "Victor",
+                 "Whisky", "X-Ray", "Yankee", "Zulu"):
+        brf.append(S.pack(text.encode("utf8")))
+    assert len(brf) == 26
+    brf.append(S.pack(b"Extra at the end"))
+    assert len(brf) == 27
+    shutil.copy(fileA, fileB)
+    del brf[12]
+    del brf[0]
+    del brf[24]
+    assert len(brf) == 24, len(brf)
+    brf.close()
+
+    if (os.path.getsize(fileA) + (3 * S.size)) != os.path.getsize(fileB):
+        print("FAIL#1: expected file sizes are wrong")
+        sys.exit()
+
+    shutil.copy(fileB, fileA)
+    if os.path.getsize(fileA) != os.path.getsize(fileB):
+        print("FAIL#2: expected file sizes differ")
+        sys.exit()
+
+    for name in (fileA, fileB):
+        try:
+            os.remove(name)
+        except EnvironmentError:
+            pass
