@@ -128,45 +128,49 @@ def print_table(data, headers=None, colored=False):
         """
         print_table prints the given dataset as a formatted table.
         """
+        with open('a.out', 'a') as fout:
+            original = sys.stdout
+            sys.stdout = Tee(sys.stdout, fout)
 
-        first_column = 0
-        if colored:
-            first_column = 1
-        columns = [0]
-
-        def print_row(row):
-            """
-            print_row prints a single row in a dataset.
-            """
-
-            sys.stdout.write('\x1b[{}m'.format(row[0]))
-            for i in range(1, len(row)):
-                if i > 1:
-                    sys.stdout.write(' ')
-                sys.stdout.write('%-*s' % (columns[i], row[i]))
-            sys.stdout.write('\x1b[0m\n')
-
-        if headers:
-            for i in range(0, len(headers)):
-                columns.append(len(headers[i]))
+            first_column = 0
             if colored:
-                headers.insert(0, '')
+                first_column = 1
+            columns = [0]
 
-        for row in data:
-            for i in range(first_column, len(row)):
-                while len(columns) < len(row):
-                    columns.append(0)
-                width = len(str(row[i]))
-                if columns[i] < width:
-                    columns[i] = width
+            def print_row(row):
+                """
+                print_row prints a single row in a dataset.
+                """
 
-        if headers:
-            print_row(headers)
+                sys.stdout.write('\x1b[{}m'.format(row[0]))
+                for i in range(1, len(row)):
+                    if i > 1:
+                        sys.stdout.write(' ')
+                    sys.stdout.write('%-*s' % (columns[i], row[i]))
+                sys.stdout.write('\x1b[0m\n')
 
-        for row in data:
-            print_row(row)
+            if headers:
+                for i in range(0, len(headers)):
+                    columns.append(len(headers[i]))
+                if colored:
+                    headers.insert(0, '')
 
-        sys.stdout.flush()
+            for row in data:
+                for i in range(first_column, len(row)):
+                    while len(columns) < len(row):
+                        columns.append(0)
+                    width = len(str(row[i]))
+                    if columns[i] < width:
+                        columns[i] = width
+
+            if headers:
+                print_row(headers)
+
+            for row in data:
+                print_row(row)
+
+            sys.stdout.flush()
+        sys.stdout = original
 
 
 def print_blocks(blocks):
@@ -231,7 +235,8 @@ def do_cidr(cidr):
         log_line = log.splitlines()
         for line in log_line:
             if findall(prefex_regex, line):
-                subnets.extend(([fields.split()[2] for fields in line.splitlines()]))
+                if line.startswith('* ?'):
+                    subnets.extend(([fields.split()[2] for fields in line.splitlines()]))
 
         taken = []
         for subnet in subnets:
