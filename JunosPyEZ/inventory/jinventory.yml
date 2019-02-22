@@ -1,0 +1,17 @@
+---
+
+JModuleTable:
+  rpc: get-chassis-inventory
+  item: .//chassis-sub-module|.//chassis-module|.//chassis-sub-sub-module
+  key:
+    - name
+  view: JModuleTableView
+
+JModuleTableView:
+  fields:
+    jname: name
+    sn: serial-number
+    pn: part-number
+    ver: version
+    type: description
+    mn: model-number
