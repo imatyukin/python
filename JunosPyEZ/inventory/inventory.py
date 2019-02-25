@@ -236,10 +236,11 @@ for arkh_core_host in arkh_core:
     dev = Device(host=arkh_core_host, user=username, passwd=password, mode='telnet', port='23')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + arkh_core_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -249,10 +250,11 @@ for arkh_aggr_host in arkh_aggr:
     dev = Device(host=arkh_aggr_host, user=username, passwd=password, port='22')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + arkh_aggr_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -263,10 +265,11 @@ for vlgd_core_host in vlgd_core:
     dev = Device(host=vlgd_core_host, user=username, passwd=password, mode='telnet', port='23')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + vlgd_core_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -276,10 +279,11 @@ for vlgd_aggr_host in vlgd_aggr:
     dev = Device(host=vlgd_aggr_host, user=username, passwd=password, port='22')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + vlgd_aggr_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -290,10 +294,11 @@ for klng_core_host in klng_core:
     dev = Device(host=klng_core_host, user=username, passwd=password, mode='telnet', port='23')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + klng_core_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -303,10 +308,11 @@ for klng_aggr_host in klng_aggr:
     dev = Device(host=klng_aggr_host, user=username, passwd=password, port='22')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + klng_aggr_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -317,10 +323,11 @@ for ptzv_core_host in ptzv_core:
     dev = Device(host=ptzv_core_host, user=username, passwd=password, mode='telnet', port='23')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + ptzv_core_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -330,10 +337,11 @@ for ptzv_aggr_host in ptzv_aggr:
     dev = Device(host=ptzv_aggr_host, user=username, passwd=password, port='22')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + ptzv_aggr_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -344,10 +352,11 @@ for sktv_core_host in sktv_core:
     dev = Device(host=sktv_core_host, user=username, passwd=password, mode='telnet', port='23')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + sktv_core_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -357,10 +366,11 @@ for sktv_aggr_host in sktv_aggr:
     dev = Device(host=sktv_aggr_host, user=username, passwd=password, port='22')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + sktv_aggr_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -371,10 +381,11 @@ for mrsk_core_host in mrsk_core:
     dev = Device(host=mrsk_core_host, user=username, passwd=password, mode='telnet', port='23')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + mrsk_core_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -384,10 +395,11 @@ for mrsk_aggr_host in mrsk_aggr:
     dev = Device(host=mrsk_aggr_host, user=username, passwd=password, port='22')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + mrsk_aggr_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -398,10 +410,11 @@ for vnov_core_host in vnov_core:
     dev = Device(host=vnov_core_host, user=username, passwd=password, mode='telnet', port='23')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + vnov_core_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -411,10 +424,11 @@ for vnov_aggr_host in vnov_aggr:
     dev = Device(host=vnov_aggr_host, user=username, passwd=password, port='22')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + vnov_aggr_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -425,10 +439,11 @@ for spbr_core_host in spbr_core:
     dev = Device(host=spbr_core_host, user=username, passwd=password, mode='telnet', port='23')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + spbr_core_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
@@ -438,10 +453,11 @@ for spbr_aggr_host in spbr_aggr:
     dev = Device(host=spbr_aggr_host, user=username, passwd=password, port='22')
     try:
             dev.open()
+            dev.timeout = 300
             print("Connected to " + spbr_aggr_host)
     except:
             print("Connection failed.")
-            sys.exit(1)
+            continue
 
     func_inventory(tag)
 
