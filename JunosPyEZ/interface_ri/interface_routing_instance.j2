@@ -1,0 +1,36 @@
+interfaces {
+    {{ int.int.interface }} {
+        description {{ int.int_description }};
+        vlan-tagging;
+        unit {{ int.int_unit }}
+            description {{ int.int_logical_description }};
+            vlan-id {{ int.int_vlan }};
+            family inet {
+                address {{ int.int_address }}/30;
+            }
+        }
+    }
+}
+routing-instances {
+    {{ ri.ri_name }} {
+        instance-type vrf;
+        interface {{ ri.ri_interface }};
+        route-distinguisher 12389:{{ ri.ri_route_dist }};
+        vrf-target target:12389:{{ ri.ri_target }};
+        vrf-table-label;
+        routing-options {
+            maximum-prefixes {{ ri.ri_max_prefixes }} threshold 80;
+        }
+        protocols {
+            bgp {
+                group {{ bgp.bgp_group_name }} {
+                    log-updown;
+                    neighbor {{ bgp.bgp_peer_address }} {
+                        description "{{ bgp.bgp_description }};
+                        peer-as {{ bgp.bgp_peer_as }};
+                    }
+                }
+            }
+        }
+    }
+}

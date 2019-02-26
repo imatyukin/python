@@ -1,0 +1,21 @@
+---
+int:
+    int_interface: ge-0/0/2
+    int_description: Rostelecom-Automation
+    int_unit: 100
+    int_logical_description: Rostelecom-Automation
+    int_vlan: 100
+    int_filter: Rostelecom-filter
+    int_address: 192.168.0.5
+ri:
+    ri_name: Rostelecom-Automation
+    ri_interface: ge-0/0/2.100
+    ri_route_dist: 12345679
+    ri_target: 1234
+    ri_max_prefixes: 250
+bgp:
+    bgp_group_name: Rostelecom-Automation
+    bgp_peer_address: 192.168.0.6
+    bgp_description: Rostelecom-Automation
+    bgp_auth_key: Rostelecom
+    bgp_peer_as: 65101
