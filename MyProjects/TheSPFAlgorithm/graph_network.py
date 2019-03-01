@@ -27,6 +27,7 @@ e=[("Pennsauken", "London", 315000),
 G.add_weighted_edges_from(e)
 
 print(nx.dijkstra_path(G,"Pennsauken", "Paris"))
+print(nx.bellman_ford_path(G, "Pennsauken", "Paris"))
 
 nx.draw(G,pos=nx.spectral_layout(G),nodecolor='r',edge_color='b',with_labels=True)
 plt.savefig("graph_network.png")
