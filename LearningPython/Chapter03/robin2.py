@@ -1,2 +1,3 @@
 #!python2
-print 'Run', 'away more!...'      # 2.x statement
+from __future__ import print_function
+print('Run', 'away more!...')      # 2.x statement
