@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # This program logs into all our lab nodes and collects 'show version'
 # At the end it prints the name and the current running version of each router
@@ -59,24 +59,7 @@ def open_ssh_connection(ip):
         print("###### Invalid Username or Password ######")
 
 
-all_lab_routers = ["135.221.38.101",
-                   "135.221.38.102",
-                   "135.221.38.103",
-                   "135.221.38.104",
-                   "135.221.38.105",
-                   "135.221.38.107",
-                   "135.221.38.108",
-                   "135.221.38.109",
-                   "135.221.38.110",
-                   "135.221.38.111",
-                   "135.221.38.112",
-                   "135.221.38.113",
-                   "135.221.38.114",
-                   "135.221.38.115",
-                   "135.221.38.116",
-                   "135.221.38.117",
-                   "135.221.38.118",
-                   "135.221.38.119"]
+all_lab_routers = ["10.159.174.126"]
 
 for router in all_lab_routers:
     output = open_ssh_connection(router)
