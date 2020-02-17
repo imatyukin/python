@@ -7,7 +7,8 @@ from my_devices import sr_sros
 
 def check_port(net_connect, cmd='show port'):
     output = net_connect.send_command_expect(cmd)
-    print output
+    print (output)
+
 
 def main():
     device_list = [sr_sros]
@@ -17,10 +18,10 @@ def main():
     for a_device in device_list:
         net_connect = ConnectHandler(**a_device)
 #        net_connect.enable()
-        print "{}: {}".format(net_connect.device_type, net_connect.find_prompt())
+        print("{}: {}".format(net_connect.device_type, net_connect.find_prompt()))
         check_port(net_connect)
     
-    print "Time elapsed: {}\n".format(datetime.now() - start_time)
+    print("Time elapsed: {}\n".format(datetime.now() - start_time))
 
 
 if __name__ == "__main__":
