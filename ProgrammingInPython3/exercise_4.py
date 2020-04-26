@@ -241,7 +241,7 @@ def main():
     # Список добавленных элементов
     elements = []
     # os.listdir(".") получает список всех файлов.
-    for f in [f for f in os.listdir(".") if os.path.isfile(f)]:
+    for f in [f for f in os.listdir("exercises") if os.path.isfile(f)]:
         # Фильтр файлов, которые имеют расширение .lst
         if f.endswith(".lst"):
             files.append(f)
