@@ -51,3 +51,12 @@ if (2 ** X) in L:
     print('at index', L.index(2 ** X))
 else:
     print(X, 'not found')
+
+print('# f')
+
+L = list(map(lambda x: 2 ** x, range(7)))     # Or [2 ** x for x in range(7)]
+print(L)
+if (2 ** X) in L:
+    print('at index', L.index(2 ** X))
+else:
+    print(X, 'not found')
