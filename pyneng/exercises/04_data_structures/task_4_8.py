@@ -26,3 +26,7 @@
 """
 
 ip = "192.168.3.1"
+ip_bin = ('.'.join([bin(int(x)+256)[3:] for x in ip.split('.')])).replace(".", "  ")
+ip = ip.split(".")
+print("{:9} {:9} {:9} {:9}".format(ip[0], ip[1], ip[2], ip[3]))
+print(ip_bin)
