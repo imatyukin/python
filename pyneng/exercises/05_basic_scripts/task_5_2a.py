@@ -49,3 +49,44 @@ bin_ip = "00001010000000010000000111000011"
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+
+ip_addr = input("Введите IP-адрес в формате <ip-address>/mask: ")
+ip, mask_len = ip_addr.split('/')
+
+print("\nNetwork:")
+ip = ip.split(".")
+bin_ip = "{0:08b}{1:08b}{2:08b}{3:08b}".format(int(ip[0]), int(ip[1]), int(ip[2]), int(ip[3]))
+bin_net = bin_ip[:32 - (32 - int(mask_len))]
+bin_net = str(bin_net) + (str("0")*(32 - int(mask_len)))
+n = 8
+bin_net = [bin_net[i:i+n] for i in range(0, len(bin_net), n)]
+bin_net[0] = int(bin_net[0], base=2)
+bin_net[1] = int(bin_net[1], base=2)
+bin_net[2] = int(bin_net[2], base=2)
+bin_net[3] = int(bin_net[3], base=2)
+print('{:<10}' '{:<10}' '{:<10}' '{:<10}'.format(bin_net[0], bin_net[1], bin_net[2], bin_net[3]))
+print('{:08b}''{}''{:08b}''{}''{:08b}''{}''{:08b}'.format(bin_net[0], "  ",
+                                                          bin_net[1], "  ",
+                                                          bin_net[2], "  ",
+                                                          bin_net[3]))
+
+print("\nMask:")
+print("/", mask_len, sep="")
+mask_len = int(mask_len)
+mask = ''
+for t in range(4):
+    if mask_len > 7:
+        mask += '255.'
+    else:
+        dec = 255 - (2 ** (8 - mask_len) - 1)
+        mask += str(dec) + '.'
+    mask_len -= 8
+    if mask_len < 0:
+        mask_len = 0
+
+mask = mask.split(".")
+print('{:<10}' '{:<10}' '{:<10}' '{:<10}'.format(mask[0], mask[1], mask[2], mask[3]))
+print('{:08b}''{}''{:08b}''{}''{:08b}''{}''{:08b}'.format(int(mask[0]), "  ",
+                                                          int(mask[1]), "  ",
+                                                          int(mask[2]), "  ",
+                                                          int(mask[3])))
