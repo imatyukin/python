@@ -43,3 +43,12 @@ london_co = {
         "routing": True,
     },
 }
+
+device = input("Введите имя устройства: ")
+params = ', '.join(list(london_co[device]))
+param = (input("Введите имя параметра ("+params+"): ")).lower()
+check_param = any(any(param in s for s in subList) for subList in london_co.values())
+if check_param is False:
+    print("Такого параметра нет")
+elif check_param:
+    print(london_co[device][param])
