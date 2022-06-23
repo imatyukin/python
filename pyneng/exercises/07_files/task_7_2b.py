@@ -16,4 +16,17 @@
 
 """
 
+import sys
+
 ignore = ["duplex", "alias", "configuration"]
+
+original_file = open(sys.argv[1], 'r')
+revised_file = open(sys.argv[2], 'w')
+
+for line in original_file:
+    if line.startswith("!") is not True:
+        if any(word in line for word in ignore) is not True:
+            revised_file.write(line)
+
+original_file.close()
+revised_file.close()
