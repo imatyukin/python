@@ -40,3 +40,19 @@
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+
+with open("CAM_table.txt") as f:
+    lst = []
+    for line in f:
+        if len(line) > 2:
+            if line[1].isdigit():
+                lst.append(line.split())
+
+for x in lst:
+    x[0] = int(x[0])
+lst = sorted(lst)
+for x in lst:
+    x[0] = str(x[0])
+
+for i in lst:
+    print('{:9}''{:20}''{}'.format(" ".join(i).split()[0], " ".join(i).split()[1], " ".join(i).split()[3]))
