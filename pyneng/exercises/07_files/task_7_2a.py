@@ -16,4 +16,12 @@
 
 """
 
+import sys
+
 ignore = ["duplex", "alias", "configuration"]
+
+with open(sys.argv[1], 'r') as f:
+    for line in f:
+        if line.startswith("!") is not True:
+            if any(word in line for word in ignore) is not True:
+                print(line, end='')
