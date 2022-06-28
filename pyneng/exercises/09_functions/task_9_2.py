@@ -43,6 +43,8 @@
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 """
 
+from pprint import pprint
+
 trunk_mode_template = [
     "switchport mode trunk",
     "switchport trunk native vlan 999",
@@ -60,3 +62,18 @@ trunk_config_2 = {
     "FastEthernet0/15": [111, 130],
     "FastEthernet0/14": [117],
 }
+
+
+def generate_trunk_config(intf_vlan_mapping, trunk_template):
+    cfg = []
+    for intf, vlans in intf_vlan_mapping.items():
+        cfg.append("interface " + intf)
+        for s in trunk_template:
+            if s.endswith('allowed vlan'):
+                s = s + ' ' + str(vlans)[1:-1].replace(" ", "")
+            cfg.append(s)
+    return cfg
+
+
+pprint(generate_trunk_config(trunk_config, trunk_mode_template))
+pprint(generate_trunk_config(trunk_config_2, trunk_mode_template))
