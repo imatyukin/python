@@ -35,6 +35,7 @@
 
 """
 
+from pprint import pprint
 
 trunk_mode_template = [
     "switchport mode trunk",
@@ -47,3 +48,19 @@ trunk_config = {
     "FastEthernet0/2": [11, 30],
     "FastEthernet0/4": [17],
 }
+
+
+def generate_trunk_config(intf_vlan_mapping, trunk_template):
+    cfg_list = []
+    cfg_dict = {}
+    for intf, vlans in intf_vlan_mapping.items():
+        for s in trunk_template:
+            if s.endswith('allowed vlan'):
+                s = s + ' ' + str(vlans)[1:-1].replace(" ", "")
+            cfg_list.append(s)
+        cfg_dict[intf] = cfg_list
+        cfg_list = []
+    return cfg_dict
+
+
+pprint(generate_trunk_config(trunk_config, trunk_mode_template))
