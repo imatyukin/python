@@ -28,6 +28,8 @@ print(generate_access_config(access_config, access_mode_template, port_security_
 
 """
 
+from pprint import pprint
+
 access_mode_template = [
     "switchport mode access",
     "switchport access vlan",
@@ -43,3 +45,32 @@ port_security_template = [
 ]
 
 access_config = {"FastEthernet0/12": 10, "FastEthernet0/14": 11, "FastEthernet0/16": 17}
+
+def generate_access_config(intf_vlan_mapping, access_template, psecurity=None):
+    """
+    intf_vlan_mapping - словарь с соответствием интерфейс-VLAN такого вида:
+        {'FastEthernet0/12':10,
+         'FastEthernet0/14':11,
+         'FastEthernet0/16':17}
+    access_template - список команд для порта в режиме access
+
+    Возвращает список всех портов в режиме access с конфигурацией на основе шаблона
+    """
+
+    cfg = []
+    for intf, vlan in intf_vlan_mapping.items():
+        cfg.append("interface " + intf)
+        for s in access_template:
+            if s.endswith('vlan'):
+                s = s + ' ' + str(vlan)
+            cfg.append(s)
+        if psecurity:
+            for s in psecurity:
+                cfg.append(s)
+        else:
+            pass
+    return cfg
+
+
+pprint(generate_access_config(access_config, access_mode_template))
+pprint(generate_access_config(access_config, access_mode_template, port_security_template))
