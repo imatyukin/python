@@ -43,6 +43,22 @@ def parse_cdp_neighbors(command_output):
     и с файлами и с выводом с оборудования.
     Плюс учимся работать с таким выводом.
     """
+    hostname = (command_output.split('>')[0]).strip()
+    command_output.splitlines()
+    temp_command_output = command_output.split('\n')
+    temp_command_output[:] = [item for item in temp_command_output if item != '']
+    command_output = temp_command_output[4:]
+    result_dict = {}
+    temp_command_output = []
+    for elem in command_output:
+        elem = elem.split(" ")
+        elem = list(filter(None, elem))
+        temp_command_output.append(elem)
+    for elem in temp_command_output:
+        dict_key = (hostname, (elem[1]+elem[2]))
+        dict_value = (elem[0].strip(), (elem[-2]+elem[-1]))
+        result_dict.update({dict_key: dict_value})
+    return result_dict
 
 
 if __name__ == "__main__":
