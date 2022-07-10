@@ -34,3 +34,39 @@
  '172.21.41.129', '172.21.41.130', '172.21.41.131', '172.21.41.132']
 
 """
+
+
+import ipaddress
+
+
+ips = ['8.8.4.4', '1.1.1.1-3', '172.21.41.128-172.21.41.132']
+
+
+def convert_ranges_to_ip_list(ip_addr):
+    ip_list = []
+    for ip in ip_addr:
+        if "-" in ip:
+            ip = ip.split("-")
+            if "." in ip[1]:
+                subip = lambda x: ['.'.join(i.split('.')[3:]) for i in x]
+                for start_ip, full_start_ip in zip(subip(ip[0:1]), ip[0:1]):
+                    for end_ip, full_end_ip in zip(subip(ip[1:2]), ip[1:2]):
+                        full_start_ip = ipaddress.IPv4Address(full_start_ip)
+                        full_end_ip = ipaddress.IPv4Address(full_end_ip)
+                        for ip_int in range(int(full_start_ip), int(full_end_ip)+1):
+                            ip_list.append(str(ipaddress.IPv4Address(ip_int)))
+            else:
+                subip = lambda x: ['.'.join(i.split('.')[:3]) for i in x]
+                for start_ip, full_start_ip in zip(subip(ip[0:1]), ip[0:1]):
+                    full_end_ip = start_ip + "." + ip[1]
+                    full_start_ip = ipaddress.IPv4Address(full_start_ip)
+                    full_end_ip = ipaddress.IPv4Address(full_end_ip)
+                    for ip_int in range(int(full_start_ip), int(full_end_ip)+1):
+                        ip_list.append(str(ipaddress.IPv4Address(ip_int)))
+        else:
+            ip_list.append(ip)
+    return ip_list
+
+
+if __name__ == "__main__":
+    print(convert_ranges_to_ip_list(ips))
