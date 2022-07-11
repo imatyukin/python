@@ -32,7 +32,6 @@ def print_ip_table(reachable, unreachable):
     print(tabulate(table, headers="keys"))
 
 
-
 if __name__ == "__main__":
     alive, unreach = ping_ip_addresses(ip_addresses)
     print_ip_table(alive, unreach)
