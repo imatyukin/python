@@ -23,3 +23,23 @@
 а не ввод пользователя.
 
 """
+
+import re
+
+file = "config_r1.txt"
+
+
+def get_ip_from_cfg(filename):
+    ip_address = []
+    with open(filename) as f:
+        f = f.readlines()
+        pattern = re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+        for line in f:
+            if line.startswith(" ip address "):
+                ip = tuple((re.findall(pattern, line)))
+                ip_address.append(ip)
+    return ip_address
+
+
+if __name__ == "__main__":
+    print(get_ip_from_cfg(file))
