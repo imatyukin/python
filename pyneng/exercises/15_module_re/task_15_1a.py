@@ -24,3 +24,35 @@
 а не ввод пользователя.
 
 """
+
+import re
+
+file = "config_r1.txt"
+
+
+def get_ip_from_cfg(filename):
+    interfaces = []
+    ip_addresses = []
+    with open(filename) as f:
+        f = f.readlines()
+        pattern = re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+        for line in f:
+            if line.startswith("interface"):
+                intf = (line.split())[1]
+                interfaces.append(intf)
+            if line.startswith(" no ip address") or line.startswith(" ip unnumbered"):
+                ip = "temp_value"
+                ip_addresses.append(ip)
+            if line.startswith(" ip address "):
+                ip = tuple((re.findall(pattern, line)))
+                ip_addresses.append(ip)
+        temp_ip_dict = list(zip(interfaces, ip_addresses))
+        ip_dict = []
+        for each in temp_ip_dict:
+            if each[1] != 'temp_value':
+                ip_dict.append(each)
+    return dict(ip_dict)
+
+
+if __name__ == "__main__":
+    print(get_ip_from_cfg(file))
