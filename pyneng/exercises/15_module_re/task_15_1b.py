@@ -28,3 +28,41 @@ IP-адреса, диапазоны адресов и так далее, так 
 а не ввод пользователя.
 
 """
+
+import re
+
+file = "config_r2.txt"
+
+
+def get_ip_from_cfg(filename):
+    ip_addresses = []
+    with open(filename) as f:
+        f = f.readlines()
+        pattern = re.compile(r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+        for line in f:
+            if line.startswith("interface"):
+                intf = (line.split())[1]
+                ip_addresses.append(intf)
+            if line.startswith(" no ip address") or line.startswith(" ip unnumbered") or line.startswith(" xconnect"):
+                ip = ("temp_value",)
+                ip_addresses.append(ip)
+            if line.startswith(" ip address "):
+                ip = tuple((re.findall(pattern, line)))
+                ip_addresses.append(ip)
+
+        k = ""
+        ip_dict = {}
+        for elem in ip_addresses:
+            if type(elem) is str:
+                if elem != k and len(k) > 0:
+                    k = elem
+                else:
+                    k = elem
+            if type(elem) is tuple:
+                if "temp_value" not in elem:
+                    ip_dict.setdefault(k, []).append(elem)
+    return ip_dict
+
+
+if __name__ == "__main__":
+    print(get_ip_from_cfg(file))
