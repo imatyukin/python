@@ -31,3 +31,42 @@ sw3,00:E9:22:11:A6:50,100.1.1.7,3,FastEthernet0/21
 sw2_dhcp_snooping.txt, sw3_dhcp_snooping.txt.
 
 """
+
+import re
+import csv
+
+files = ['sw1_dhcp_snooping.txt', 'sw2_dhcp_snooping.txt', 'sw3_dhcp_snooping.txt']
+output = 'output.txt'
+
+
+def write_dhcp_snooping_to_csv(filenames, output):
+    titles = ['switch', 'mac', 'ip', 'vlan', 'interface']
+    with open(output, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(titles)
+    name_regex = re.compile(r"^[^_]*")
+    for file in filenames:
+        fname = re.search(name_regex, file).group(0)
+        with open(file, 'r') as file_in, open(output, 'a', newline='') as file_out:
+            writer = csv.writer(file_out)
+            for line in file_in:
+                mac_regex = re.compile(r"^(?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2})")
+                if mac_regex.match(line):
+                    mac = re.search(mac_regex, line).group(0)
+                    if line.startswith(mac):
+                        rows = []
+                        list_elem = line.split(" ")
+                        filter_elem = list(filter(None, list_elem))
+                        rows.append(fname)
+                        del filter_elem[2:4]
+                        for item in filter_elem:
+                            if '\n' in item:
+                                item = item.strip('\n')
+                                rows.append(item)
+                            else:
+                                rows.append(item)
+                        writer.writerow(rows)
+
+
+if __name__ == "__main__":
+    print(write_dhcp_snooping_to_csv(files, output))
