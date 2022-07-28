@@ -44,8 +44,45 @@
 """
 
 import glob
+import re
+import csv
 
 sh_version_files = glob.glob("sh_vers*")
 # print(sh_version_files)
+csv_file = "routers_inventory.csv"
 
 headers = ["hostname", "ios", "image", "uptime"]
+
+
+def parse_sh_version(sh_version):
+    ios_regex = re.compile(r"(?<=Version ).(\d[\w.()]+)")
+    ios = re.search(ios_regex, sh_version).group(0)
+    image_regex = re.compile(r"(flash:|disk0:).*[a-zA-Z0-9]")
+    image = re.search(image_regex, sh_version).group(0)
+    uptime_regex = re.compile(r"(?<=router uptime is ).*")
+    uptime = re.search(uptime_regex, sh_version).group(0)
+    return ios, image, uptime
+
+
+def write_inventory_to_csv(data_filenames, csv_filename):
+    hostname_regex = re.compile(r".\d")
+    with open(csv_filename, 'w', newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(headers)
+    with open(csv_filename, 'a', newline='') as file_out:
+        writer = csv.writer(file_out)
+        for file in data_filenames:
+            hostname = re.search(hostname_regex, file).group(0)
+            data = []
+            data.append(hostname)
+            with open(file, 'r') as file_in:
+                contents = file_in.read()
+                ios, image, uptime = parse_sh_version(contents)
+                data.append(ios)
+                data.append(image)
+                data.append(uptime)
+                writer.writerow(data)
+
+
+if __name__ == "__main__":
+    write_inventory_to_csv(sh_version_files, csv_file)
