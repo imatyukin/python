@@ -36,7 +36,7 @@ import re
 import csv
 
 files = ['sw1_dhcp_snooping.txt', 'sw2_dhcp_snooping.txt', 'sw3_dhcp_snooping.txt']
-output = 'output.txt'
+output = 'output.csv'
 
 
 def write_dhcp_snooping_to_csv(filenames, output):
