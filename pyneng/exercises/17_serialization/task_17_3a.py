@@ -36,3 +36,45 @@
 в файл topology.yaml. Он понадобится в следующем задании.
 
 """
+
+import glob
+import re
+from pprint import pprint
+import yaml
+
+list_of_files = glob.glob("sh_cdp_n_*")
+save_to_filename = 'topology.yaml'
+
+
+def generate_topology_from_cdp(list_of_files, save_to_filename=None):
+    cdp_full_dict = {}
+    for file_name in list_of_files:
+        with open(file_name, 'r') as f:
+            contents = f.read()
+            hostname_regex = re.compile(r'.*(?=>)')
+            hostname = re.search(hostname_regex, contents).group(0)
+            data = contents.split("Port ID", 1)[1]
+            data = "".join([s for s in data.splitlines(True) if s.strip("\r\n")])
+            data = data.split('\n')[0:-1]
+            cdp_dict = dict.fromkeys([hostname])
+            temp2_dict = {}
+            for elem in data:
+                lintf_regex = re.compile(r'(\S+ \S+)(?=\s{2,})')
+                lintf = re.search(lintf_regex, elem).group(0)
+                deviceid_regex = re.compile(r'([^\s]+)')
+                deviceid = re.search(deviceid_regex, elem).group(0)
+                portid_regex = re.compile(r'(\S+ \S+)$')
+                portid = re.search(portid_regex, elem).group(0)
+                temp1_dict = {}
+                temp1_dict[deviceid] = portid
+                temp2_dict[lintf] = temp1_dict
+                cdp_dict[hostname] = temp2_dict
+                cdp_full_dict.update(cdp_dict)
+    if save_to_filename != None:
+        with open(save_to_filename, 'w') as outfile:
+            yaml.dump(cdp_full_dict, outfile, default_flow_style=False)
+    return cdp_full_dict
+
+
+if __name__ == "__main__":
+    pprint(generate_topology_from_cdp(list_of_files, save_to_filename=None))
