@@ -42,6 +42,11 @@ C-3PO,c3po@gmail.com,16/12/2019 17:24
 """
 
 import datetime
+import csv
+import re
+
+log = 'mail_log.csv'
+output = 'result.csv'
 
 
 def convert_str_to_datetime(datetime_str):
@@ -56,3 +61,48 @@ def convert_datetime_to_str(datetime_obj):
     Конвертирует строку с датой в формате 11/10/2019 14:05 в объект datetime.
     """
     return datetime.datetime.strftime(datetime_obj, "%d/%m/%Y %H:%M")
+
+
+def write_last_log_to_csv(source_log, output):
+    date_regex = re.compile(r'\d{2}/\d{2}/\d{4} \d{2}:\d{2}')
+    email_regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
+    with open(source_log, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        base = {}
+        for row in reader:
+            try:
+                date = re.search(date_regex, ', '.join(row)).group(0)
+                email = re.search(email_regex, ', '.join(row)).group(0)
+            except AttributeError:
+                date = re.match(date_regex, ', '.join(row))
+                email = re.match(email_regex, ', '.join(row))
+            if len(row) > 0:
+                if email is not None:
+                    if email in base:
+                        del row[1]
+                        date = convert_str_to_datetime(date)
+                        row[1] = date
+                        base[email].append(row)
+                    else:
+                        del row[1]
+                        date = convert_str_to_datetime(date)
+                        row[1] = date
+                        base[email] = [row]
+        result = {}
+        for k, v in base.items():
+            max_value = max(v, key=lambda x: x[1])
+            date = convert_datetime_to_str(max_value[1])
+            max_value[1] = date
+            result[k] = max_value
+        headers = ['Name', 'Email', 'Last Changed']
+        with open(output, 'w', newline='') as csvresult:
+            writer = csv.writer(csvresult)
+            writer.writerow(headers)
+            for k, v in result.items():
+                v.append(k)
+                v[1], v[2] = v[2], v[1]
+                writer.writerow(v)
+
+
+if __name__ == "__main__":
+    write_last_log_to_csv(log, output)
