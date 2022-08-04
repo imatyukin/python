@@ -25,10 +25,10 @@ def test_function_return_value(r1_test_connection, first_router_from_devices_yam
                          Используется для проверки вывода
     """
     correct_return_value = strip_empty_lines(
-        r1_test_connection.send_command("sh ip int br")
+        r1_test_connection.send_command("show interfaces terse")
     )
     return_value = strip_empty_lines(
-        task_18_1.send_show_command(first_router_from_devices_yaml, "sh ip int br")
+        task_18_1.send_show_command(first_router_from_devices_yaml, "show interfaces terse")
     )
     assert return_value is not None, "Функция ничего не возвращает"
     assert (
@@ -46,11 +46,11 @@ def test_function_return_value_different_args(
     Проверка работы функции с другими аргументами
     """
     correct_return_value = strip_empty_lines(
-        r1_test_connection.send_command("sh int description")
+        r1_test_connection.send_command("show interfaces descriptions")
     )
     return_value = strip_empty_lines(
         task_18_1.send_show_command(
-            first_router_from_devices_yaml, "sh int description"
+            first_router_from_devices_yaml, "show interfaces descriptions"
         )
     )
     assert return_value is not None, "Функция ничего не возвращает"

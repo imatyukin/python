@@ -18,13 +18,24 @@
 
 """
 import yaml
+from netmiko import (ConnectHandler, NetmikoAuthenticationException,
+                     NetmikoTimeoutException)
+from pprint import pprint
 
+
+def send_show_command(device, command):
+    try:
+        with ConnectHandler(**device) as ssh:
+            output = ssh.send_command(command)
+            return output
+    except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
+        print(error)
 
 
 if __name__ == "__main__":
-    command = "sh ip int br"
+    command = "show interfaces terse"
     with open("devices.yaml") as f:
         devices = yaml.safe_load(f)
 
     for dev in devices:
-        print(send_show_command(dev, command))
+        pprint(send_show_command(dev, command))
