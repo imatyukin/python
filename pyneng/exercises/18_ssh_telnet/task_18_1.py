@@ -18,8 +18,7 @@
 
 """
 import yaml
-from netmiko import (ConnectHandler, NetmikoAuthenticationException,
-                     NetmikoTimeoutException)
+from netmiko import (ConnectHandler, NetmikoTimeoutException)
 from pprint import pprint
 
 
@@ -28,7 +27,7 @@ def send_show_command(device, command):
         with ConnectHandler(**device) as ssh:
             output = ssh.send_command(command)
             return output
-    except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
+    except NetmikoTimeoutException as error:
         print(error)
 
 

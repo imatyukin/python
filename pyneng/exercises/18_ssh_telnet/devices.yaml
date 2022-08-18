@@ -1,7 +1,7 @@
 - device_type: juniper_junos
   host: 192.168.233.133
   username: admin
-  password: admin
+  password: jun1per
   timeout: 10
   #fast_cli: true
 - device_type: cisco_ios
