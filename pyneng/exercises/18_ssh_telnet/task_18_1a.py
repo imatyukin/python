@@ -12,8 +12,7 @@
 Для проверки измените пароль на устройстве или в файле devices.yaml.
 """
 import yaml
-from netmiko import (ConnectHandler, NetmikoAuthenticationException,
-                     NetmikoTimeoutException)
+from netmiko import (ConnectHandler, NetmikoAuthenticationException)
 from pprint import pprint
 
 
@@ -22,7 +21,7 @@ def send_show_command(device, command):
         with ConnectHandler(**device) as ssh:
             output = ssh.send_command(command)
             return output
-    except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
+    except NetmikoAuthenticationException as error:
         print(error)
 
 

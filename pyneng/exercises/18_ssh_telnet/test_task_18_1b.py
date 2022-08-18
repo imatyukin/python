@@ -20,7 +20,7 @@ def test_function_return_value(capsys, first_router_wrong_ip):
     """
     Проверка работы функции
     """
-    return_value = task_18_1b.send_show_command(first_router_wrong_ip, "sh ip int br")
+    return_value = task_18_1b.send_show_command(first_router_wrong_ip, "show interfaces terse")
     correct_stdout1 = "Connection to device timed-out"
     correct_stdout2 = "connection to device failed"
     out, err = capsys.readouterr()

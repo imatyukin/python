@@ -18,17 +18,14 @@
 
 """
 import yaml
-from netmiko import (ConnectHandler, NetmikoTimeoutException)
+from netmiko import ConnectHandler
 from pprint import pprint
 
 
 def send_show_command(device, command):
-    try:
-        with ConnectHandler(**device) as ssh:
-            output = ssh.send_command(command)
-            return output
-    except NetmikoTimeoutException as error:
-        print(error)
+    with ConnectHandler(**device) as ssh:
+        output = ssh.send_command(command)
+        return output
 
 
 if __name__ == "__main__":
