@@ -58,10 +58,10 @@ def send_config_commands(device, config_commands):
     try:
         with ConnectHandler(**device) as ssh:
             output = ssh.send_config_set(config_commands, exit_config_mode=False)
-            result = output
+            print(output)
             # Commit the config changes
             output = ssh.commit()
-            return result, output
+            return output
     except (NetmikoTimeoutException, NetmikoAuthenticationException) as error:
         print(error)
 
@@ -71,5 +71,5 @@ if __name__ == "__main__":
         devices = yaml.safe_load(f)
 
     for dev in devices:
-        result, output = send_config_commands(dev, commands)
-        print(result, output)
+        result = send_config_commands(dev, commands)
+        print(result)
