@@ -1,0 +1,10 @@
+device:
+  device_type: nokia_sros
+  ip: 192.168.233.134
+  username: admin
+  password: admin
+  global_delay_factor: 2
+  session_log: netmiko_session.log
+
+lag_interface: lag-11
+log_file: sap_monitor_stats.log
