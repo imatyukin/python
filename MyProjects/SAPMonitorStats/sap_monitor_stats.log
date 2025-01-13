@@ -1,0 +1,40 @@
+2025-01-13 04:05:37,265 - Connected (version 2.0, client OpenSSH_3.5p1)
+2025-01-13 04:05:37,420 - Authentication (password) successful!
+2025-01-13 04:05:43,764 - Вводимая команда: show system information | match Name
+2025-01-13 04:05:44,442 - Вводимая команда: environment no more
+2025-01-13 04:05:45,119 - Вводимая команда: environment time-stamp
+2025-01-13 04:05:45,796 - Вводимая команда: show service sap-using
+2025-01-13 04:05:46,473 - Вводимая команда: monitor service id 318608115 sap lag-47:613.1765 rate interval 11 repeat 1
+2025-01-13 04:05:57,743 - Вводимая команда: monitor service id 418608115 sap lag-47:614.1832 rate interval 11 repeat 1
+2025-01-13 04:06:08,917 - Топ-10 самых крупных клиентов:
+2025-01-13 04:06:08,917 - 1. SAP lag-47:613.1765: Октеты за 11 сек = 853868, Egress Rate = 620.99 Кбит/с
+2025-01-13 04:06:08,918 - 2. SAP lag-47:614.1832: Октеты за 11 сек = 237741, Egress Rate = 172.90 Кбит/с
+2025-01-13 04:06:42,732 - Connected (version 2.0, client OpenSSH_3.5p1)
+2025-01-13 04:06:42,886 - Authentication (password) successful!
+2025-01-13 04:06:49,230 - Вводимая команда: show system information | match Name
+2025-01-13 04:06:49,907 - Вводимая команда: environment no more
+2025-01-13 04:06:50,584 - Вводимая команда: environment time-stamp
+2025-01-13 04:06:51,262 - Вводимая команда: show service id 318608115 sap
+2025-01-13 04:06:51,939 - Вводимая команда: monitor service id 318608115 sap lag-47:613.1765 rate interval 11 repeat 1
+2025-01-13 04:07:03,059 - Топ-10 самых крупных клиентов:
+2025-01-13 04:07:03,059 - 1. SAP lag-47:613.1765: Октеты за 11 сек = 855400, Egress Rate = 622.11 Кбит/с
+2025-01-13 04:07:56,238 - Connected (version 2.0, client OpenSSH_3.5p1)
+2025-01-13 04:07:56,420 - Authentication (password) successful!
+2025-01-13 04:08:02,774 - Вводимая команда: show system information | match Name
+2025-01-13 04:08:03,451 - Вводимая команда: environment no more
+2025-01-13 04:08:04,129 - Вводимая команда: environment time-stamp
+2025-01-13 04:08:04,806 - Вводимая команда: show service id 318608115 sap
+2025-01-13 04:08:05,483 - Вводимая команда: monitor service id 318608115 sap lag-47:613.1765 rate interval 11 repeat 1
+2025-01-13 04:08:16,534 - Топ-10 самых крупных клиентов:
+2025-01-13 04:08:16,534 - 1. SAP lag-47:613.1765: Октеты за 11 сек = 855400, Egress Rate = 622.11 Кбит/с
+2025-01-13 04:08:33,076 - Connected (version 2.0, client OpenSSH_3.5p1)
+2025-01-13 04:08:33,314 - Authentication (password) successful!
+2025-01-13 04:08:39,741 - Вводимая команда: show system information | match Name
+2025-01-13 04:08:40,419 - Вводимая команда: environment no more
+2025-01-13 04:08:41,096 - Вводимая команда: environment time-stamp
+2025-01-13 04:08:41,774 - Вводимая команда: show service id 318608115 sap
+2025-01-13 04:08:42,451 - Вводимая команда: monitor service id 318608115 sap lag-11:613.1765 rate interval 11 repeat 1
+2025-01-13 04:08:53,657 - Вводимая команда: monitor service id 318608115 sap lag-11:614.1832 rate interval 11 repeat 1
+2025-01-13 04:09:04,853 - Топ-10 самых крупных клиентов:
+2025-01-13 04:09:04,853 - 1. SAP lag-11:613.1765: Октеты за 11 сек = 853859, Egress Rate = 620.99 Кбит/с
+2025-01-13 04:09:04,853 - 2. SAP lag-11:614.1832: Октеты за 11 сек = 853855, Egress Rate = 620.99 Кбит/с
