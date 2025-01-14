@@ -76,11 +76,11 @@ def process_stat_output(output: str) -> int:
     return egress_octets
 
 # Извлечение SAP и Service ID из вывода команды
-def extract_sap_service_map(output: str, lag_interface: str) -> Dict[str, str]:
+def extract_sap_service_map(output: str, port: str) -> Dict[str, str]:
     """Извлекает SAP и Service ID из вывода команды show service sap-using."""
     sap_service_map = {}
     for line in output.splitlines():
-        if lag_interface.lower() in line.lower():
+        if port.lower() in line.lower():
             parts = line.split()
             sap = parts[0]  # SAP (например, lag-11:648.1796)
             service_id = parts[1]  # Service ID (например, 118600001)
@@ -94,7 +94,7 @@ def collect_sap_statistics(ssh: ConnectHandler, sap: str, service_id: str) -> Tu
     try:
         stat_output = send_command(ssh, stat_command, expect_string=r"\w{3} \w{3} \d{2} \d{2}:\d{2}:\d{2} \w{3} \d{4}")
         egress_octets = process_stat_output(stat_output)
-        egress_rate_mbps = (egress_octets * 8) / (1000000 * 11)
+        egress_rate_mbps = (egress_octets * 8) / 1000000  # Убрано деление на 11
         return egress_octets, egress_rate_mbps
     except Exception as e:
         print(f"Ошибка при выполнении команды для SAP {sap}: {str(e)}")
@@ -116,23 +116,23 @@ def print_top_clients(statistics: Dict[str, Tuple[int, float]]) -> None:
         logging.info("Не удалось собрать статистику для SAP.")
 
 # Функция для тестирования SAP в конкретном сервисе
-def test_service_sap(ssh: ConnectHandler, service_id: str, lag_interface: str) -> None:
+def test_service_sap(ssh: ConnectHandler, service_id: str, port: str) -> None:
     """Тестирует SAP в указанном сервисе."""
     print(f"\nТестирование SAP в сервисе {service_id}...")
 
-    # Команда для поиска всех SAP, относящихся к lag-11 в сервисе
+    # Команда для поиска всех SAP, относящихся к порту в сервисе
     command = f'show service id {service_id} sap'
     output = send_command(ssh, command)
 
-    # Извлекаем SAP, относящиеся к lag-11
-    sap_list = [line.split()[0] for line in output.splitlines() if lag_interface.lower() in line.lower()]
+    # Извлекаем SAP, относящиеся к порту
+    sap_list = [line.split()[0] for line in output.splitlines() if port.lower() in line.lower()]
 
     if not sap_list:
-        print(f"SAP, относящиеся к {lag_interface} в сервисе {service_id}, не найдены.")
-        logging.info(f"SAP, относящиеся к {lag_interface} в сервисе {service_id}, не найдены.")
+        print(f"SAP, относящиеся к {port} в сервисе {service_id}, не найдены.")
+        logging.info(f"SAP, относящиеся к {port} в сервисе {service_id}, не найдены.")
         return
 
-    print(f"Найдено {len(sap_list)} SAP, относящихся к {lag_interface} в сервисе {service_id}: {sap_list}")
+    print(f"Найдено {len(sap_list)} SAP, относящихся к {port} в сервисе {service_id}: {sap_list}")
 
     # Сбор статистики для каждого SAP
     statistics: Dict[str, Tuple[int, float]] = {}
@@ -164,7 +164,7 @@ def main(test_mode: bool = False, service_id: Optional[str] = None, config_file:
         # Загрузка конфигурации
         config = load_config(config_file)
         device = config['device']
-        lag_interface = config['lag_interface']
+        port = config['port']  # Используем переменную port вместо lag_interface
         log_file = config['log_file']
 
         # Настройка логирования
@@ -182,21 +182,21 @@ def main(test_mode: bool = False, service_id: Optional[str] = None, config_file:
 
             # Если включен тестовый режим, запускаем тестирование
             if test_mode and service_id:
-                test_service_sap(ssh, service_id, lag_interface)
+                test_service_sap(ssh, service_id, port)
             else:
                 # Основная логика программы
                 command = 'show service sap-using'
                 output = send_command(ssh, command)
 
                 # Извлекаем SAP и Service ID из вывода
-                sap_service_map = extract_sap_service_map(output, lag_interface)
+                sap_service_map = extract_sap_service_map(output, port)
 
                 if not sap_service_map:
-                    print(f"SAP, относящиеся к {lag_interface}, не найдены.")
-                    logging.info(f"SAP, относящиеся к {lag_interface}, не найдены.")
+                    print(f"SAP, относящиеся к {port}, не найдены.")
+                    logging.info(f"SAP, относящиеся к {port}, не найдены.")
                     return
 
-                print(f"Найдено {len(sap_service_map)} SAP, относящихся к {lag_interface}: {sap_service_map}")
+                print(f"Найдено {len(sap_service_map)} SAP, относящихся к {port}: {sap_service_map}")
 
                 # Сбор статистики для каждого SAP
                 statistics: Dict[str, Tuple[int, float]] = {}

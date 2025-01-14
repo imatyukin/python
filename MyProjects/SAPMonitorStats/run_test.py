@@ -6,9 +6,20 @@ script_path = "sap_monitor_stats.py"
 # Аргументы для запуска
 args = ["python", script_path, "--test", "--service-id", "318608115"]
 
+# Извлечение service_id из аргументов
+service_id = None
+for i, arg in enumerate(args):
+    if arg == "--service-id" and i + 1 < len(args):
+        service_id = args[i + 1]
+        break
+
 # Запуск основного скрипта с потоковым выводом
 try:
-    print(f"Запуск основного скрипта с service_id = 318608115...")
+    if service_id:
+        print(f"Запуск основного скрипта с service_id = {service_id}...")
+    else:
+        print("Запуск основного скрипта без указания service_id...")
+
     process = subprocess.Popen(
         args,
         stdout=subprocess.PIPE,  # Захватываем стандартный вывод
