@@ -102,7 +102,7 @@ def collect_sap_statistics(ssh: ConnectHandler, sap: str, service_id: str, direc
         return {}
 
 # Вывод топ-N SAP
-def print_top_sap(statistics: Dict[str, Dict[str, Tuple[int, float]]], direction: str = 'both', top_n: int = 10) -> None:
+def print_top_sap(statistics: Dict[str, Dict[str, Tuple[int, float]]], direction: str = 'both', top_n: int = 10, port: str = "") -> None:
     """Выводит топ-N SAP по объему трафика."""
     if not statistics:
         print("Не удалось собрать статистику для SAP.")
@@ -114,11 +114,39 @@ def print_top_sap(statistics: Dict[str, Dict[str, Tuple[int, float]]], direction
             if dir_stats:
                 # Сортировка по убыванию октетов
                 sorted_stats = sorted(dir_stats.items(), key=lambda x: x[1][0], reverse=True)[:top_n]
-                print(f"\nТоп-{top_n} самых крупных SAP ({dir_key.capitalize()}):")
+                print(f"\nТоп-{top_n} самых крупных SAP на порту {port} ({dir_key.capitalize()}):")
                 for i, (sap, (octets, rate_mbps)) in enumerate(sorted_stats, start=1):
                     print(f"{i}. SAP {sap}: Октеты = {octets}, {dir_key.capitalize()} Rate = {format_rate(rate_mbps)}")
             else:
-                print(f"Нет данных для {dir_key.capitalize()}.")
+                print(f"Нет данных для {dir_key.capitalize()} на порту {port}.")
+
+# Сбор статистики для всех SAP на указанных портах
+def collect_statistics_for_ports(ssh: ConnectHandler, ports: List[str], service_id: str, direction: str) -> None:
+    """Собирает статистику для всех SAP на указанных портах."""
+    for port in ports:
+        print(f"\nСбор статистики для порта {port}:")
+        if service_id != 'none':
+            # Режим сбора статистики для конкретного service_id
+            collect_service_sap_statistics(ssh, service_id, port, direction)
+        else:
+            # Основной режим: сбор статистики для всех SAP на порту
+            output = send_command(ssh, 'show service sap-using')
+            sap_service_map = extract_sap_service_map(output, port)
+
+            if not sap_service_map:
+                print(f"SAP, относящиеся к {port}, не найдены.")
+                continue
+
+            print(f"Найдено {len(sap_service_map)} SAP, относящихся к {port}: {sap_service_map}")
+
+            # Сбор статистики для каждого SAP
+            statistics = {
+                sap: collect_sap_statistics(ssh, sap, service_id, direction, sap_index=index + 1)
+                for index, (sap, service_id) in enumerate(sap_service_map.items())
+            }
+
+            # Вывод топ-10 SAP
+            print_top_sap(statistics, direction, port=port)
 
 # Функция для сбора статистики SAP в конкретном сервисе
 def collect_service_sap_statistics(ssh: ConnectHandler, service_id: str, port: str, direction: str = 'both') -> None:
@@ -144,7 +172,7 @@ def collect_service_sap_statistics(ssh: ConnectHandler, service_id: str, port: s
         statistics[sap] = stats
 
     # Вывод топ-10 SAP
-    print_top_sap(statistics, direction)
+    print_top_sap(statistics, direction, port=port)
 
 # Контекстный менеджер для SSH-соединения
 @contextmanager
@@ -175,37 +203,13 @@ def main(config_file: str = 'config.yaml') -> None:
 
             # Получаем service_id и преобразуем его в строку
             service_id = config.get('service_id', 'none')
-            if service_id != 'none':  # Если service_id указан и не равен 'none'
+            if service_id != 'none':
                 service_id = str(service_id)  # Преобразуем в строку
                 print(f"Работа в режиме сбора статистики для service id = {service_id}")
 
-                # Обрабатываем каждый порт из списка
-                ports = config['port'].split()  # Разделяем строку с портами на список
-                for port in ports:
-                    print(f"\nСбор статистики для порта {port}:")
-                    collect_service_sap_statistics(ssh, service_id, port, config.get('direction', 'both'))
-            else:
-                # Основной режим: сбор статистики для всех SAP на указанных портах
-                ports = config['port'].split()  # Разделяем строку с портами на список
-                for port in ports:
-                    print(f"\nРабота в основном режиме (сбор статистики для всех SAP на порту {port}).")
-                    output = send_command(ssh, 'show service sap-using')
-                    sap_service_map = extract_sap_service_map(output, port)
-
-                    if not sap_service_map:
-                        print(f"SAP, относящиеся к {port}, не найдены.")
-                        continue
-
-                    print(f"Найдено {len(sap_service_map)} SAP, относящихся к {port}: {sap_service_map}")
-
-                    # Сбор статистики для каждого SAP
-                    statistics = {
-                        sap: collect_sap_statistics(ssh, sap, service_id, config.get('direction', 'both'), sap_index=index + 1)
-                        for index, (sap, service_id) in enumerate(sap_service_map.items())
-                    }
-
-                    # Вывод топ-10 SAP
-                    print_top_sap(statistics, config.get('direction', 'both'))
+            # Обрабатываем каждый порт из списка
+            ports = config['port'].split()  # Разделяем строку с портами на список
+            collect_statistics_for_ports(ssh, ports, service_id, config.get('direction', 'both'))
 
     except Exception as e:
         logging.error(f"Ошибка: {e}")
