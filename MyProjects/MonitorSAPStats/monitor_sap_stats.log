@@ -1,0 +1,27 @@
+2025-01-15 22:11:59,706 - Connected (version 2.0, client OpenSSH_3.5p1)
+2025-01-15 22:12:00,397 - Authentication (password) successful!
+2025-01-15 22:12:07,040 - Вводимая команда: show system information | match Name
+2025-01-15 22:12:07,796 - Вводимая команда: environment no more
+2025-01-15 22:12:08,526 - Вводимая команда: environment time-stamp
+2025-01-15 22:12:09,282 - Вводимая команда: show service sap-using
+2025-01-15 22:12:10,038 - Вводимая команда: monitor service id 318608115 sap 1/3/5 rate interval 11 repeat 1
+2025-01-15 22:12:21,178 - Вводимая команда: show service sap-using
+2025-01-15 22:12:21,934 - Вводимая команда: monitor service id 318608115 sap 1/3/4 rate interval 11 repeat 1
+2025-01-15 22:13:23,543 - Connected (version 2.0, client OpenSSH_3.5p1)
+2025-01-15 22:13:24,393 - Authentication (password) successful!
+2025-01-15 22:13:31,027 - Вводимая команда: show system information | match Name
+2025-01-15 22:13:31,783 - Вводимая команда: environment no more
+2025-01-15 22:13:32,514 - Вводимая команда: environment time-stamp
+2025-01-15 22:13:33,269 - Вводимая команда: show service id 318608115 sap
+2025-01-15 22:13:34,025 - Вводимая команда: monitor service id 318608115 sap 1/3/5 rate interval 11 repeat 1
+2025-01-15 22:13:45,156 - Вводимая команда: show service id 318608115 sap
+2025-01-15 22:13:45,910 - Вводимая команда: monitor service id 318608115 sap 1/3/4 rate interval 11 repeat 1
+2025-01-15 22:15:13,135 - Connected (version 2.0, client OpenSSH_3.5p1)
+2025-01-15 22:15:13,834 - Authentication (password) successful!
+2025-01-15 22:15:20,457 - Вводимая команда: show system information | match Name
+2025-01-15 22:15:21,212 - Вводимая команда: environment no more
+2025-01-15 22:15:21,940 - Вводимая команда: environment time-stamp
+2025-01-15 22:15:22,694 - Вводимая команда: show service sap-using
+2025-01-15 22:15:23,450 - Вводимая команда: monitor service id 318608115 sap 1/3/5 rate interval 11 repeat 1
+2025-01-15 22:15:34,597 - Вводимая команда: show service sap-using
+2025-01-15 22:15:35,352 - Вводимая команда: monitor service id 318608115 sap 1/3/4 rate interval 11 repeat 1

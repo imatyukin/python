@@ -1,0 +1,352 @@
+*A:R1# 
+*A:R1# 
+*A:R1# //environment more false
+INFO: CLI #2052: Switching to the MD-CLI engine
+
+[/]
+A:i.matyukin@R1# /environment more false
+
+INFO: CLI #2051: Switching to the classic CLI engine
+*A:R1# environment no more 
+*A:R1# 
+*A:R1# show system information | match Name 
+System Name            : R1
+*A:R1# 
+*A:R1# environment no more 
+*A:R1# 
+*A:R1# environment time-stamp 
+
+Wed Jan 15 19:15:11 UTC 2025
+*A:R1# 
+
+Wed Jan 15 19:15:12 UTC 2025
+*A:R1# show service sap-using 
+
+===============================================================================
+Service Access Points 
+===============================================================================
+PortId                          SvcId      Ing.  Ing.    Egr.  Egr.   Adm  Opr
+                                           QoS   Fltr    QoS   Fltr        
+-------------------------------------------------------------------------------
+pxc-9.b:3000.101                101        1     none    1     none   Up   Down
+pxc-9.b:3002.102                102        1     none    1     none   Up   Down
+pxc-9.b:144.*                   104        1     none    1     none   Up   Up
+pxc-9.a:3005.105                105        1     none    1     none   Up   Down
+pxc-9.b:110.*                   110        1     none    1     none   Up   Down
+pxc-9.a:144.*                   144        1     none    1     none   Up   Down
+pxc-9.a:3000.101                65001101   1     none    1     none   Up   Down
+pxc-9.a:3002.102                65001102   1     none    1     none   Up   Down
+1/1/12:104                      65001104   1     none    1     none   Up   Down
+pxc-9.b:3005.105                65001105   1     none    1     none   Up   Down
+pxc-9.a:110.*                   65001110   1     none    1     none   Down Down
+lag-10:110                      65001110   1     none    1     none   Up   Down
+1/1/12:114                      65001114   1     none    1     none   Up   Down
+1/3/4                           318608115  1     none    1     none   Up   Up
+1/3/5                           318608115  1     none    3     none   Up   Up
+-------------------------------------------------------------------------------
+Number of SAPs : 15
+-------------------------------------------------------------------------------
+===============================================================================
+
+Wed Jan 15 19:15:12 UTC 2025
+*A:R1# monitor service id 318608115 sap 1/3/5 rate interval 11 repeat 1 
+
+===============================================================================
+Monitor statistics for Service 318608115 SAP 1/3/5
+===============================================================================
+-------------------------------------------------------------------------------
+At time t = 0 sec (Base Statistics)
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+Sap Aggregate Stats
+-------------------------------------------------------------------------------
+                        Packets                 Octets
+Ingress
+Aggregate Offered     : 11242153154             719497801856            
+Aggregate Forwarded   : 11242153114             719497799296            
+Aggregate Dropped     : 0                       0                       
+
+Egress
+Aggregate Forwarded   : 602910892               38586297088             
+Aggregate Dropped     : 24238099522             1551238369408           
+-------------------------------------------------------------------------------
+Sap Statistics
+-------------------------------------------------------------------------------
+Last Cleared Time     : N/A
+
+                        Packets                 Octets
+CPM Ingress           : 3                       180                      
+
+Forwarding Engine Stats
+Dropped               : 0                       0                        
+Received Valid        : 11234868239             719031567296             
+Off. HiPrio           : 0                       0                        
+Off. LowPrio          : 11242153154             719497801856             
+Off. Uncolor          : 0                       0                        
+Off. Managed          : 0                       0                        
+
+Queueing Stats(Ingress QoS Policy 1)
+Dro. HiPrio           : 0                       0                        
+Dro. LowPrio          : 0                       0                        
+For. InProf           : 0                       0                        
+For. OutProf          : 11242153114             719497799296             
+
+Queueing Stats(Egress QoS Policy 3)
+Dro. In/InplusProf    : 0                       0                        
+Dro. Out/ExcProf      : 24238099522             1551238369408            
+For. In/InplusProf    : 4                       256                      
+For. Out/ExcProf      : 602910888               38586296832              
+-------------------------------------------------------------------------------
+Sap per Queue Stats
+-------------------------------------------------------------------------------
+                        Packets                 Octets
+ 
+Ingress Queue 1 (Unicast) (Priority)
+Off. HiPrio           : 0                       0                        
+Off. LowPrio          : 11242153154             719497801856             
+Dro. HiPrio           : 0                       0                        
+Dro. LowPrio          : 0                       0                        
+For. InProf           : 0                       0                        
+For. OutProf          : 11242153114             719497799296             
+ 
+Egress Queue 1
+For. In/InplusProf    : 2                       128                      
+For. Out/ExcProf      : 54288488                3474463232               
+Dro. In/InplusProf    : 0                       0                        
+Dro. Out/ExcProf      : 18297760312             1171056659968            
+ 
+-------------------------------------------------------------------------------
+At time t = 11 sec (Mode: Rate)
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+Sap Aggregate Stats
+-------------------------------------------------------------------------------
+                        Packets                 Octets
+Ingress
+Aggregate Offered     : 1488316                 95252229                
+Aggregate Forwarded   : 1488316                 95252235                
+Aggregate Dropped     : 0                       0                       
+
+Egress
+Aggregate Forwarded   : 4395                    281251                  
+Aggregate Dropped     : 1483921                 94970972                
+-------------------------------------------------------------------------------
+Sap Statistics
+-------------------------------------------------------------------------------
+Last Cleared Time     : N/A
+
+                        Packets                 Octets                  % Port
+                                                                        Util.
+CPM Ingress           : 0                       0                       0.00
+
+Forwarding Engine Stats
+Dropped               : 0                       0                       0.00
+Received Valid        : 1351573                 86500674                6.92
+Off. HiPrio           : 0                       0                       0.00
+Off. LowPrio          : 1488316                 95252229                7.62
+Off. Uncolor          : 0                       0                       0.00
+Off. Managed          : 0                       0                       0.00
+
+Queueing Stats(Ingress QoS Policy 1)
+Dro. HiPrio           : 0                       0                       0.00
+Dro. LowPrio          : 0                       0                       0.00
+For. InProf           : 0                       0                       0.00
+For. OutProf          : 1488316                 95252235                7.62
+
+Queueing Stats(Egress QoS Policy 3)
+Dro. In/InplusProf    : 0                       0                       0.00
+Dro. Out/ExcProf      : 1483921                 94970972                7.59
+For. In/InplusProf    : 0                       0                       0.00
+For. Out/ExcProf      : 4395                    281251                  0.02
+-------------------------------------------------------------------------------
+Sap per Queue Stats
+-------------------------------------------------------------------------------
+                        Packets                 Octets                  % Port
+                                                                        Util.
+ 
+Ingress Queue 1 (Unicast) (Priority)
+Off. HiPrio           : 0                       0                       0.00
+Off. LowPrio          : 1488316                 95252229                7.62
+Dro. HiPrio           : 0                       0                       0.00
+Dro. LowPrio          : 0                       0                       0.00
+For. InProf           : 0                       0                       0.00
+For. OutProf          : 1488316                 95252235                7.62
+ 
+Egress Queue 1
+For. In/InplusProf    : 0                       0                       0.00
+For. Out/ExcProf      : 4395                    281251                  0.02
+Dro. In/InplusProf    : 0                       0                       0.00
+Dro. Out/ExcProf      : 1483921                 94970972                7.59
+ 
+===============================================================================
+
+Wed Jan 15 19:15:23 UTC 2025
+*A:R1# 
+
+Wed Jan 15 19:15:24 UTC 2025
+*A:R1# show service sap-using 
+
+===============================================================================
+Service Access Points 
+===============================================================================
+PortId                          SvcId      Ing.  Ing.    Egr.  Egr.   Adm  Opr
+                                           QoS   Fltr    QoS   Fltr        
+-------------------------------------------------------------------------------
+pxc-9.b:3000.101                101        1     none    1     none   Up   Down
+pxc-9.b:3002.102                102        1     none    1     none   Up   Down
+pxc-9.b:144.*                   104        1     none    1     none   Up   Up
+pxc-9.a:3005.105                105        1     none    1     none   Up   Down
+pxc-9.b:110.*                   110        1     none    1     none   Up   Down
+pxc-9.a:144.*                   144        1     none    1     none   Up   Down
+pxc-9.a:3000.101                65001101   1     none    1     none   Up   Down
+pxc-9.a:3002.102                65001102   1     none    1     none   Up   Down
+1/1/12:104                      65001104   1     none    1     none   Up   Down
+pxc-9.b:3005.105                65001105   1     none    1     none   Up   Down
+pxc-9.a:110.*                   65001110   1     none    1     none   Down Down
+lag-10:110                      65001110   1     none    1     none   Up   Down
+1/1/12:114                      65001114   1     none    1     none   Up   Down
+1/3/4                           318608115  1     none    1     none   Up   Up
+1/3/5                           318608115  1     none    3     none   Up   Up
+-------------------------------------------------------------------------------
+Number of SAPs : 15
+-------------------------------------------------------------------------------
+===============================================================================
+
+Wed Jan 15 19:15:24 UTC 2025
+*A:R1# monitor service id 318608115 sap 1/3/4 rate interval 11 repeat 1 
+
+===============================================================================
+Monitor statistics for Service 318608115 SAP 1/3/4
+===============================================================================
+-------------------------------------------------------------------------------
+At time t = 0 sec (Base Statistics)
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+Sap Aggregate Stats
+-------------------------------------------------------------------------------
+                        Packets                 Octets
+Ingress
+Aggregate Offered     : 24860057504             1591043680256           
+Aggregate Forwarded   : 24860057464             1591043677696           
+Aggregate Dropped     : 0                       0                       
+
+Egress
+Aggregate Forwarded   : 11259859866             720631036128            
+Aggregate Dropped     : 0                       0                       
+-------------------------------------------------------------------------------
+Sap Statistics
+-------------------------------------------------------------------------------
+Last Cleared Time     : N/A
+
+                        Packets                 Octets
+CPM Ingress           : 1248006                 74880360                 
+
+Forwarding Engine Stats
+Dropped               : 33163101                2122438464               
+Received Valid        : 24849946872             1590396599808            
+Off. HiPrio           : 0                       0                        
+Off. LowPrio          : 24860057504             1591043680256            
+Off. Uncolor          : 0                       0                        
+Off. Managed          : 0                       0                        
+
+Queueing Stats(Ingress QoS Policy 1)
+Dro. HiPrio           : 0                       0                        
+Dro. LowPrio          : 0                       0                        
+For. InProf           : 0                       0                        
+For. OutProf          : 24860057464             1591043677696            
+
+Queueing Stats(Egress QoS Policy 1)
+Dro. In/InplusProf    : 0                       0                        
+Dro. Out/ExcProf      : 0                       0                        
+For. In/InplusProf    : 173                     15776                    
+For. Out/ExcProf      : 11259859693             720631020352             
+-------------------------------------------------------------------------------
+Sap per Queue Stats
+-------------------------------------------------------------------------------
+                        Packets                 Octets
+ 
+Ingress Queue 1 (Unicast) (Priority)
+Off. HiPrio           : 0                       0                        
+Off. LowPrio          : 24860057504             1591043680256            
+Dro. HiPrio           : 0                       0                        
+Dro. LowPrio          : 0                       0                        
+For. InProf           : 0                       0                        
+For. OutProf          : 24860057464             1591043677696            
+ 
+Egress Queue 1
+For. In/InplusProf    : 173                     15776                    
+For. Out/ExcProf      : 11259859693             720631020352             
+Dro. In/InplusProf    : 0                       0                        
+Dro. Out/ExcProf      : 0                       0                        
+ 
+-------------------------------------------------------------------------------
+At time t = 11 sec (Mode: Rate)
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+Sap Aggregate Stats
+-------------------------------------------------------------------------------
+                        Packets                 Octets
+Ingress
+Aggregate Offered     : 1488464                 95261692                
+Aggregate Forwarded   : 1488464                 95261692                
+Aggregate Dropped     : 0                       0                       
+
+Egress
+Aggregate Forwarded   : 1488464                 95261692                
+Aggregate Dropped     : 0                       0                       
+-------------------------------------------------------------------------------
+Sap Statistics
+-------------------------------------------------------------------------------
+Last Cleared Time     : N/A
+
+                        Packets                 Octets                  % Port
+                                                                        Util.
+CPM Ingress           : 0                       0                       0.00
+
+Forwarding Engine Stats
+Dropped               : 0                       0                       0.00
+Received Valid        : 1338093                 85637976                6.85
+Off. HiPrio           : 0                       0                       0.00
+Off. LowPrio          : 1488464                 95261692                7.62
+Off. Uncolor          : 0                       0                       0.00
+Off. Managed          : 0                       0                       0.00
+
+Queueing Stats(Ingress QoS Policy 1)
+Dro. HiPrio           : 0                       0                       0.00
+Dro. LowPrio          : 0                       0                       0.00
+For. InProf           : 0                       0                       0.00
+For. OutProf          : 1488464                 95261692                7.62
+
+Queueing Stats(Egress QoS Policy 1)
+Dro. In/InplusProf    : 0                       0                       0.00
+Dro. Out/ExcProf      : 0                       0                       0.00
+For. In/InplusProf    : 0                       0                       0.00
+For. Out/ExcProf      : 1488464                 95261692                7.62
+-------------------------------------------------------------------------------
+Sap per Queue Stats
+-------------------------------------------------------------------------------
+                        Packets                 Octets                  % Port
+                                                                        Util.
+ 
+Ingress Queue 1 (Unicast) (Priority)
+Off. HiPrio           : 0                       0                       0.00
+Off. LowPrio          : 1488464                 95261692                7.62
+Dro. HiPrio           : 0                       0                       0.00
+Dro. LowPrio          : 0                       0                       0.00
+For. InProf           : 0                       0                       0.00
+For. OutProf          : 1488464                 95261692                7.62
+ 
+Egress Queue 1
+For. In/InplusProf    : 0                       0                       0.00
+For. Out/ExcProf      : 1488464                 95261692                7.62
+Dro. In/InplusProf    : 0                       0                       0.00
+Dro. Out/ExcProf      : 0                       0                       0.00
+ 
+===============================================================================
+
+Wed Jan 15 19:15:35 UTC 2025
+*A:R1# 
