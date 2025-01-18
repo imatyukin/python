@@ -1,58 +1,45 @@
-*A:R1# 
-*A:R1# 
-*A:R1# //environment more false
+A:R1# 
+A:R1# 
+A:R1# //environment more false
 INFO: CLI #2052: Switching to the MD-CLI engine
 
 [/]
-A:@R1# /environment more false
+A:R1# /environment more false
 
 INFO: CLI #2051: Switching to the classic CLI engine
-*A:R1# environment no more 
-*A:R1# 
-*A:R1# show system information | match Name 
+A:R1# environment no more 
+A:R1# 
+A:R1# show system information | match Name 
 System Name            : R1
-*A:R1# 
-*A:R1# environment no more 
-*A:R1# 
-*A:R1# environment time-stamp 
+A:R1# 
+A:R1# environment no more 
+A:R1# 
+A:R1# environment time-stamp 
 
-Wed Jan 15 19:29:46 UTC 2025
-*A:R1# 
+Fri Jan 17 20:39:29 UTC 2025
+A:R1# 
 
-Wed Jan 15 19:29:47 UTC 2025
-*A:R1# show service sap-using 
+Fri Jan 17 20:39:29 UTC 2025
+A:R1# show service id 315704736 sap 
 
 ===============================================================================
-Service Access Points 
+SAP(Summary), Service 315704736
 ===============================================================================
 PortId                          SvcId      Ing.  Ing.    Egr.  Egr.   Adm  Opr
                                            QoS   Fltr    QoS   Fltr        
 -------------------------------------------------------------------------------
-pxc-9.b:3000.101                101        1     none    1     none   Up   Down
-pxc-9.b:3002.102                102        1     none    1     none   Up   Down
-pxc-9.b:144.*                   104        1     none    1     none   Up   Up
-pxc-9.a:3005.105                105        1     none    1     none   Up   Down
-pxc-9.b:110.*                   110        1     none    1     none   Up   Down
-pxc-9.a:144.*                   144        1     none    1     none   Up   Down
-pxc-9.a:3000.101                65001101   1     none    1     none   Up   Down
-pxc-9.a:3002.102                65001102   1     none    1     none   Up   Down
-1/1/12:104                      65001104   1     none    1     none   Up   Down
-pxc-9.b:3005.105                65001105   1     none    1     none   Up   Down
-pxc-9.a:110.*                   65001110   1     none    1     none   Down Down
-lag-10:110                      65001110   1     none    1     none   Up   Down
-1/1/12:114                      65001114   1     none    1     none   Up   Down
-1/3/4                           318608115  1     none    1     none   Up   Up
-1/3/5                           318608115  1     none    3     none   Up   Up
+1/3/4:1305                      315704736  1005  none    1005  none   Up   Up
+1/3/5:1305                      315704736  1     none    1     none   Up   Up
 -------------------------------------------------------------------------------
-Number of SAPs : 15
+Number of SAPs : 2
 -------------------------------------------------------------------------------
 ===============================================================================
 
-Wed Jan 15 19:29:47 UTC 2025
-*A:R1# monitor service id 318608115 sap 1/3/5 rate interval 11 repeat 1 
+Fri Jan 17 20:39:30 UTC 2025
+A:R1# monitor service id 315704736 sap 1/3/4:1305 rate interval 11 repeat 1 
 
 ===============================================================================
-Monitor statistics for Service 318608115 SAP 1/3/5
+Monitor statistics for Service 315704736 SAP 1/3/4:1305
 ===============================================================================
 -------------------------------------------------------------------------------
 At time t = 0 sec (Base Statistics)
@@ -63,40 +50,40 @@ Sap Aggregate Stats
 -------------------------------------------------------------------------------
                         Packets                 Octets
 Ingress
-Aggregate Offered     : 12544173318             802827092352            
-Aggregate Forwarded   : 12544173278             802827089792            
-Aggregate Dropped     : 0                       0                       
+Aggregate Offered     : 226881800               13612908000             
+Aggregate Forwarded   : 1397697                 83861820                
+Aggregate Dropped     : 225379600               13522776000             
 
 Egress
-Aggregate Forwarded   : 606755928               38832379392             
-Aggregate Dropped     : 25536274649             1634321577536           
+Aggregate Forwarded   : 2829444                 181084444               
+Aggregate Dropped     : 619585546               39653474944             
 -------------------------------------------------------------------------------
 Sap Statistics
 -------------------------------------------------------------------------------
 Last Cleared Time     : N/A
 
                         Packets                 Octets
-CPM Ingress           : 3                       180                      
+CPM Ingress           : 1                       60                       
 
 Forwarding Engine Stats
 Dropped               : 0                       0                        
-Received Valid        : 12536192520             802316321280             
+Received Valid        : 219195190               14028492160              
 Off. HiPrio           : 0                       0                        
-Off. LowPrio          : 12544173318             802827092352             
+Off. LowPrio          : 226881800               13612908000              
 Off. Uncolor          : 0                       0                        
 Off. Managed          : 0                       0                        
 
-Queueing Stats(Ingress QoS Policy 1)
+Queueing Stats(Ingress QoS Policy 1005)
 Dro. HiPrio           : 0                       0                        
-Dro. LowPrio          : 0                       0                        
-For. InProf           : 0                       0                        
-For. OutProf          : 12544173278             802827089792             
+Dro. LowPrio          : 225379600               13522776000              
+For. InProf           : 1397697                 83861820                 
+For. OutProf          : 0                       0                        
 
-Queueing Stats(Egress QoS Policy 3)
+Queueing Stats(Egress QoS Policy 1005)
 Dro. In/InplusProf    : 0                       0                        
-Dro. Out/ExcProf      : 25536274649             1634321577536            
-For. In/InplusProf    : 4                       256                      
-For. Out/ExcProf      : 606755924               38832379136              
+Dro. Out/ExcProf      : 619585546               39653474944              
+For. In/InplusProf    : 7                       476                      
+For. Out/ExcProf      : 2829437                 181083968                
 -------------------------------------------------------------------------------
 Sap per Queue Stats
 -------------------------------------------------------------------------------
@@ -104,17 +91,33 @@ Sap per Queue Stats
  
 Ingress Queue 1 (Unicast) (Priority)
 Off. HiPrio           : 0                       0                        
-Off. LowPrio          : 12544173318             802827092352             
+Off. LowPrio          : 226881800               13612908000              
+Dro. HiPrio           : 0                       0                        
+Dro. LowPrio          : 225379600               13522776000              
+For. InProf           : 1397697                 83861820                 
+For. OutProf          : 0                       0                        
+ 
+Ingress Queue 11 (Multipoint) (Priority)
+Off. Combined         : 0                       0                        
+Off. Managed          : 0                       0                        
 Dro. HiPrio           : 0                       0                        
 Dro. LowPrio          : 0                       0                        
 For. InProf           : 0                       0                        
-For. OutProf          : 12544173278             802827089792             
+For. OutProf          : 0                       0                        
+ 
+Ingress Queue 14 (Multipoint) (Profile)
+Off. Combined         : 0                       0                        
+Off. Managed          : 0                       0                        
+Dro. ColorOut         : 0                       0                        
+Dro. ColorIn/Uncolor  : 0                       0                        
+For. InProf           : 0                       0                        
+For. OutProf          : 0                       0                        
  
 Egress Queue 1
-For. In/InplusProf    : 2                       128                      
-For. Out/ExcProf      : 58133524                3720545536               
+For. In/InplusProf    : 7                       476                      
+For. Out/ExcProf      : 2829437                 181083968                
 Dro. In/InplusProf    : 0                       0                        
-Dro. Out/ExcProf      : 19595935439             1254139868096            
+Dro. Out/ExcProf      : 619585546               39653474944              
  
 -------------------------------------------------------------------------------
 At time t = 11 sec (Mode: Rate)
@@ -125,13 +128,13 @@ Sap Aggregate Stats
 -------------------------------------------------------------------------------
                         Packets                 Octets
 Ingress
-Aggregate Offered     : 1488590                 95269790                
-Aggregate Forwarded   : 1488591                 95269795                
-Aggregate Dropped     : 0                       0                       
+Aggregate Offered     : 1488294                 89297624                
+Aggregate Forwarded   : 9169                    550125                  
+Aggregate Dropped     : 1479125                 88747493                
 
 Egress
-Aggregate Forwarded   : 4395                    281251                  
-Aggregate Dropped     : 1484196                 94988550                
+Aggregate Forwarded   : 6543                    418761                  
+Aggregate Dropped     : 1481751                 94832044                
 -------------------------------------------------------------------------------
 Sap Statistics
 -------------------------------------------------------------------------------
@@ -143,23 +146,23 @@ CPM Ingress           : 0                       0                       0.00
 
 Forwarding Engine Stats
 Dropped               : 0                       0                       0.00
-Received Valid        : 1338059                 85635749                6.85
+Received Valid        : 1338125                 85640022                6.85
 Off. HiPrio           : 0                       0                       0.00
-Off. LowPrio          : 1488590                 95269790                7.62
+Off. LowPrio          : 1488294                 89297624                7.14
 Off. Uncolor          : 0                       0                       0.00
 Off. Managed          : 0                       0                       0.00
 
-Queueing Stats(Ingress QoS Policy 1)
+Queueing Stats(Ingress QoS Policy 1005)
 Dro. HiPrio           : 0                       0                       0.00
-Dro. LowPrio          : 0                       0                       0.00
-For. InProf           : 0                       0                       0.00
-For. OutProf          : 1488591                 95269795                7.62
+Dro. LowPrio          : 1479125                 88747493                7.09
+For. InProf           : 9169                    550125                  0.04
+For. OutProf          : 0                       0                       0.00
 
-Queueing Stats(Egress QoS Policy 3)
+Queueing Stats(Egress QoS Policy 1005)
 Dro. In/InplusProf    : 0                       0                       0.00
-Dro. Out/ExcProf      : 1484196                 94988550                7.59
+Dro. Out/ExcProf      : 1481751                 94832044                7.58
 For. In/InplusProf    : 0                       0                       0.00
-For. Out/ExcProf      : 4395                    281251                  0.02
+For. Out/ExcProf      : 6543                    418761                  0.03
 -------------------------------------------------------------------------------
 Sap per Queue Stats
 -------------------------------------------------------------------------------
@@ -168,57 +171,60 @@ Sap per Queue Stats
  
 Ingress Queue 1 (Unicast) (Priority)
 Off. HiPrio           : 0                       0                       0.00
-Off. LowPrio          : 1488590                 95269790                7.62
+Off. LowPrio          : 1488294                 89297624                7.14
+Dro. HiPrio           : 0                       0                       0.00
+Dro. LowPrio          : 1479125                 88747493                7.09
+For. InProf           : 9169                    550125                  0.04
+For. OutProf          : 0                       0                       0.00
+ 
+Ingress Queue 11 (Multipoint) (Priority)
+Off. Combined         : 0                       0                       0.00
+Off. Managed          : 0                       0                       0.00
 Dro. HiPrio           : 0                       0                       0.00
 Dro. LowPrio          : 0                       0                       0.00
 For. InProf           : 0                       0                       0.00
-For. OutProf          : 1488591                 95269795                7.62
+For. OutProf          : 0                       0                       0.00
+ 
+Ingress Queue 14 (Multipoint) (Profile)
+Off. Combined         : 0                       0                       0.00
+Off. Managed          : 0                       0                       0.00
+Dro. ColorOut         : 0                       0                       0.00
+Dro. ColorIn/Uncolor  : 0                       0                       0.00
+For. InProf           : 0                       0                       0.00
+For. OutProf          : 0                       0                       0.00
  
 Egress Queue 1
 For. In/InplusProf    : 0                       0                       0.00
-For. Out/ExcProf      : 4395                    281251                  0.02
+For. Out/ExcProf      : 6543                    418761                  0.03
 Dro. In/InplusProf    : 0                       0                       0.00
-Dro. Out/ExcProf      : 1484196                 94988550                7.59
+Dro. Out/ExcProf      : 1481751                 94832044                7.58
  
 ===============================================================================
 
-Wed Jan 15 19:29:58 UTC 2025
-*A:R1# 
+Fri Jan 17 20:39:41 UTC 2025
+A:R1# 
 
-Wed Jan 15 19:29:58 UTC 2025
-*A:R1# show service sap-using 
+Fri Jan 17 20:39:41 UTC 2025
+A:R1# show service id 315704736 sap 
 
 ===============================================================================
-Service Access Points 
+SAP(Summary), Service 315704736
 ===============================================================================
 PortId                          SvcId      Ing.  Ing.    Egr.  Egr.   Adm  Opr
                                            QoS   Fltr    QoS   Fltr        
 -------------------------------------------------------------------------------
-pxc-9.b:3000.101                101        1     none    1     none   Up   Down
-pxc-9.b:3002.102                102        1     none    1     none   Up   Down
-pxc-9.b:144.*                   104        1     none    1     none   Up   Up
-pxc-9.a:3005.105                105        1     none    1     none   Up   Down
-pxc-9.b:110.*                   110        1     none    1     none   Up   Down
-pxc-9.a:144.*                   144        1     none    1     none   Up   Down
-pxc-9.a:3000.101                65001101   1     none    1     none   Up   Down
-pxc-9.a:3002.102                65001102   1     none    1     none   Up   Down
-1/1/12:104                      65001104   1     none    1     none   Up   Down
-pxc-9.b:3005.105                65001105   1     none    1     none   Up   Down
-pxc-9.a:110.*                   65001110   1     none    1     none   Down Down
-lag-10:110                      65001110   1     none    1     none   Up   Down
-1/1/12:114                      65001114   1     none    1     none   Up   Down
-1/3/4                           318608115  1     none    1     none   Up   Up
-1/3/5                           318608115  1     none    3     none   Up   Up
+1/3/4:1305                      315704736  1005  none    1005  none   Up   Up
+1/3/5:1305                      315704736  1     none    1     none   Up   Up
 -------------------------------------------------------------------------------
-Number of SAPs : 15
+Number of SAPs : 2
 -------------------------------------------------------------------------------
 ===============================================================================
 
-Wed Jan 15 19:29:59 UTC 2025
-*A:R1# monitor service id 318608115 sap 1/3/4 rate interval 11 repeat 1 
+Fri Jan 17 20:39:42 UTC 2025
+A:R1# monitor service id 315704736 sap 1/3/5:1305 rate interval 11 repeat 1 
 
 ===============================================================================
-Monitor statistics for Service 318608115 SAP 1/3/4
+Monitor statistics for Service 315704736 SAP 1/3/5:1305
 ===============================================================================
 -------------------------------------------------------------------------------
 At time t = 0 sec (Base Statistics)
@@ -229,12 +235,12 @@ Sap Aggregate Stats
 -------------------------------------------------------------------------------
                         Packets                 Octets
 Ingress
-Aggregate Offered     : 26162045890             1674370936960           
-Aggregate Forwarded   : 26162045852             1674370934528           
+Aggregate Offered     : 640362838               40983221632             
+Aggregate Forwarded   : 640362799               40983219136             
 Aggregate Dropped     : 0                       0                       
 
 Egress
-Aggregate Forwarded   : 12561848253             803958292896            
+Aggregate Forwarded   : 1507692                 96492300                
 Aggregate Dropped     : 0                       0                       
 -------------------------------------------------------------------------------
 Sap Statistics
@@ -242,13 +248,13 @@ Sap Statistics
 Last Cleared Time     : N/A
 
                         Packets                 Octets
-CPM Ingress           : 1248006                 74880360                 
+CPM Ingress           : 1                       60                       
 
 Forwarding Engine Stats
-Dropped               : 33163101                2122438464               
-Received Valid        : 26151122359             1673671830976            
+Dropped               : 0                       0                        
+Received Valid        : 629553160               40291402240              
 Off. HiPrio           : 0                       0                        
-Off. LowPrio          : 26162045890             1674370936960            
+Off. LowPrio          : 640362838               40983221632              
 Off. Uncolor          : 0                       0                        
 Off. Managed          : 0                       0                        
 
@@ -256,13 +262,13 @@ Queueing Stats(Ingress QoS Policy 1)
 Dro. HiPrio           : 0                       0                        
 Dro. LowPrio          : 0                       0                        
 For. InProf           : 0                       0                        
-For. OutProf          : 26162045852             1674370934528            
+For. OutProf          : 640362799               40983219136              
 
 Queueing Stats(Egress QoS Policy 1)
 Dro. In/InplusProf    : 0                       0                        
 Dro. Out/ExcProf      : 0                       0                        
-For. In/InplusProf    : 173                     15776                    
-For. Out/ExcProf      : 12561848080             803958277120             
+For. In/InplusProf    : 1507692                 96492300                 
+For. Out/ExcProf      : 0                       0                        
 -------------------------------------------------------------------------------
 Sap per Queue Stats
 -------------------------------------------------------------------------------
@@ -270,15 +276,23 @@ Sap per Queue Stats
  
 Ingress Queue 1 (Unicast) (Priority)
 Off. HiPrio           : 0                       0                        
-Off. LowPrio          : 26162045890             1674370936960            
+Off. LowPrio          : 640362838               40983221632              
 Dro. HiPrio           : 0                       0                        
 Dro. LowPrio          : 0                       0                        
 For. InProf           : 0                       0                        
-For. OutProf          : 26162045852             1674370934528            
+For. OutProf          : 640362799               40983219136              
+ 
+Ingress Queue 11 (Multipoint) (Priority)
+Off. Combined         : 0                       0                        
+Off. Managed          : 0                       0                        
+Dro. HiPrio           : 0                       0                        
+Dro. LowPrio          : 0                       0                        
+For. InProf           : 0                       0                        
+For. OutProf          : 0                       0                        
  
 Egress Queue 1
-For. In/InplusProf    : 173                     15776                    
-For. Out/ExcProf      : 12561848080             803958277120             
+For. In/InplusProf    : 1507692                 96492300                 
+For. Out/ExcProf      : 0                       0                        
 Dro. In/InplusProf    : 0                       0                        
 Dro. Out/ExcProf      : 0                       0                        
  
@@ -291,12 +305,12 @@ Sap Aggregate Stats
 -------------------------------------------------------------------------------
                         Packets                 Octets
 Ingress
-Aggregate Offered     : 1488939                 95292073                
-Aggregate Forwarded   : 1488939                 95292067                
+Aggregate Offered     : 1488409                 95258170                
+Aggregate Forwarded   : 1488409                 95258164                
 Aggregate Dropped     : 0                       0                       
 
 Egress
-Aggregate Forwarded   : 1488939                 95292073                
+Aggregate Forwarded   : 9169                    586824                  
 Aggregate Dropped     : 0                       0                       
 -------------------------------------------------------------------------------
 Sap Statistics
@@ -309,9 +323,9 @@ CPM Ingress           : 0                       0                       0.00
 
 Forwarding Engine Stats
 Dropped               : 0                       0                       0.00
-Received Valid        : 1352826                 86580887                6.92
+Received Valid        : 1351576                 86500889                6.92
 Off. HiPrio           : 0                       0                       0.00
-Off. LowPrio          : 1488939                 95292073                7.62
+Off. LowPrio          : 1488409                 95258170                7.62
 Off. Uncolor          : 0                       0                       0.00
 Off. Managed          : 0                       0                       0.00
 
@@ -319,13 +333,13 @@ Queueing Stats(Ingress QoS Policy 1)
 Dro. HiPrio           : 0                       0                       0.00
 Dro. LowPrio          : 0                       0                       0.00
 For. InProf           : 0                       0                       0.00
-For. OutProf          : 1488939                 95292067                7.62
+For. OutProf          : 1488409                 95258164                7.62
 
 Queueing Stats(Egress QoS Policy 1)
 Dro. In/InplusProf    : 0                       0                       0.00
 Dro. Out/ExcProf      : 0                       0                       0.00
-For. In/InplusProf    : 0                       0                       0.00
-For. Out/ExcProf      : 1488939                 95292073                7.62
+For. In/InplusProf    : 9169                    586824                  0.04
+For. Out/ExcProf      : 0                       0                       0.00
 -------------------------------------------------------------------------------
 Sap per Queue Stats
 -------------------------------------------------------------------------------
@@ -334,19 +348,27 @@ Sap per Queue Stats
  
 Ingress Queue 1 (Unicast) (Priority)
 Off. HiPrio           : 0                       0                       0.00
-Off. LowPrio          : 1488939                 95292073                7.62
+Off. LowPrio          : 1488409                 95258170                7.62
 Dro. HiPrio           : 0                       0                       0.00
 Dro. LowPrio          : 0                       0                       0.00
 For. InProf           : 0                       0                       0.00
-For. OutProf          : 1488939                 95292067                7.62
+For. OutProf          : 1488409                 95258164                7.62
+ 
+Ingress Queue 11 (Multipoint) (Priority)
+Off. Combined         : 0                       0                       0.00
+Off. Managed          : 0                       0                       0.00
+Dro. HiPrio           : 0                       0                       0.00
+Dro. LowPrio          : 0                       0                       0.00
+For. InProf           : 0                       0                       0.00
+For. OutProf          : 0                       0                       0.00
  
 Egress Queue 1
-For. In/InplusProf    : 0                       0                       0.00
-For. Out/ExcProf      : 1488939                 95292073                7.62
+For. In/InplusProf    : 9169                    586824                  0.04
+For. Out/ExcProf      : 0                       0                       0.00
 Dro. In/InplusProf    : 0                       0                       0.00
 Dro. Out/ExcProf      : 0                       0                       0.00
  
 ===============================================================================
 
-Wed Jan 15 19:30:10 UTC 2025
-*A:R1# 
+Fri Jan 17 20:39:53 UTC 2025
+A:R1# 
