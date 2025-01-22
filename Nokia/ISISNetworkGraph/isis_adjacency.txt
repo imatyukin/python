@@ -1,12 +1,56 @@
 
 ===============================================================================
-Rtr Base ISIS Instance 0 Adjacency
+Rtr Base ISIS Instance 0 Adjacency (detail)
 ===============================================================================
-System ID                Usage State Hold Interface                     MT-ID
--------------------------------------------------------------------------------
-7750SR-1                 L2    Up    20   to_7750SR-1                   0
-NE40                     L2    Up    26   to_NE40                       0
-vMX-1                    L2    Up    23   to_vMX                        0
--------------------------------------------------------------------------------
-Adjacencies : 3
+Hostname    : 7750SR-1
+SystemID    : 0100.1001.0001                   SNPA        : 50:00:00:01:00:03
+Interface   : to_7750SR-1                      Up Time     : 0d 02:32:53
+State       : Up                               Priority    : 0
+Nbr Sys Typ : L2                               L. Circ Typ : L2
+Hold Time   : 27                               Max Hold    : 27
+Adj Level   : L2                               MT Enabled  : No
+Topology    : Unicast
+
+IPv6 Neighbor     : ::
+IPv4 Neighbor     : 10.1.4.1
+Restart Support   : Disabled
+Restart Status    : Not currently being helped
+Restart Supressed : Disabled
+Number of Restarts: 0
+Last Restart at   : Never
+
+Hostname    : NE40
+SystemID    : 0100.1001.0003                   SNPA        : 00:30:4e:a4:13:51
+Interface   : to_NE40                          Up Time     : 0d 02:32:37
+State       : Up                               Priority    : 0
+Nbr Sys Typ : L1L2                             L. Circ Typ : L1L2
+Hold Time   : 27                               Max Hold    : 30
+Adj Level   : L1                               MT Enabled  : No
+Topology    : Unicast
+
+IPv6 Neighbor     : ::
+IPv4 Neighbor     : 10.3.4.3
+Restart Support   : Disabled
+Restart Status    : Not currently being helped
+Restart Supressed : Disabled
+Number of Restarts: 0
+Last Restart at   : Never
+
+Hostname    : vMX-1
+SystemID    : 1001.0010.0002                   SNPA        : 50:00:00:05:00:04
+Interface   : to_vMX                           Up Time     : 0d 02:33:19
+State       : Up                               Priority    : 0
+Nbr Sys Typ : L1L2                             L. Circ Typ : L1L2
+Hold Time   : 20                               Max Hold    : 27
+Adj Level   : L2                               MT Enabled  : No
+Topology    : Unicast
+
+IPv6 Neighbor     : fe80::5200:ff:fe05:4
+IPv4 Neighbor     : 10.2.4.2
+Restart Support   : Disabled
+Restart Status    : Not currently being helped
+Restart Supressed : Disabled
+Number of Restarts: 0
+Last Restart at   : Never
+
 ===============================================================================

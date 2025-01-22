@@ -55,30 +55,51 @@ def load_config(config_file):
     return config
 
 def parse_isis_adjacency(file_path):
-    """Парсит файл с выводом ISIS adjacency и возвращает список соседей."""
+    """Парсит файл с выводом ISIS adjacency (новый формат) и возвращает список соседей."""
     neighbors = []
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
-        # Ищем строки с данными о соседях
-        for line in lines:
-            if "L2" in line and "Up" in line:  # Фильтруем только активные соседи
-                parts = line.split()
-                system_id = parts[0]
-                interface = parts[4]
-                neighbors.append((system_id, interface))
+        i = 0
+        while i < len(lines):
+            if "Hostname" in lines[i]:  # Начало блока с информацией о соседе
+                # Извлекаем Hostname (System ID)
+                system_id = lines[i].split(":")[1].strip()
+
+                # Извлекаем Interface
+                interface_line = lines[i + 2]
+                interface = interface_line.split(":")[1].strip().split()[0]  # Берем только первое слово
+
+                # Извлекаем State
+                state_line = lines[i + 3]
+                state = state_line.split(":")[1].strip().split()[0]  # Берем только первое слово
+
+                if state == "Up":  # Добавляем только активные соседи
+                    neighbors.append((system_id, interface))
+
+                i += 12  # Пропускаем оставшиеся строки блока
+            else:
+                i += 1
     return neighbors
 
 def parse_isis_database(file_path):
-    """Парсит файл с выводом ISIS database и возвращает список LSP."""
+    """Парсит файл с выводом ISIS database (новый формат) и возвращает список LSP."""
     lsp_list = []
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
-        # Ищем строки с данными о LSP
-        for line in lines:
-            if "L1L2" in line:  # Фильтруем только LSP уровня 2
-                parts = line.split()
-                lsp_id = parts[0].split('.')[0]  # Берем только System ID (без .00-00)
-                lsp_list.append(lsp_id)
+        i = 0
+        while i < len(lines):
+            if "LSP ID" in lines[i]:  # Начало блока с информацией о LSP
+                # Извлекаем LSP ID (System ID)
+                lsp_id = lines[i].split(":")[1].strip().split(".")[0]  # Берем только System ID (без .00-00)
+                # Извлекаем Level
+                level_line = lines[i + 1]
+                level = level_line.split(":")[1].strip()
+                # Если уровень L1L2, добавляем в список
+                if "L1L2" in level:
+                    lsp_list.append(lsp_id)
+                i += 1  # Переходим к следующей строке
+            else:
+                i += 1
     return lsp_list
 
 def parse_isis_topology(file_path):
