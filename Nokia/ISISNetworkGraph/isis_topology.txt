@@ -2,13 +2,35 @@
 ===============================================================================
 Rtr Base ISIS Instance 0 Topology Table
 ===============================================================================
-Node                                Interface                  Nexthop
 -------------------------------------------------------------------------------
+IS-IS IP paths (MT-ID 0),   Level 1
+-------------------------------------------------------------------------------
+Node      : NE40.00
+Nexthop   : NE40
+Interface : to_NE40
+SNPA      : none                             Metric      : 50
+
 -------------------------------------------------------------------------------
 IS-IS IP paths (MT-ID 0),   Level 2
 -------------------------------------------------------------------------------
-7750SR-1.00                         to_7750SR-1                7750SR-1
-NE40.00                             to_NE40                    NE40
-vMX-1.00                            to_vMX                     vMX-1
-vMX-2.00                            to_vMX                     vMX-1
+Node      : 7750SR-1.00
+Nexthop   : vMX-1
+Interface : to_vMX
+SNPA      : none                             Metric      : 145
+
+Node      : NE40.00
+Nexthop   : vMX-1
+Interface : to_vMX
+SNPA      : none                             Metric      : 135
+
+Node      : vMX-1.00
+Nexthop   : vMX-1
+Interface : to_vMX
+SNPA      : none                             Metric      : 125
+
+Node      : vMX-2.00
+Nexthop   : vMX-1
+Interface : to_vMX
+SNPA      : none                             Metric      : 10125
+
 ===============================================================================

@@ -107,14 +107,17 @@ def parse_isis_topology(file_path):
     paths = []
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
-        # Ищем строки с данными о путях
-        for line in lines:
-            if "to_" in line:  # Фильтруем строки с интерфейсами
-                parts = line.split()
-                node = parts[0].split('.')[0]  # Берем только System ID (без .00-00)
-                interface = parts[1]
-                nexthop = parts[2]
+        i = 0
+        while i < len(lines):
+            if "Node      :" in lines[i]:  # Начало блока с информацией о пути
+                # Извлекаем Node (System ID)
+                node = lines[i].split(":")[1].strip().split(".")[0]  # Берем только System ID (без .00-00)
+                # Извлекаем Nexthop
+                nexthop = lines[i + 1].split(":")[1].strip().split(".")[0]  # Берем только System ID (без .00-00)
                 paths.append((node, nexthop))
+                i += 5  # Пропускаем оставшиеся строки блока (Interface, SNPA, Metric)
+            else:
+                i += 1
     return paths
 
 def build_network_graph(lsp_list, neighbors, topology_paths, router_name):
