@@ -1,0 +1,2 @@
+config_file_path: "flat-config.txt"  # Выходной файл
+input_file_path: "config.cfg"         # Входной файл
