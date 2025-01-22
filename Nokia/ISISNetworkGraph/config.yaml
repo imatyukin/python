@@ -1,0 +1,4 @@
+adjacency_file: "isis_adjacency.txt"  # show router isis adjacency
+database_file: "isis_database.txt"    # show router isis database
+topology_file: "isis_topology.txt"    # show router isis topology
+router_name: "7750SR-7"  # Имя роутера, с которого собраны данные
