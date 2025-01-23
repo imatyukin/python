@@ -1,0 +1,59 @@
+# Обязательные параметры
+#traffic_type: unicast  # Тип трафика: unicast, broadcast, multicast
+
+# Настройки источника
+#source_address: 0.0.0.0       # IP-адрес отправителя (0.0.0.0 = все интерфейсы)
+#source_port: 0                # Порт отправителя (0 = случайный порт)
+
+# Настройки получателя (зависит от типа трафика)
+#destination_address: 192.168.1.100  # Целевой IP (для unicast/broadcast)
+#destination_port: 5060        # Целевой порт
+
+# Параметры генерации трафика
+#packet_size: 512              # Размер пакета в байтах (1-65507)
+#threads: 4                    # Количество потоков (1-100)
+#duration: 60                  # Длительность работы в секундах (0 = бесконечно)
+
+# Настройки скорости (выбрать только ОДИН параметр)
+#target_speed_pps: 1000        # Целевая скорость в пакетах/сек
+#target_speed_mbps: 10         # Целевая скорость в мегабитах/сек
+#interval: 0.001               # Интервал между пакетами в секундах
+
+# Настройки Multicast (обязательно при traffic_type = multicast)
+#group_address: 224.1.1.100    # Групповой IP (224.0.0.0 - 239.255.255.255)
+
+# Настройки QoS (опционально)
+#qos:
+#  dscp: 46                    # Differentiated Services (0-63)
+#  ip_precedence: 5            # IP Precedence (0-7), конфликтует с DSCP
+#  ecn: 1                      # Explicit Congestion Notification (0-3)
+
+# Примеры конфигураций:
+
+# Пример 1: Unicast VoIP трафик
+traffic_type: unicast
+source_address: 0.0.0.0
+destination_address: 192.168.233.134
+destination_port: 5060
+packet_size: 200
+target_speed_pps: 50
+qos:
+  dscp: 46
+  ecn: 1
+
+# Пример 2: Multicast видео-поток
+# traffic_type: multicast
+# group_address: 224.1.1.200
+# destination_port: 5000
+# packet_size: 1400
+# target_speed_mbps: 15
+# qos:
+#   ip_precedence: 4
+
+# Пример 3: Broadcast максимальная скорость
+# traffic_type: broadcast
+# destination_address: 192.168.1.255
+# destination_port: 9999
+# packet_size: 256
+# interval: 0
+# threads: 8
