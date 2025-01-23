@@ -5,21 +5,60 @@ import paramiko
 from threading import Thread
 import queue
 import time
+from cryptography.fernet import Fernet
+import os
+import datetime
+
+
+class SecurityManager:
+    def __init__(self):
+        self.key = None
+        self.cipher = None
+        self.load_or_create_key()
+
+    def load_or_create_key(self):
+        key_file = "secret.key"
+        if os.path.exists(key_file):
+            with open(key_file, "rb") as f:
+                self.key = f.read()
+        else:
+            self.key = Fernet.generate_key()
+            with open(key_file, "wb") as f:
+                f.write(self.key)
+        self.cipher = Fernet(self.key)
+
+    def encrypt(self, data):
+        return self.cipher.encrypt(data.encode()).decode()
+
+    def decrypt(self, data):
+        return self.cipher.decrypt(data.encode()).decode()
 
 
 class SSHTerminal(tk.Toplevel):
-    def __init__(self, parent, client):
+    def __init__(self, parent, client, session_name):
         super().__init__(parent)
-        self.title("SSH Terminal")
+        self.title(f"SSH Terminal - {session_name}")
         self.client = client
         self.channel = None
         self.running = False
+        self.session_name = session_name
+        self.log_file = None
 
         self.output_queue = queue.Queue()
+        self.setup_logging()
         self.create_widgets()
         self.start_ssh_session()
-
         self.protocol("WM_DELETE_WINDOW", self.on_close)
+
+    def setup_logging(self):
+        os.makedirs("logs", exist_ok=True)
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        safe_name = "".join(c if c.isalnum() else "_" for c in self.session_name)
+        self.log_filename = f"logs/{safe_name}_{timestamp}.log"
+        try:
+            self.log_file = open(self.log_filename, 'w', encoding='utf-8')
+        except Exception as e:
+            messagebox.showerror("Log Error", f"Failed to create log file: {str(e)}")
 
     def create_widgets(self):
         self.output_text = scrolledtext.ScrolledText(self, wrap=tk.WORD)
@@ -42,8 +81,12 @@ class SSHTerminal(tk.Toplevel):
                 if self.channel.recv_ready():
                     data = self.channel.recv(1024).decode("utf-8", errors="ignore")
                     self.output_queue.put(data)
+                    if self.log_file:
+                        self.log_file.write(data)
+                        self.log_file.flush()
                 time.sleep(0.1)
-            except:
+            except Exception as e:
+                print(f"Read error: {str(e)}")
                 break
 
     def update_output(self):
@@ -58,8 +101,11 @@ class SSHTerminal(tk.Toplevel):
         self.input_entry.delete(0, tk.END)
         try:
             self.channel.send(cmd)
-        except:
-            messagebox.showerror("Ошибка", "Соединение разорвано")
+            if self.log_file:
+                self.log_file.write(cmd)
+                self.log_file.flush()
+        except Exception as e:
+            messagebox.showerror("Error", f"Connection lost: {str(e)}")
             self.on_close()
 
     def on_close(self):
@@ -67,6 +113,8 @@ class SSHTerminal(tk.Toplevel):
         if self.channel:
             self.channel.close()
         self.client.close()
+        if self.log_file:
+            self.log_file.close()
         self.destroy()
 
 
@@ -74,44 +122,40 @@ class SSHSessionManager:
     def __init__(self, root):
         self.root = root
         self.root.title("SSH Session Manager")
+        self.security = SecurityManager()
         self.sessions = {}
         self.load_sessions()
         self.create_widgets()
 
     def create_widgets(self):
-        input_frame = ttk.LabelFrame(self.root, text="Новая сессия")
+        input_frame = ttk.LabelFrame(self.root, text="New Session")
         input_frame.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
-        ttk.Label(input_frame, text="Название:").grid(row=0, column=0, sticky="w")
-        self.name_entry = ttk.Entry(input_frame)
-        self.name_entry.grid(row=0, column=1, padx=5, pady=2, sticky="ew")
+        fields = [
+            ("Name:", "name_entry"),
+            ("Host:", "host_entry"),
+            ("Port:", "port_entry"),
+            ("User:", "user_entry"),
+            ("Password:", "password_entry")
+        ]
 
-        ttk.Label(input_frame, text="Хост:").grid(row=1, column=0, sticky="w")
-        self.host_entry = ttk.Entry(input_frame)
-        self.host_entry.grid(row=1, column=1, padx=5, pady=2, sticky="ew")
+        for row, (label, var) in enumerate(fields):
+            ttk.Label(input_frame, text=label).grid(row=row, column=0, sticky="w")
+            entry = ttk.Entry(input_frame, show="*" if "password" in var else "")
+            entry.grid(row=row, column=1, padx=5, pady=2, sticky="ew")
+            setattr(self, var, entry)
 
-        ttk.Label(input_frame, text="Порт:").grid(row=2, column=0, sticky="w")
-        self.port_entry = ttk.Entry(input_frame)
         self.port_entry.insert(0, "22")
-        self.port_entry.grid(row=2, column=1, padx=5, pady=2, sticky="ew")
-
-        ttk.Label(input_frame, text="Пользователь:").grid(row=3, column=0, sticky="w")
-        self.user_entry = ttk.Entry(input_frame)
-        self.user_entry.grid(row=3, column=1, padx=5, pady=2, sticky="ew")
-
-        ttk.Label(input_frame, text="Пароль:").grid(row=4, column=0, sticky="w")
-        self.password_entry = ttk.Entry(input_frame, show="*")
-        self.password_entry.grid(row=4, column=1, padx=5, pady=2, sticky="ew")
 
         btn_frame = ttk.Frame(self.root)
         btn_frame.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
 
-        ttk.Button(btn_frame, text="Сохранить", command=self.save_session).pack(side=tk.LEFT, padx=2)
-        ttk.Button(btn_frame, text="Подключиться", command=self.connect_ssh).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_frame, text="Save", command=self.save_session).pack(side=tk.LEFT, padx=2)
+        ttk.Button(btn_frame, text="Connect", command=self.connect_ssh).pack(side=tk.LEFT, padx=2)
 
         self.session_list = ttk.Treeview(self.root, columns=("Host", "User"), show="headings")
-        self.session_list.heading("Host", text="Хост")
-        self.session_list.heading("User", text="Пользователь")
+        self.session_list.heading("Host", text="Host")
+        self.session_list.heading("User", text="User")
         self.session_list.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
         self.update_session_list()
         self.session_list.bind("<<TreeviewSelect>>", self.load_selected_session)
@@ -121,33 +165,34 @@ class SSHSessionManager:
             "host": self.host_entry.get(),
             "port": self.port_entry.get(),
             "user": self.user_entry.get(),
-            "password": self.password_entry.get()
+            "password": self.security.encrypt(self.password_entry.get())
         }
 
         session_name = self.name_entry.get()
 
-        if not session_name or not session_data["host"] or not session_data["user"]:
-            messagebox.showwarning("Ошибка", "Заполните обязательные поля (Название, Хост, Пользователь)")
+        if not all([session_name, session_data["host"], session_data["user"]]):
+            messagebox.showwarning("Error", "Please fill all required fields (Name, Host, User)")
             return
 
         self.sessions[session_name] = session_data
         self.save_to_file()
         self.update_session_list()
-        messagebox.showinfo("Успех", "Сессия сохранена!")
+        messagebox.showinfo("Success", "Session saved!")
 
     def connect_ssh(self):
+        session_name = self.name_entry.get()
         host = self.host_entry.get()
-        port = int(self.port_entry.get())
+        port = int(self.port_entry.get() or 22)
         user = self.user_entry.get()
         password = self.password_entry.get()
 
-        if not host or not user:
-            messagebox.showwarning("Ошибка", "Заполните обязательные поля (Хост, Пользователь)")
+        if not all([session_name, host, user]):
+            messagebox.showwarning("Error", "Please fill all required fields (Name, Host, User)")
             return
 
-        Thread(target=self._connect_ssh, args=(host, port, user, password), daemon=True).start()
+        Thread(target=self._connect_ssh, args=(host, port, user, password, session_name), daemon=True).start()
 
-    def _connect_ssh(self, host, port, user, password):
+    def _connect_ssh(self, host, port, user, password, session_name):
         try:
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -158,9 +203,9 @@ class SSHSessionManager:
                 password=password,
                 look_for_keys=False
             )
-            self.root.after(0, lambda: SSHTerminal(self.root, client))
+            self.root.after(0, lambda: SSHTerminal(self.root, client, session_name))
         except Exception as e:
-            messagebox.showerror("Ошибка", f"Не удалось подключиться: {str(e)}")
+            messagebox.showerror("Error", f"Connection failed: {str(e)}")
 
     def update_session_list(self):
         self.session_list.delete(*self.session_list.get_children())
@@ -168,9 +213,9 @@ class SSHSessionManager:
             self.session_list.insert("", "end", values=(data["host"], data["user"]), text=name)
 
     def load_selected_session(self, event):
-        selected_item = self.session_list.selection()
-        if selected_item:
-            session_name = self.session_list.item(selected_item[0], "text")
+        selected = self.session_list.selection()
+        if selected:
+            session_name = self.session_list.item(selected[0], "text")
             session_data = self.sessions.get(session_name)
             if session_data:
                 self.name_entry.delete(0, tk.END)
@@ -182,7 +227,7 @@ class SSHSessionManager:
                 self.user_entry.delete(0, tk.END)
                 self.user_entry.insert(0, session_data["user"])
                 self.password_entry.delete(0, tk.END)
-                self.password_entry.insert(0, session_data["password"])
+                self.password_entry.insert(0, self.security.decrypt(session_data["password"]))
 
     def save_to_file(self):
         with open("sessions.json", "w") as f:
@@ -192,7 +237,7 @@ class SSHSessionManager:
         try:
             with open("sessions.json", "r") as f:
                 self.sessions = json.load(f)
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError):
             self.sessions = {}
 
 
