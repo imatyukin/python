@@ -1,0 +1,21 @@
+# Multicast Configuration
+traffic_type: multicast
+
+# Source settings
+source_address: 192.168.1.10
+source_port: 12345
+
+# Destination settings (Multicast group address)
+destination_address: 224.1.1.100
+destination_port: 5000
+
+# Traffic generation settings
+packet_size: 1400
+threads: 1
+
+# Speed settings
+speed_mode: kbps
+speed_value: 2000
+
+# QoS settings (optional)
+# ip_precedence: 4

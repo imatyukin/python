@@ -1,0 +1,22 @@
+# Unicast Configuration
+traffic_type: unicast
+
+# Source settings
+source_address: 0.0.0.0
+source_port: 0
+
+# Destination settings
+destination_address: 192.168.233.134
+destination_port: 5060
+
+# Traffic generation settings
+packet_size: 512
+threads: 2
+
+# Speed settings
+speed_mode: mbps
+speed_value: 10
+
+# QoS settings (optional)
+# dscp: 46
+# ecn: 1

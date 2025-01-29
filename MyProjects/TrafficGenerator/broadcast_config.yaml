@@ -1,0 +1,18 @@
+# Broadcast Configuration
+traffic_type: broadcast
+
+# Source settings
+source_address: 192.168.1.10
+source_port: 12345
+
+# Destination settings (Broadcast IP)
+destination_address: 192.168.1.255
+destination_port: 9999
+
+# Traffic generation settings
+packet_size: 256
+threads: 4
+
+# Speed settings
+speed_mode: pps
+speed_value: 1000
