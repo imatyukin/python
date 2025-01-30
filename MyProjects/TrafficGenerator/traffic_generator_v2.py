@@ -24,7 +24,8 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         self.history = {'time': [], 'pps': [], 'mbps': []}
         self.start_time = 0
         self.protocol = 'UDP'  # Default protocol
-        self.last_stats_text = ""  # add
+        self.last_stats_text = ""
+        self.saved_ip_prec = 0  # Add this line
         self.initUI()
 
     def initUI(self):
@@ -129,7 +130,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
         self.stats_text = QtWidgets.QTextEdit()
         self.stats_text.setReadOnly(True)
-        self.stats_text.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)  # Add word wrap
+        self.stats_text.setWordWrapMode(QtGui.QTextOption.WrapAnywhere)
 
         initial_stats_text = "<b>Traffic Flow:</b><br>"
         initial_stats_text += "<b>Packets Sent:</b> 0<br>"
@@ -192,11 +193,15 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                 'speed_mode': self.speed_mode.currentText(),
                 'speed_value': float(self.speed_value.text() or 1.0),
                 'qos': {
-                    'dscp': int(self.dscp.text()) if self.dscp.text() else None,
-                    'ip_precedence': int(self.ip_prec.text()) if self.ip_prec.text() else None,
-                    'ecn': int(self.ecn.text()) if self.ecn.text() else None
+                    'dscp': self.validate_dscp(self.dscp.text()),
+                    'ip_precedence': self.validate_ip_prec(self.ip_prec.text()),
+                    'ecn': self.validate_ecn(self.ecn.text())
                 }
             }
+            if config['qos']['ip_precedence'] is not None:
+                 self.saved_ip_prec = config['qos']['ip_precedence']
+            else:
+                 self.saved_ip_prec = 0
 
             self.validate_ip_address(config.get('source_address'))
             self.validate_ip_address(config.get('destination_address'))
@@ -247,7 +252,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                 text += f"<b>DSCP:</b> {self.generator.config['qos']['dscp']}<br>"
             if self.generator.config['qos']['ip_precedence'] is not None and self.generator.config['qos'][
                 'ip_precedence'] > 0:
-                text += f"<b>IP Precedence:</b> {self.generator.config['qos']['ip_precedence']}<br>"
+                text += f"<b>IP Precedence:</b> {self.saved_ip_prec}<br>"
             if self.generator.config['qos']['ecn'] is not None and self.generator.config['qos']['ecn'] > 0:
                 text += f"<b>ECN:</b> {self.generator.config['qos']['ecn']}<br>"
             text += f"<b>Packets Sent:</b> {self.stats['sent']}<br>"
@@ -307,17 +312,58 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
             dscp = config.get('qos', {}).get('dscp')
             if dscp:
-                self.validate_range(dscp, 0, 63)
+                 self.validate_dscp(dscp)
+
             ip_prec = config.get('qos', {}).get('ip_precedence')
             if ip_prec:
-                self.validate_range(ip_prec, 0, 7)
+                self.validate_ip_prec(ip_prec)
+
             ecn = config.get('qos', {}).get('ecn')
             if ecn:
-                self.validate_range(ecn, 0, 3)
+                 self.validate_ecn(ecn)
             return True
         except Exception as e:
             self.statusBar.showMessage(f"Error in config: {e}")
             return False
+
+    def validate_dscp(self, value):
+            if not value:
+                return None
+            if not isinstance(value, str) or not value.isdigit():
+                self.statusBar.showMessage(f"Error: Invalid DSCP value {value}. Must be an integer")
+                return None
+            val = int(value)
+            if 0 <= val <= 63:
+                return val
+            else:
+                self.statusBar.showMessage(f"Error: Invalid DSCP value {val}. Must be between 0 and 63")
+                return None
+
+    def validate_ip_prec(self, value):
+            if not value:
+                return None
+            if not isinstance(value, str) or not value.isdigit():
+                self.statusBar.showMessage(f"Error: Invalid IP Precedence value {value}. Must be an integer")
+                return None
+            val = int(value)
+            if 0 <= val <= 7:
+                return val
+            else:
+                self.statusBar.showMessage(f"Error: Invalid IP Precedence value {val}. Must be between 0 and 7")
+                return None
+
+    def validate_ecn(self, value):
+            if not value:
+                return None
+            if not isinstance(value, str) or not value.isdigit():
+                self.statusBar.showMessage(f"Error: Invalid ECN value {value}. Must be an integer")
+                return None
+            val = int(value)
+            if 0 <= val <= 3:
+                return val
+            else:
+                self.statusBar.showMessage(f"Error: Invalid ECN value {val}. Must be between 0 and 3")
+                return None
 
     def validate_ip_address(self, ip_str):
         try:
