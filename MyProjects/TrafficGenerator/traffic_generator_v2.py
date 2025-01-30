@@ -1,7 +1,6 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 import sys
 import socket
-import threading
 import time
 import os
 import yaml
@@ -9,6 +8,9 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import ipaddress
 import struct
+import asyncio
+from qasync import QEventLoop, asyncSlot, QApplication
+import threading
 
 
 class TrafficGeneratorApp(QtWidgets.QMainWindow):
@@ -45,7 +47,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         self.traffic_type.currentIndexChanged.connect(self.update_destination_label)
 
         self.protocol_type = QtWidgets.QComboBox()
-        self.protocol_type.addItems(["UDP", "TCP", "ICMP"])
+        self.protocol_type.addItems(["UDP", "ICMP"])
         settings_layout.addWidget(QtWidgets.QLabel("Protocol:"), 1, 0)
         settings_layout.addWidget(self.protocol_type, 1, 1)
         self.protocol_type.currentIndexChanged.connect(self.update_protocol)
@@ -141,13 +143,15 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         else:
             self.destination_label.setText('Destination IP:')
 
-    def toggle_traffic(self):
+    @asyncSlot()
+    async def toggle_traffic(self):
         if self.running:
-            self.stop_traffic()
+            await self.stop_traffic()
         else:
-            self.start_traffic()
+            await self.start_traffic()
 
-    def start_traffic(self):
+    @asyncSlot()
+    async def start_traffic(self):
         try:
             self.running = True
             self.start_time = time.time()
@@ -179,18 +183,21 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             self.thread = threading.Thread(target=self.generator.run, daemon=True)
             self.thread.start()
 
+
             self.toggle_button.setText("Stop")
             self.statusBar.showMessage("Generating traffic...")
         except Exception as e:
             self.statusBar.showMessage(f"Error: {e}")
             self.running = False
 
-    def stop_traffic(self):
+    @asyncSlot()
+    async def stop_traffic(self):
         self.running = False
         if self.generator:
             self.generator.running = False
-            for thread in self.generator.threads:
-                thread.join()
+            if hasattr(self.generator, 'threads') and self.generator.threads:
+                for thread in self.generator.threads:
+                    thread.join()
         self.toggle_button.setText("Start")
         self.statusBar.showMessage("Ready")
 
@@ -231,34 +238,61 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                 self.last_stats_text = text
 
     def save_config(self):
+        config = {
+            'protocol': self.protocol,
+            'traffic_type': self.traffic_type.currentText(),
+            'source_address': self.source_ip.text(),
+            'source_port': self.source_port.text(),
+            'destination_address': self.destination_ip.text(),
+            'destination_port': self.dest_port.text(),
+            'packet_size': self.packet_size.text(),
+            'threads': self.threads.text(),
+            'speed_mode': self.speed_mode.currentText(),
+            'speed_value': self.speed_value.text(),
+            'qos': {
+                'dscp': self.dscp.text(),
+                'ip_precedence': self.ip_prec.text(),
+                'ecn': self.ecn.text()
+            }
+        }
+
+        if not self.validate_config(config):
+            return
+
         options = QtWidgets.QFileDialog.Options()
         file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save YAML Config", "",
                                                              "YAML Files (*.yaml);;All Files (*)", options=options)
         if file_name:
-            config = {
-                'protocol': self.protocol,
-                'traffic_type': self.traffic_type.currentText(),
-                'source_address': self.source_ip.text(),
-                'source_port': int(self.source_port.text()),
-                'destination_address': self.destination_ip.text(),
-                'destination_port': int(self.dest_port.text()),
-                'packet_size': int(self.packet_size.text()),
-                'threads': int(self.threads.text()),
-                'speed_mode': self.speed_mode.currentText(),
-                'speed_value': float(self.speed_value.text()),
-                'qos': {
-                    'dscp': self.dscp.text() if self.dscp.text() else "",
-                    'ip_precedence': self.ip_prec.text() if self.ip_prec.text() else "",
-                    'ecn': self.ecn.text() if self.ecn.text() else ""
-                }
-            }
-
             try:
                 with open(file_name, 'w', encoding="utf-8") as file:
                     yaml.dump(config, file, indent=2)
                 self.statusBar.showMessage(f"Config saved to {file_name}")
             except Exception as e:
                 self.statusBar.showMessage(f"Error saving config {e}")
+
+    def validate_config(self, config):
+        try:
+            self.validate_ip_address(config.get('source_address'))
+            self.validate_ip_address(config.get('destination_address'))
+            self.validate_port(config.get('source_port'))
+            self.validate_port(config.get('destination_port'))
+            self.validate_packet_size(config.get('packet_size'))
+            self.validate_threads(config.get('threads'))
+            float(config.get('speed_value'))
+
+            dscp = config.get('qos', {}).get('dscp')
+            if dscp:
+                self.validate_range(dscp, 0, 63)
+            ip_prec = config.get('qos', {}).get('ip_precedence')
+            if ip_prec:
+                self.validate_range(ip_prec, 0, 7)
+            ecn = config.get('qos', {}).get('ecn')
+            if ecn:
+                self.validate_range(ecn, 0, 3)
+            return True
+        except Exception as e:
+            self.statusBar.showMessage(f"Error in config: {e}")
+            return False
 
     def validate_ip_address(self, ip_str):
         try:
@@ -327,7 +361,8 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                     config = yaml.safe_load(file)
                     if not config:
                         raise ValueError("Empty or invalid YAML file.")
-
+                    if not self.validate_config(config):
+                        return
                     print("Loaded config:", config)
                     self.protocol_type.setCurrentText(config.get('protocol', 'UDP'))
                     self.update_protocol()
@@ -364,6 +399,7 @@ class TrafficGenerator:
         self.lock = threading.Lock()
         self.threads = []
         self.last_send_time = 0
+        self.tcp_tasks = []
 
     def run(self):
         self.running = True
@@ -394,6 +430,13 @@ class TrafficGenerator:
         finally:
             print("Generator stopped.")
 
+    def stats_update(self, current_time, pps, mbps):
+        if isinstance(current_time, float) and isinstance(pps, (int, float)) and isinstance(mbps, (int, float)):
+            if current_time >= 0:
+                window.history['time'].append(current_time)
+                window.history['pps'].append(pps)
+                window.history['mbps'].append(mbps)
+
     def send_packet(self):
         sock = None
         try:
@@ -420,20 +463,7 @@ class TrafficGenerator:
                 self.real_destination_port = self.config['destination_port']
 
                 message = os.urandom(self.config['packet_size'])
-            elif self.protocol == "TCP":
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                if self.config['source_address'] == '0.0.0.0':
-                    sock.bind(('0.0.0.0', 0))
-                    self.real_source_address, self.real_source_port = sock.getsockname()
-                else:
-                    self.real_source_address = self.config['source_address']
-                    self.real_source_port = self.config['source_port']
 
-                self.real_destination_address = self.config['destination_address']
-                self.real_destination_port = self.config['destination_port']
-                sock.connect((self.real_destination_address, self.real_destination_port))
-
-                message = os.urandom(self.config['packet_size'])
             elif self.protocol == "ICMP":
                 sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
                 if self.config['source_address'] == '0.0.0.0':
@@ -469,8 +499,6 @@ class TrafficGenerator:
             while self.running:
                 if self.protocol == "UDP":
                     sock.sendto(message, (self.real_destination_address, self.config['destination_port']))
-                elif self.protocol == "TCP":
-                    sock.sendall(message)
                 elif self.protocol == "ICMP":
                     sock.sendto(message, (self.real_destination_address, 0))
 
@@ -491,13 +519,6 @@ class TrafficGenerator:
         finally:
             if sock:
                 sock.close()
-
-    def stats_update(self, current_time, pps, mbps):
-        if isinstance(current_time, float) and isinstance(pps, (int, float)) and isinstance(mbps, (int, float)):
-            if current_time >= 0:
-                window.history['time'].append(current_time)
-                window.history['pps'].append(pps)
-                window.history['mbps'].append(mbps)
 
     def create_icmp_packet(self, packet_size):
         icmp_type = 8  # ICMP Echo Request
@@ -526,7 +547,10 @@ class TrafficGenerator:
 
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
+    loop = QEventLoop(app)
+    asyncio.set_event_loop(loop)
     window = TrafficGeneratorApp()
     window.show()
-    sys.exit(app.exec_())
+    with loop:
+        loop.run_forever()

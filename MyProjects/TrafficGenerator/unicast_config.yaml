@@ -1,13 +1,14 @@
 destination_address: 192.168.233.134
-destination_port: 5060
-packet_size: 512
+destination_port: '5060'
+packet_size: '512'
+protocol: UDP
 qos:
   dscp: ''
   ecn: ''
   ip_precedence: ''
 source_address: 192.168.233.1
-source_port: 5060
+source_port: '5060'
 speed_mode: mbps
-speed_value: 10.0
-threads: 2
+speed_value: '10.0'
+threads: '2'
 traffic_type: unicast
