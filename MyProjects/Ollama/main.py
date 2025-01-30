@@ -13,7 +13,7 @@ from sys import argv
 import time
 
 # 1. Создание модели и эмбеддингов
-llm = Ollama(model='deepseek-r1:1.5b')
+llm = Ollama(model='deepseek-r1:32b')
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 print("Эмбеддинги успешно загружены!")
 
