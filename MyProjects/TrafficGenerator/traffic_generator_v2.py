@@ -64,34 +64,46 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
         self.destination_label = QtWidgets.QLabel("Destination IP:")
 
-        fields = [("Source IP:", self.source_ip),
-                  (self.destination_label, self.destination_ip),
-                  ("Source Port:", self.source_port),
-                  ("Destination Port:", self.dest_port),
-                  ("Packet Size:", self.packet_size),
-                  ("Threads:", self.threads),
-                  ("DSCP (0-63):", self.dscp),
-                  ("IP Precedence (0-7):", self.ip_prec),
-                  ("ECN (0-3):", self.ecn)
-                  ]
+        self.all_fields = {
+            "Source IP:": self.source_ip,
+            "Destination IP:": self.destination_ip,
+            "Source Port:": self.source_port,
+            "Destination Port:": self.dest_port,
+            "Packet Size:": self.packet_size,
+            "Threads:": self.threads,
+            "DSCP (0-63):": self.dscp,
+            "IP Precedence (0-7):": self.ip_prec,
+            "ECN (0-3):": self.ecn
+        }
 
-        for i, (label, widget) in enumerate(fields, start=2):
-            if isinstance(label, QtWidgets.QLabel):
-                settings_layout.addWidget(label, i, 0)
-                settings_layout.addWidget(widget, i, 1)
-            else:
-                settings_layout.addWidget(QtWidgets.QLabel(label), i, 0)
-                settings_layout.addWidget(widget, i, 1)
+        self.protocol_fields = {
+            "udp": ["Source IP:", "Destination IP:", "Source Port:", "Destination Port:", "Packet Size:", "Threads:",
+                    "DSCP (0-63):", "IP Precedence (0-7):", "ECN (0-3):"],
+            "icmp": ["Source IP:", "Destination IP:", "Packet Size:", "Threads:", "DSCP (0-63):",
+                     "IP Precedence (0-7):", "ECN (0-3):"]
+        }
+
+        self.field_widgets = {}
+        row_counter = 2
+        for label_text, widget in self.all_fields.items():
+            label = QtWidgets.QLabel(label_text)
+            settings_layout.addWidget(label, row_counter, 0)
+            settings_layout.addWidget(widget, row_counter, 1)
+            self.field_widgets[label_text] = (label, widget)
+            row_counter += 1
 
         self.speed_mode = QtWidgets.QComboBox()
         self.speed_mode.addItems(["kbps", "mbps", "pps", "interval"])
         self.speed_mode.setCurrentText("mbps")
         self.speed_value = QtWidgets.QLineEdit()
 
-        settings_layout.addWidget(QtWidgets.QLabel("Speed Mode:"), len(fields) + 2, 0)
-        settings_layout.addWidget(self.speed_mode, len(fields) + 2, 1)
-        settings_layout.addWidget(QtWidgets.QLabel("Speed Value:"), len(fields) + 3, 0)
-        settings_layout.addWidget(self.speed_value, len(fields) + 3, 1)
+        settings_layout.addWidget(QtWidgets.QLabel("Speed Mode:"), row_counter, 0)
+        settings_layout.addWidget(self.speed_mode, row_counter, 1)
+        row_counter += 1
+        settings_layout.addWidget(QtWidgets.QLabel("Speed Value:"), row_counter, 0)
+        settings_layout.addWidget(self.speed_value, row_counter, 1)
+
+        self.update_visible_fields()
 
         self.toggle_button = QtWidgets.QPushButton("Start")
         self.toggle_button.clicked.connect(self.toggle_traffic)
@@ -136,12 +148,23 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
     def update_protocol(self):
         self.protocol = self.protocol_type.currentText()
+        self.update_visible_fields()
+
+    def update_visible_fields(self):
+        current_protocol = self.protocol_type.currentText().lower()
+        for label_text, (label, widget) in self.field_widgets.items():
+            if label_text in self.protocol_fields.get(current_protocol, []):
+                label.setVisible(True)
+                widget.setVisible(True)
+            else:
+                label.setVisible(False)
+                widget.setVisible(False)
 
     def update_destination_label(self):
         if self.traffic_type.currentText() == 'multicast':
-            self.destination_label.setText('Group IP:')
+            self.field_widgets["Destination IP:"][0].setText('Group IP:')
         else:
-            self.destination_label.setText('Destination IP:')
+            self.field_widgets["Destination IP:"][0].setText('Destination IP:')
 
     @asyncSlot()
     async def toggle_traffic(self):
@@ -161,9 +184,9 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             config = {
                 'traffic_type': self.traffic_type.currentText(),
                 'source_address': self.source_ip.text(),
-                'source_port': self.validate_port(self.source_port.text()),
+                'source_port': self.validate_port(self.source_port.text()) if self.protocol == 'UDP' else 0,
                 'destination_address': self.destination_ip.text(),
-                'destination_port': self.validate_port(self.dest_port.text()),
+                'destination_port': self.validate_port(self.dest_port.text()) if self.protocol == 'UDP' else 0,
                 'packet_size': self.validate_packet_size(self.packet_size.text()),
                 'threads': self.validate_threads(self.threads.text()),
                 'speed_mode': self.speed_mode.currentText(),
@@ -180,9 +203,9 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
             print("Starting Traffic Generator with config:", config)
             self.generator = TrafficGenerator(config, self.stats, self.protocol)
+
             self.thread = threading.Thread(target=self.generator.run, daemon=True)
             self.thread.start()
-
 
             self.toggle_button.setText("Stop")
             self.statusBar.showMessage("Generating traffic...")
@@ -242,9 +265,9 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             'protocol': self.protocol,
             'traffic_type': self.traffic_type.currentText(),
             'source_address': self.source_ip.text(),
-            'source_port': self.source_port.text(),
+            'source_port': self.source_port.text() if self.protocol == 'UDP' else None,
             'destination_address': self.destination_ip.text(),
-            'destination_port': self.dest_port.text(),
+            'destination_port': self.dest_port.text() if self.protocol == 'UDP' else None,
             'packet_size': self.packet_size.text(),
             'threads': self.threads.text(),
             'speed_mode': self.speed_mode.currentText(),
@@ -274,8 +297,10 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         try:
             self.validate_ip_address(config.get('source_address'))
             self.validate_ip_address(config.get('destination_address'))
-            self.validate_port(config.get('source_port'))
-            self.validate_port(config.get('destination_port'))
+            if config.get('protocol') == 'UDP':
+                self.validate_port(config.get('source_port'))
+                self.validate_port(config.get('destination_port'))
+
             self.validate_packet_size(config.get('packet_size'))
             self.validate_threads(config.get('threads'))
             float(config.get('speed_value'))
@@ -304,6 +329,8 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
     def validate_port(self, port_str):
         try:
+            if port_str is None:
+                return 0
             port = int(port_str)
             if 0 <= port <= 65535:
                 return port
@@ -341,7 +368,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
     def validate_range(self, value, min_val, max_val):
         if not value:
             return None
-        if not value.isdigit():
+        if not isinstance(value, int):
             self.statusBar.showMessage(f"Error: Invalid value {value}. Must be an integer")
             return None
         val = int(value)
@@ -370,8 +397,12 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                     self.update_destination_label()
                     self.source_ip.setText(config.get('source_address', '0.0.0.0'))
                     self.destination_ip.setText(config.get('destination_address', ''))
-                    self.source_port.setText(str(config.get('source_port', '0')))
-                    self.dest_port.setText(str(config.get('destination_port', '0')))
+                    if config.get('protocol', 'UDP') == 'UDP':
+                        self.source_port.setText(str(config.get('source_port', '0')))
+                        self.dest_port.setText(str(config.get('destination_port', '0')))
+                    else:
+                        self.source_port.setText("")
+                        self.dest_port.setText("")
                     self.packet_size.setText(str(config.get('packet_size', '512')))
                     self.threads.setText(str(config.get('threads', '1')))
                     self.speed_mode.setCurrentText(config.get('speed_mode', 'mbps'))
@@ -452,15 +483,16 @@ class TrafficGenerator:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     destination_address = self.config['destination_address']
 
+                self.real_destination_address = destination_address
+                self.real_destination_port = self.config['destination_port']
+
+                # Используем source_port из конфигурации, даже если source_address == '0.0.0.0'
                 if self.config['source_address'] == '0.0.0.0':
-                    sock.bind(('0.0.0.0', 0))
+                    sock.bind(('0.0.0.0', int(self.config['source_port'])))  # Используем порт из конфигурации
                     self.real_source_address, self.real_source_port = sock.getsockname()
                 else:
                     self.real_source_address = self.config['source_address']
-                    self.real_source_port = self.config['source_port']
-
-                self.real_destination_address = destination_address
-                self.real_destination_port = self.config['destination_port']
+                    self.real_source_port = int(self.config['source_port'])
 
                 message = os.urandom(self.config['packet_size'])
 
@@ -471,7 +503,7 @@ class TrafficGenerator:
                     self.real_source_address, self.real_source_port = sock.getsockname()
                 else:
                     self.real_source_address = self.config['source_address']
-                    self.real_source_port = self.config['source_port']
+                    self.real_source_port = int(self.config['source_port'])
 
                 self.real_destination_address = self.config['destination_address']
                 self.real_destination_port = self.config['destination_port']
@@ -527,11 +559,30 @@ class TrafficGenerator:
         icmp_id = 12345
         icmp_sequence = 0
 
+        dscp = self.config['qos']['dscp'] or 0
+        ip_prec = self.config['qos']['ip_precedence'] or 0
+        ecn = self.config['qos']['ecn'] or 0
+
+        tos = (dscp << 2) | (ip_prec << 5) | (ecn)  # Combine DSCP, IP Precedence, and ECN into TOS
+
+        ip_header = struct.pack("!BBHHHBBH4s4s",
+                                0x45,  # Version and IHL
+                                tos,  # Type of Service
+                                20 + packet_size,  # Total Length
+                                12345,  # Identification
+                                0,  # Flags and Fragment Offset
+                                64,  # Time to Live
+                                1,  # Protocol (ICMP)
+                                0,  # Header Checksum
+                                socket.inet_aton('0.0.0.0'),
+                                socket.inet_aton(self.config['destination_address'])
+                                )
+
         header = struct.pack("!BBHHH", icmp_type, icmp_code, icmp_checksum, icmp_id, icmp_sequence)
-        data = os.urandom(packet_size - len(header))
+        data = os.urandom(packet_size - len(header) - len(ip_header))
         icmp_checksum = self.calculate_checksum(header + data)
         header = struct.pack("!BBHHH", icmp_type, icmp_code, icmp_checksum, icmp_id, icmp_sequence)
-        return header + data
+        return ip_header + header + data
 
     def calculate_checksum(self, data):
         s = 0
