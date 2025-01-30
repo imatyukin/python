@@ -25,7 +25,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         self.start_time = 0
         self.protocol = 'UDP'  # Default protocol
         self.last_stats_text = ""
-        self.saved_ip_prec = 0  # Add this line
+        self.saved_ip_prec = 0
         self.initUI()
 
     def initUI(self):
@@ -207,7 +207,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             self.validate_ip_address(config.get('destination_address'))
 
             print("Starting Traffic Generator with config:", config)
-            self.generator = TrafficGenerator(config, self.stats, self.protocol)
+            self.generator = TrafficGenerator(config, self.stats, self.protocol, self)
 
             self.thread = threading.Thread(target=self.generator.run, daemon=True)
             self.thread.start()
@@ -261,7 +261,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             text += f"<b>Average PPS:</b> {pps:.2f}<br>"
             text += f"<b>Errors:</b> {self.stats['errors']}"
 
-            if text != self.last_stats_text:  # if it changes
+            if text != self.last_stats_text:
                 self.stats_text.setText(text)
                 self.last_stats_text = text
 
@@ -312,7 +312,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
             dscp = config.get('qos', {}).get('dscp')
             if dscp:
-                 self.validate_dscp(dscp)
+                self.validate_dscp(dscp)
 
             ip_prec = config.get('qos', {}).get('ip_precedence')
             if ip_prec:
@@ -320,50 +320,50 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
             ecn = config.get('qos', {}).get('ecn')
             if ecn:
-                 self.validate_ecn(ecn)
+                self.validate_ecn(ecn)
             return True
         except Exception as e:
             self.statusBar.showMessage(f"Error in config: {e}")
             return False
 
     def validate_dscp(self, value):
-            if not value:
-                return None
-            if not isinstance(value, str) or not value.isdigit():
-                self.statusBar.showMessage(f"Error: Invalid DSCP value {value}. Must be an integer")
-                return None
-            val = int(value)
-            if 0 <= val <= 63:
-                return val
-            else:
-                self.statusBar.showMessage(f"Error: Invalid DSCP value {val}. Must be between 0 and 63")
-                return None
+        if not value:
+            return None
+        if not isinstance(value, str) or not value.isdigit():
+            self.statusBar.showMessage(f"Error: Invalid DSCP value {value}. Must be an integer")
+            return None
+        val = int(value)
+        if 0 <= val <= 63:
+            return val
+        else:
+            self.statusBar.showMessage(f"Error: Invalid DSCP value {val}. Must be between 0 and 63")
+            return None
 
     def validate_ip_prec(self, value):
-            if not value:
-                return None
-            if not isinstance(value, str) or not value.isdigit():
-                self.statusBar.showMessage(f"Error: Invalid IP Precedence value {value}. Must be an integer")
-                return None
-            val = int(value)
-            if 0 <= val <= 7:
-                return val
-            else:
-                self.statusBar.showMessage(f"Error: Invalid IP Precedence value {val}. Must be between 0 and 7")
-                return None
+        if not value:
+            return None
+        if not isinstance(value, str) or not value.isdigit():
+            self.statusBar.showMessage(f"Error: Invalid IP Precedence value {value}. Must be an integer")
+            return None
+        val = int(value)
+        if 0 <= val <= 7:
+            return val
+        else:
+            self.statusBar.showMessage(f"Error: Invalid IP Precedence value {val}. Must be between 0 and 7")
+            return None
 
     def validate_ecn(self, value):
-            if not value:
-                return None
-            if not isinstance(value, str) or not value.isdigit():
-                self.statusBar.showMessage(f"Error: Invalid ECN value {value}. Must be an integer")
-                return None
-            val = int(value)
-            if 0 <= val <= 3:
-                return val
-            else:
-                self.statusBar.showMessage(f"Error: Invalid ECN value {val}. Must be between 0 and 3")
-                return None
+        if not value:
+            return None
+        if not isinstance(value, str) or not value.isdigit():
+            self.statusBar.showMessage(f"Error: Invalid ECN value {value}. Must be an integer")
+            return None
+        val = int(value)
+        if 0 <= val <= 3:
+            return val
+        else:
+            self.statusBar.showMessage(f"Error: Invalid ECN value {val}. Must be between 0 and 3")
+            return None
 
     def validate_ip_address(self, ip_str):
         try:
@@ -375,8 +375,8 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
     def validate_port(self, port_str):
         try:
-            if port_str is None:
-                return 0
+            if port_str is None or port_str == "":
+                return 0  # Allow OS to assign port if no port is specified or if the field is empty
             port = int(port_str)
             if 0 <= port <= 65535:
                 return port
@@ -463,7 +463,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
 
 class TrafficGenerator:
-    def __init__(self, config, stats, protocol):
+    def __init__(self, config, stats, protocol, app_instance):  # App instance
         self.config = config
         self.stats = stats
         self.running = False
@@ -477,6 +477,7 @@ class TrafficGenerator:
         self.threads = []
         self.last_send_time = 0
         self.tcp_tasks = []
+        self.app_instance = app_instance  # Store the app instance
 
     def run(self):
         self.running = True
@@ -510,9 +511,9 @@ class TrafficGenerator:
     def stats_update(self, current_time, pps, mbps):
         if isinstance(current_time, float) and isinstance(pps, (int, float)) and isinstance(mbps, (int, float)):
             if current_time >= 0:
-                window.history['time'].append(current_time)
-                window.history['pps'].append(pps)
-                window.history['mbps'].append(mbps)
+                self.app_instance.history['time'].append(current_time)  # Use app instance
+                self.app_instance.history['pps'].append(pps)
+                self.app_instance.history['mbps'].append(mbps)
 
     def send_packet(self):
         sock = None
@@ -532,13 +533,19 @@ class TrafficGenerator:
                 self.real_destination_address = destination_address
                 self.real_destination_port = self.config['destination_port']
 
-                # Используем source_port из конфигурации, даже если source_address == '0.0.0.0'
+                # Используем source_port из конфигурации, если не получилось забиндиться на него, то даем OS выбрать порт
                 if self.config['source_address'] == '0.0.0.0':
-                    sock.bind(('0.0.0.0', int(self.config['source_port'])))  # Используем порт из конфигурации
-                    self.real_source_address, self.real_source_port = sock.getsockname()
+                     try:
+                        sock.bind(('0.0.0.0', int(self.config['source_port'])))
+                        self.real_source_address, self.real_source_port = sock.getsockname()
+                     except OSError as e:
+                        self.app_instance.statusBar.showMessage(f"Warning: Could not bind to port {self.config['source_port']}, letting OS choose. Error: {e}")
+                        sock.bind(('0.0.0.0', 0)) # Let OS choose a port
+                        self.real_source_address, self.real_source_port = sock.getsockname()
                 else:
                     self.real_source_address = self.config['source_address']
                     self.real_source_port = int(self.config['source_port'])
+
 
                 message = os.urandom(self.config['packet_size'])
 
@@ -593,7 +600,7 @@ class TrafficGenerator:
             with self.lock:
                 self.stats['errors'] += 1
             print(f"Error sending packet: {e}")
-            window.statusBar.showMessage(f"Error sending packet: {e}")
+            self.app_instance.statusBar.showMessage(f"Error sending packet: {e}")
         finally:
             if sock:
                 sock.close()
