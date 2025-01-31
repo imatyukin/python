@@ -6,6 +6,7 @@ from langchain_ollama import OllamaLLM as Ollama
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.prompts import PromptTemplate
 from langchain_community.vectorstores import FAISS  # Заменяем DocArrayInMemorySearch на FAISS
+from langchain_core.output_parsers import StrOutputParser
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from sys import argv
@@ -117,8 +118,23 @@ Context:
 
 Question:
 {question}
+
+Answer:
 """
 prompt = PromptTemplate.from_template(template)
+
+
+# Функция для очистки ответа
+def clean_response(response):
+    # Удаляем всё до первого вхождения "Answer:"
+    if "Answer:" in response:
+        response = response.split("Answer:")[1].strip()
+
+    # Удаляем теги <think> и </think>
+    response = response.replace("<think>", "").replace("</think>", "")
+
+    return response
+
 
 # 5. Цикл вопросов
 print("\nГотово к вопросам!")
@@ -153,7 +169,8 @@ while True:
         response = llm.invoke(full_prompt)
         print("LLM response:", response)
 
-        # Вывод ответа
-        print(response)
+        # Постобработка ответа
+        cleaned_response = clean_response(response)
+        print(cleaned_response)
     except Exception as e:
         print(f"An error occurred: {e}")
