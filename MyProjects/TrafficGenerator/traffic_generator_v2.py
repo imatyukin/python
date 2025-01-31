@@ -523,6 +523,14 @@ class TrafficGenerator:
                  self.running = False
                  return
 
+        # Обновление реальных значений в UI перед запуском потоков
+        if self.sockets:
+            self.real_source_address, self.real_source_port = self.sockets[0].getsockname()
+            self.app_instance.update_real_values(
+                self.real_source_address, self.real_source_port,
+                self.real_destination_address, self.real_destination_port
+            )
+
         # Запускаем потоки
         for i in range(self.config['threads']):
             thread = threading.Thread(target=self.send_packet, args=(self.sockets[i],), daemon=True)
@@ -571,9 +579,6 @@ class TrafficGenerator:
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     destination_address = self.config['destination_address']
 
-                self.real_destination_address = destination_address
-                self.real_destination_port = self.config['destination_port']
-
                 source_port = int(self.config.get('source_port', 0))
                 source_address = self.config.get('source_address', '0.0.0.0')
 
@@ -586,6 +591,9 @@ class TrafficGenerator:
                         f"Warning: Could not bind to {source_address}:{source_port}, letting OS choose. Error: {e}")
                     sock.close()
                     return None
+
+                self.real_destination_address = self.config['destination_address']
+                self.real_destination_port = self.config['destination_port']
 
                 return sock
             elif self.protocol == "ICMP":
