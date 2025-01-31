@@ -15,10 +15,20 @@ sentence-transformers/all-MiniLM-L6-v2.
 4. Генерация ответа:
 Релевантные фрагменты передаются языковой модели (например, deepseek-r1:32b), которая генерирует ответ на вопрос.
 
+Установка и запуск
+Требования
+1. Python 3.8 или выше.
+2. Установленные библиотеки:
+
+pip install langchain langchain_community langchain_core sentence-transformers faiss-cpu
+
 Запуск программы
 Сохраните программу в файл, например, main.py.
 Запустите программу, указав путь к PDF-файлу:
 python main.py Quality_of_Service_Guide_24.7.R1.pdf
+Введите вопрос в консоль. Например:
+What do you want to learn from the document? (Type "exit" to quit)
+what is queue-group?
 
 Как работает программа
 1. Инициализация модели и эмбеддингов
