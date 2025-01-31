@@ -6,6 +6,7 @@ from langchain_ollama import OllamaLLM as Ollama
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.prompts import PromptTemplate
 from langchain_community.vectorstores import FAISS  # Заменяем DocArrayInMemorySearch на FAISS
+from langchain_core.output_parsers import StrOutputParser
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from sys import argv
@@ -13,7 +14,7 @@ import os
 
 # 1. Создание модели и эмбеддингов
 llm = Ollama(model='deepseek-r1:32b')
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L12-v2")  # Изменение модели
 print("Эмбеддинги успешно загружены!")
 
 # 2. Загрузка PDF-файлов
