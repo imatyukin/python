@@ -26,6 +26,10 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         self.protocol = 'UDP'  # Default protocol
         self.last_stats_text = ""
         self.saved_ip_prec = 0
+        self.real_source_address = None
+        self.real_source_port = None
+        self.real_destination_address = None
+        self.real_destination_port = None
         self.initUI()
 
     def initUI(self):
@@ -54,8 +58,8 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         self.protocol_type.currentIndexChanged.connect(self.update_protocol)
 
         self.source_ip = QtWidgets.QLineEdit()
+        self.source_port = QtWidgets.QLineEdit()  # Добавляем поле для Source Port
         self.destination_ip = QtWidgets.QLineEdit()
-        self.source_port = QtWidgets.QLineEdit()
         self.dest_port = QtWidgets.QLineEdit()
         self.packet_size = QtWidgets.QLineEdit()
         self.threads = QtWidgets.QLineEdit()
@@ -67,8 +71,8 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
         self.all_fields = {
             "Source IP:": self.source_ip,
+            "Source Port:": self.source_port,  # Добавляем поле для Source Port
             "Destination IP:": self.destination_ip,
-            "Source Port:": self.source_port,
             "Destination Port:": self.dest_port,
             "Packet Size:": self.packet_size,
             "Threads:": self.threads,
@@ -78,7 +82,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         }
 
         self.protocol_fields = {
-            "udp": ["Source IP:", "Destination IP:", "Source Port:", "Destination Port:", "Packet Size:", "Threads:",
+            "udp": ["Source IP:", "Source Port:", "Destination IP:", "Destination Port:", "Packet Size:", "Threads:",
                     "DSCP (0-63):", "IP Precedence (0-7):", "ECN (0-3):"],
             "icmp": ["Source IP:", "Destination IP:", "Packet Size:", "Threads:", "DSCP (0-63):",
                      "IP Precedence (0-7):", "ECN (0-3):"]
@@ -156,16 +160,25 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         for label_text, (label, widget) in self.field_widgets.items():
             if label_text in self.protocol_fields.get(current_protocol, []):
                 label.setVisible(True)
-                widget.setVisible(True)
+                if widget:
+                    widget.setVisible(True)
             else:
                 label.setVisible(False)
-                widget.setVisible(False)
+                if widget:
+                    widget.setVisible(False)
 
     def update_destination_label(self):
         if self.traffic_type.currentText() == 'multicast':
             self.field_widgets["Destination IP:"][0].setText('Group IP:')
         else:
             self.field_widgets["Destination IP:"][0].setText('Destination IP:')
+
+    def update_real_values(self, real_source_address, real_source_port, real_destination_address,
+                           real_destination_port):
+        self.real_source_address = real_source_address
+        self.real_source_port = real_source_port
+        self.real_destination_address = real_destination_address
+        self.real_destination_port = real_destination_port
 
     @asyncSlot()
     async def toggle_traffic(self):
@@ -186,6 +199,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                 'traffic_type': self.traffic_type.currentText(),
                 'source_address': self.source_ip.text(),
                 'source_port': self.validate_port(self.source_port.text()) if self.protocol == 'UDP' else 0,
+                # Получаем Source Port
                 'destination_address': self.destination_ip.text(),
                 'destination_port': self.validate_port(self.dest_port.text()) if self.protocol == 'UDP' else 0,
                 'packet_size': self.validate_packet_size(self.packet_size.text()),
@@ -198,19 +212,24 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                     'ecn': self.validate_ecn(self.ecn.text())
                 }
             }
+
             if config['qos']['ip_precedence'] is not None:
-                 self.saved_ip_prec = config['qos']['ip_precedence']
+                self.saved_ip_prec = config['qos']['ip_precedence']
             else:
-                 self.saved_ip_prec = 0
+                self.saved_ip_prec = 0
 
             self.validate_ip_address(config.get('source_address'))
             self.validate_ip_address(config.get('destination_address'))
 
             print("Starting Traffic Generator with config:", config)
             self.generator = TrafficGenerator(config, self.stats, self.protocol, self)
-
             self.thread = threading.Thread(target=self.generator.run, daemon=True)
             self.thread.start()
+
+            self.real_source_address = self.generator.real_source_address
+            self.real_source_port = self.generator.real_source_port
+            self.real_destination_address = self.generator.real_destination_address
+            self.real_destination_port = self.generator.real_destination_port
 
             self.toggle_button.setText("Stop")
             self.statusBar.showMessage("Generating traffic...")
@@ -246,7 +265,17 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                 pps = self.stats['sent'] / total_time
                 mbps = (self.stats['bytes'] / 1000000.0) / total_time
 
-            text = f"<b>Traffic Flow:</b> {self.protocol} {self.generator.real_source_address}:{self.generator.real_source_port} -> {self.generator.real_destination_address}:{self.generator.real_destination_port}<br>"
+            text = f"<b>Traffic Flow:</b> {self.protocol} {self.real_source_address if self.real_source_address else '0.0.0.0'}:{self.real_source_port if self.real_source_port else '0'} -> "
+
+            if self.real_destination_address:
+                text += f"{self.real_destination_address}"
+            else:
+                text += f"{self.generator.config['destination_address']}"
+
+            if self.protocol == 'UDP':
+                text += f":{self.real_destination_port if self.real_destination_port else self.generator.config['destination_port']}<br>"
+            else:
+                text += "<br>"
 
             if self.generator.config['qos']['dscp'] is not None and self.generator.config['qos']['dscp'] > 0:
                 text += f"<b>DSCP:</b> {self.generator.config['qos']['dscp']}<br>"
@@ -270,7 +299,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             'protocol': self.protocol,
             'traffic_type': self.traffic_type.currentText(),
             'source_address': self.source_ip.text(),
-            'source_port': self.source_port.text() if self.protocol == 'UDP' else None,
+            'source_port': self.source_port.text() if self.protocol == 'UDP' else None,  # Добавляем Source Port
             'destination_address': self.destination_ip.text(),
             'destination_port': self.dest_port.text() if self.protocol == 'UDP' else None,
             'packet_size': self.packet_size.text(),
@@ -303,8 +332,8 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             self.validate_ip_address(config.get('source_address'))
             self.validate_ip_address(config.get('destination_address'))
             if config.get('protocol') == 'UDP':
-                self.validate_port(config.get('source_port'))
                 self.validate_port(config.get('destination_port'))
+                self.validate_port(config.get('source_port'))  # Валидируем Source Port
 
             self.validate_packet_size(config.get('packet_size'))
             self.validate_threads(config.get('threads'))
@@ -383,8 +412,8 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             else:
                 self.statusBar.showMessage(f"Error: Invalid port number {port_str}. Must be between 0 and 65535")
                 raise ValueError("Invalid port number")
-        except ValueError:
-            self.statusBar.showMessage(f"Error: Invalid port number {port_str}. Must be an integer")
+        except ValueError as e:
+            self.statusBar.showMessage(f"Error: Invalid port number {port_str}. Must be an integer. {e}")
             raise
 
     def validate_packet_size(self, packet_size_str):
@@ -442,12 +471,11 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                     self.traffic_type.setCurrentText(config.get('traffic_type', 'unicast'))
                     self.update_destination_label()
                     self.source_ip.setText(config.get('source_address', '0.0.0.0'))
+                    self.source_port.setText(str(config.get('source_port', '0')))  # Загрузка Source Port
                     self.destination_ip.setText(config.get('destination_address', ''))
                     if config.get('protocol', 'UDP') == 'UDP':
-                        self.source_port.setText(str(config.get('source_port', '0')))
                         self.dest_port.setText(str(config.get('destination_port', '0')))
                     else:
-                        self.source_port.setText("")
                         self.dest_port.setText("")
                     self.packet_size.setText(str(config.get('packet_size', '512')))
                     self.threads.setText(str(config.get('threads', '1')))
@@ -463,7 +491,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
 
 class TrafficGenerator:
-    def __init__(self, config, stats, protocol, app_instance):  # App instance
+    def __init__(self, config, stats, protocol, app_instance):
         self.config = config
         self.stats = stats
         self.running = False
@@ -477,7 +505,8 @@ class TrafficGenerator:
         self.threads = []
         self.last_send_time = 0
         self.tcp_tasks = []
-        self.app_instance = app_instance  # Store the app instance
+        self.app_instance = app_instance
+        self.sockets = []  # Сокеты для каждого потока
 
     def run(self):
         self.running = True
@@ -485,8 +514,18 @@ class TrafficGenerator:
         if self.config['speed_mode'] == 'interval':
             self.interval_time = 1 / self.config['speed_value']
 
+        # Создаем и биндим сокеты здесь один раз для каждого потока
         for _ in range(self.config['threads']):
-            thread = threading.Thread(target=self.send_packet, daemon=True)
+            sock = self.create_and_bind_socket()
+            if sock:
+                self.sockets.append(sock)
+            else:
+                 self.running = False
+                 return
+
+        # Запускаем потоки
+        for i in range(self.config['threads']):
+            thread = threading.Thread(target=self.send_packet, args=(self.sockets[i],), daemon=True)
             self.threads.append(thread)
             thread.start()
 
@@ -507,15 +546,17 @@ class TrafficGenerator:
             print(f"Error in generator: {e}")
         finally:
             print("Generator stopped.")
+            for sock in self.sockets:
+                sock.close()
 
     def stats_update(self, current_time, pps, mbps):
         if isinstance(current_time, float) and isinstance(pps, (int, float)) and isinstance(mbps, (int, float)):
             if current_time >= 0:
-                self.app_instance.history['time'].append(current_time)  # Use app instance
+                self.app_instance.history['time'].append(current_time)
                 self.app_instance.history['pps'].append(pps)
                 self.app_instance.history['mbps'].append(mbps)
 
-    def send_packet(self):
+    def create_and_bind_socket(self):
         sock = None
         try:
             if self.protocol == "UDP":
@@ -533,34 +574,42 @@ class TrafficGenerator:
                 self.real_destination_address = destination_address
                 self.real_destination_port = self.config['destination_port']
 
-                # Используем source_port из конфигурации, если не получилось забиндиться на него, то даем OS выбрать порт
-                if self.config['source_address'] == '0.0.0.0':
-                     try:
-                        sock.bind(('0.0.0.0', int(self.config['source_port'])))
-                        self.real_source_address, self.real_source_port = sock.getsockname()
-                     except OSError as e:
-                        self.app_instance.statusBar.showMessage(f"Warning: Could not bind to port {self.config['source_port']}, letting OS choose. Error: {e}")
-                        sock.bind(('0.0.0.0', 0)) # Let OS choose a port
-                        self.real_source_address, self.real_source_port = sock.getsockname()
-                else:
-                    self.real_source_address = self.config['source_address']
-                    self.real_source_port = int(self.config['source_port'])
+                source_port = int(self.config.get('source_port', 0))
+                source_address = self.config.get('source_address', '0.0.0.0')
 
+                try:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    sock.bind((source_address, source_port))
+                    self.real_source_address, self.real_source_port = sock.getsockname()
+                except OSError as e:
+                    self.app_instance.statusBar.showMessage(
+                        f"Warning: Could not bind to {source_address}:{source_port}, letting OS choose. Error: {e}")
+                    sock.close()
+                    return None
 
-                message = os.urandom(self.config['packet_size'])
-
+                return sock
             elif self.protocol == "ICMP":
                 sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
                 if self.config['source_address'] == '0.0.0.0':
                     sock.bind(('0.0.0.0', 0))
                     self.real_source_address, self.real_source_port = sock.getsockname()
                 else:
-                    self.real_source_address = self.config['source_address']
-                    self.real_source_port = int(self.config['source_port'])
-
+                    sock.bind((self.config['source_address'], 0))
+                    self.real_source_address, self.real_source_port = sock.getsockname()
                 self.real_destination_address = self.config['destination_address']
                 self.real_destination_port = self.config['destination_port']
+                return sock
+        except Exception as e:
+            self.app_instance.statusBar.showMessage(f"Error creating and binding socket: {e}")
+            return None
 
+
+    def send_packet(self, sock):
+        try:
+            message = None
+            if self.protocol == "UDP":
+                message = os.urandom(self.config['packet_size'])
+            elif self.protocol == "ICMP":
                 message = self.create_icmp_packet(self.config['packet_size'])
 
             # Расчет времени ожидания для скорости
@@ -595,15 +644,13 @@ class TrafficGenerator:
                     time.sleep(time_wait)
 
                 start_time = time.time()
-
+            self.app_instance.update_real_values(self.real_source_address, self.real_source_port,
+                                                 self.real_destination_address, self.real_destination_port)
         except Exception as e:
             with self.lock:
                 self.stats['errors'] += 1
             print(f"Error sending packet: {e}")
             self.app_instance.statusBar.showMessage(f"Error sending packet: {e}")
-        finally:
-            if sock:
-                sock.close()
 
     def create_icmp_packet(self, packet_size):
         icmp_type = 8  # ICMP Echo Request
