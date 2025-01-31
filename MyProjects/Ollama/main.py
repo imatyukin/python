@@ -7,7 +7,6 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain.prompts import PromptTemplate
 from langchain_community.vectorstores import FAISS  # Заменяем DocArrayInMemorySearch на FAISS
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from sys import argv
@@ -68,24 +67,29 @@ else:
 
 retriever = store.as_retriever()
 
+
 # Функция для исправления вывода ретривера
 def fix_retriever_output(docs):
     if isinstance(docs, dict):  # Если retriever вернул словарь
-        return [Document(page_content=content) for content in docs.values()]
+        return [Document(page_content=str(content)) for content in docs.values()]
     elif isinstance(docs, list):  # Если это список
         fixed_docs = []
+        seen_ids = set()  # Для отслеживания уникальных документов
         for doc in docs:
             if isinstance(doc, str):  # Если элемент — строка
                 fixed_docs.append(Document(page_content=doc))
             elif isinstance(doc, dict):  # Если элемент — словарь
-                fixed_docs.append(Document(page_content=doc.get("text", "")))
+                fixed_docs.append(Document(page_content=str(doc.get("text", ""))))
             elif hasattr(doc, "page_content"):  # Если это уже документ
-                fixed_docs.append(doc)
+                if doc.metadata.get("id") not in seen_ids:  # Проверяем уникальность
+                    fixed_docs.append(doc)
+                    seen_ids.add(doc.metadata.get("id"))
             else:
                 raise ValueError(f"Unexpected document format: {doc}")
         return fixed_docs
     else:
         raise ValueError(f"Unexpected retriever output type: {type(docs)}")
+
 
 # Функция для форматирования документов
 def format_docs(docs):
@@ -93,33 +97,31 @@ def format_docs(docs):
         raise ValueError(f"Expected a list of documents, but got {type(docs)}")
 
     formatted_content = []
+    seen_texts = set()  # Для отслеживания уникальных текстов
     for doc in docs:
         if not hasattr(doc, "page_content"):
             raise ValueError(f"Documents must have 'page_content' attribute. Got: {doc}")
-        formatted_content.append(doc.page_content)
+        if doc.page_content not in seen_texts:  # Проверяем уникальность текста
+            formatted_content.append(doc.page_content)
+            seen_texts.add(doc.page_content)
 
     return "\n\n".join(formatted_content)
 
+
 # 4. Создание шаблона запроса
 template = """
-Answer the question based only on the context provided.
-Context: {context}
-Question: {question}
+You are an expert in interpreting technical documentation. Answer the question based ONLY on the context provided below.
+If the context does not contain sufficient information to answer the question, reply with "I don't know."
+
+Context:
+{context}
+
+Question:
+{question}
 """
 prompt = PromptTemplate.from_template(template)
 
-# 5. Создание цепочки обработки
-chain = (
-    {
-        'context': retriever | RunnablePassthrough() | fix_retriever_output | format_docs,
-        'question': RunnablePassthrough(),
-    }
-    | prompt
-    | llm
-    | StrOutputParser()
-)
-
-# 6. Цикл вопросов
+# 5. Цикл вопросов
 print("\nГотово к вопросам!")
 while True:
     question = input('What do you want to learn from the document? (Type "exit" to quit)\n')
@@ -127,12 +129,32 @@ while True:
         break
 
     try:
-        # Используем метод invoke вместо get_relevant_documents
+        # Этап 1: Ретривер
         relevant_docs = retriever.invoke(question)
+        print("Retriever output:", relevant_docs)
+
+        # Этап 2: Исправление вывода ретривера
         fixed_docs = fix_retriever_output(relevant_docs)
+        print("Fixed retriever output:", fixed_docs)
+
+        # Этап 3: Форматирование документов
         formatted_context = format_docs(fixed_docs)
+        print("Formatted context:", formatted_context)
+
+        # Проверка контекста
+        if not formatted_context.strip():
+            print("No relevant information found in the document.")
+            continue
+
+        # Этап 4: Шаблон запроса
         full_prompt = prompt.format(context=formatted_context, question=question)
+        print("Full prompt:", full_prompt)
+
+        # Этап 5: Модель LLM
         response = llm.invoke(full_prompt)
+        print("LLM response:", response)
+
+        # Вывод ответа
         print(response)
     except Exception as e:
         print(f"An error occurred: {e}")
