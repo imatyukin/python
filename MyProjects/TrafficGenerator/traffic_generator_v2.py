@@ -265,18 +265,28 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                 pps = self.stats['sent'] / total_time
                 mbps = (self.stats['bytes'] / 1000000.0) / total_time
 
-            text = f"<b>Traffic Flow:</b> {self.protocol} {self.real_source_address if self.real_source_address else '0.0.0.0'}:{self.real_source_port if self.real_source_port else '0'} -> "
+            # Формируем строку Traffic Flow
+            text = f"<b>Traffic Flow:</b> {self.protocol} {self.real_source_address if self.real_source_address else '0.0.0.0'}"
 
+            # Если протокол не ICMP, добавляем порт источника
+            if self.protocol != "ICMP":
+                text += f":{self.real_source_port if self.real_source_port else '0'}"
+
+            text += " -> "
+
+            # Адрес назначения
             if self.real_destination_address:
                 text += f"{self.real_destination_address}"
             else:
                 text += f"{self.generator.config['destination_address']}"
 
+            # Если протокол UDP, добавляем порт назначения
             if self.protocol == 'UDP':
-                text += f":{self.real_destination_port if self.real_destination_port else self.generator.config['destination_port']}<br>"
-            else:
-                text += "<br>"
+                text += f":{self.real_destination_port if self.real_destination_port else self.generator.config['destination_port']}"
 
+            text += "<br>"
+
+            # QoS параметры
             if self.generator.config['qos']['dscp'] is not None and self.generator.config['qos']['dscp'] > 0:
                 text += f"<b>DSCP:</b> {self.generator.config['qos']['dscp']}<br>"
             if self.generator.config['qos']['ip_precedence'] is not None and self.generator.config['qos'][
@@ -284,12 +294,15 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                 text += f"<b>IP Precedence:</b> {self.saved_ip_prec}<br>"
             if self.generator.config['qos']['ecn'] is not None and self.generator.config['qos']['ecn'] > 0:
                 text += f"<b>ECN:</b> {self.generator.config['qos']['ecn']}<br>"
+
+            # Статистика трафика
             text += f"<b>Packets Sent:</b> {self.stats['sent']}<br>"
             text += f"<b>Total Bytes:</b> {self.stats['bytes']}<br>"
             text += f"<b>Average Mbps:</b> {mbps:.2f}<br>"
             text += f"<b>Average PPS:</b> {pps:.2f}<br>"
             text += f"<b>Errors:</b> {self.stats['errors']}"
 
+            # Обновляем только если данные изменились
             if text != self.last_stats_text:
                 self.stats_text.setText(text)
                 self.last_stats_text = text
