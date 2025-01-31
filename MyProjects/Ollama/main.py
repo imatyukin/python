@@ -60,7 +60,13 @@ if os.path.exists(vector_store_path):
     # Проверка и добавление новых файлов
     for pdf_path in pdf_paths:
         file_hash = get_file_hash(pdf_path)
-        if file_hash in [doc.metadata.get("hash") for doc in store.docs]:
+
+        # Получение хэшей из существующих документов
+        existing_hashes = set()
+        for doc_id, doc in store.docstore._dict.items():  # Получаем все документы из docstore
+            existing_hashes.add(doc.metadata.get("hash"))
+
+        if file_hash in existing_hashes:
             print(f"Файл уже добавлен в хранилище: {pdf_path}")
             continue
 
