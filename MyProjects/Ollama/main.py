@@ -68,14 +68,30 @@ if os.path.exists(vector_store_path):
         loader = PyPDFLoader(pdf_path)
         pages = loader.load_and_split()
         texts = text_splitter.split_documents(pages)
-        store.add_documents(texts, metadatas=[{"source": pdf_path, "hash": file_hash} for _ in texts])
+
+        # Создание метаданных для каждого чанка текста
+        metadatas = [{"source": pdf_path, "hash": file_hash} for _ in texts]
+        store.add_documents(texts, metadatas=metadatas)
         store.save_local(vector_store_path)
 else:
     print("Создание нового векторного хранилища...")
+
+    # Создание метаданных для каждого чанка текста
+    metadatas = []
+    for pdf_path in pdf_paths:
+        file_hash = get_file_hash(pdf_path)
+        loader = PyPDFLoader(pdf_path)
+        pages = loader.load_and_split()
+        texts_from_pdf = text_splitter.split_documents(pages)
+
+        # Добавляем метаданные для каждого чанка текста
+        for doc in texts_from_pdf:
+            metadatas.append({"source": pdf_path, "hash": file_hash})
+
     store = FAISS.from_texts(
         [doc.page_content for doc in texts],
         embedding=embeddings,
-        metadatas=[{"source": pdf_path, "hash": get_file_hash(pdf_path)} for pdf_path in pdf_paths for _ in texts]
+        metadatas=metadatas
     )
     store.save_local(vector_store_path)
 
