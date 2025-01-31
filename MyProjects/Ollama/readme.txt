@@ -72,7 +72,7 @@ save_to_history(question, answer) : Сохраняет вопрос и отве�
 6. Примеры использования
 a) Текстовая версия
 python main.py Quality_of_Service_Advanced_Configuration_Guide_for_Classic_CLI.pdf example.txt example.docx
-b) Графическая версия**
+b) Графическая версия
 1. Запустите программу:
    ```bash
    python main_gui.py
