@@ -1,32 +1,71 @@
 import warnings
+
 warnings.filterwarnings("ignore", category=UserWarning)  # Игнорируем UserWarning
 
 from langchain_ollama import OllamaLLM as Ollama
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.prompts import PromptTemplate
-from langchain_community.vectorstores import DocArrayInMemorySearch
+from langchain_community.vectorstores import FAISS  # Заменяем DocArrayInMemorySearch на FAISS
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from sys import argv
-import time
+import os
 
 # 1. Создание модели и эмбеддингов
 llm = Ollama(model='deepseek-r1:32b')
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 print("Эмбеддинги успешно загружены!")
 
-# 2. Загрузка PDF-файла
+# 2. Загрузка PDF-файлов
 if len(argv) < 2:
-    raise ValueError("Путь к PDF-файлу не указан!")
+    raise ValueError("Укажите хотя бы один путь к PDF-файлу!")
 
-loader = PyPDFLoader(argv[1])
-pages = loader.load_and_split()
-print(f"Загружено страниц: {len(pages)}")
+pdf_paths = argv[1:]  # Все аргументы после имени скрипта — это пути к PDF-файлам
+all_pages = []
 
-# 3. Создание векторного хранилища
-store = DocArrayInMemorySearch.from_documents(pages, embedding=embeddings)
+for pdf_path in pdf_paths:
+    if not os.path.exists(pdf_path):
+        print(f"Файл не найден: {pdf_path}")
+        continue
+
+    print(f"Загрузка файла: {pdf_path}")
+    loader = PyPDFLoader(pdf_path)
+    pages = loader.load_and_split()
+    all_pages.extend(pages)
+
+print(f"Загружено страниц: {len(all_pages)}")
+
+# Проверка наличия данных
+if not all_pages:
+    print("Нет данных для обработки. Убедитесь, что PDF-файлы загружены корректно.")
+    exit(1)
+
+# 3. Создание или загрузка векторного хранилища
+vector_store_path = "vector_store"
+
+if os.path.exists(vector_store_path):
+    print("Загрузка существующего векторного хранилища...")
+    store = FAISS.load_local(vector_store_path, embeddings=embeddings, allow_dangerous_deserialization=True)
+else:
+    print("Создание нового векторного хранилища...")
+
+    # Извлечение текстов из документов
+    texts = [doc.page_content for doc in all_pages]
+
+    # Генерация эмбеддингов
+    print("Генерация эмбеддингов...")
+    embeddings_vectors = embeddings.embed_documents(texts)
+
+    # Создание FAISS индекса
+    store = FAISS.from_embeddings(
+        [(text, embedding) for text, embedding in zip(texts, embeddings_vectors)],
+        embedding=embeddings,
+        metadatas=[doc.metadata for doc in all_pages]
+    )
+    store.save_local(vector_store_path)
+
 retriever = store.as_retriever()
 
 # Функция для исправления вывода ретривера
@@ -60,7 +99,6 @@ def format_docs(docs):
         formatted_content.append(doc.page_content)
 
     return "\n\n".join(formatted_content)
-
 
 # 4. Создание шаблона запроса
 template = """
