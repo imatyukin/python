@@ -1,5 +1,5 @@
 from langchain_ollama import OllamaLLM as Ollama
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
 from langchain.prompts import PromptTemplate
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -15,18 +15,31 @@ print("Эмбеддинги успешно загружены!")
 
 # 2. Загрузка PDF-файлов
 if len(argv) < 2:
-    raise ValueError("Укажите хотя бы один путь к PDF-файлу!")
+    raise ValueError("Укажите хотя бы один путь к файлу!")
 
-pdf_paths = argv[1:]
+file_paths = argv[1:]
 all_pages = []
 
-for pdf_path in pdf_paths:
-    if not os.path.exists(pdf_path):
-        print(f"Файл не найден: {pdf_path}")
+
+def get_loader_for_file(file_path):
+    """Выбирает загрузчик в зависимости от формата файла."""
+    if file_path.endswith(".pdf"):
+        return PyPDFLoader(file_path)
+    elif file_path.endswith(".txt"):
+        return TextLoader(file_path)
+    elif file_path.endswith(".docx"):
+        return Docx2txtLoader(file_path)
+    else:
+        raise ValueError(f"Неподдерживаемый формат файла: {file_path}")
+
+
+for file_path in file_paths:
+    if not os.path.exists(file_path):
+        print(f"Файл не найден: {file_path}")
         continue
 
-    print(f"Загрузка файла: {pdf_path}")
-    loader = PyPDFLoader(pdf_path)
+    print(f"Загрузка файла: {file_path}")
+    loader = get_loader_for_file(file_path)
     pages = loader.load_and_split()
     all_pages.extend(pages)
 
@@ -42,6 +55,7 @@ texts = text_splitter.split_documents(all_pages)
 
 # 4. Создание или загрузка векторного хранилища
 vector_store_path = "vector_store"
+history_file = "history.txt"
 
 
 def get_file_hash(file_path):
@@ -58,41 +72,36 @@ if os.path.exists(vector_store_path):
     store = FAISS.load_local(vector_store_path, embeddings=embeddings, allow_dangerous_deserialization=True)
 
     # Проверка и добавление новых файлов
-    for pdf_path in pdf_paths:
-        file_hash = get_file_hash(pdf_path)
+    for file_path in file_paths:
+        file_hash = get_file_hash(file_path)
 
-        # Получение хэшей из существующих документов
         existing_hashes = set()
-        for doc_id, doc in store.docstore._dict.items():  # Получаем все документы из docstore
+        for doc_id, doc in store.docstore._dict.items():
             existing_hashes.add(doc.metadata.get("hash"))
 
         if file_hash in existing_hashes:
-            print(f"Файл уже добавлен в хранилище: {pdf_path}")
+            print(f"Файл уже добавлен в хранилище: {file_path}")
             continue
 
-        print(f"Добавление нового файла в хранилище: {pdf_path}")
-        loader = PyPDFLoader(pdf_path)
+        print(f"Добавление нового файла в хранилище: {file_path}")
+        loader = get_loader_for_file(file_path)
         pages = loader.load_and_split()
         texts = text_splitter.split_documents(pages)
-
-        # Создание метаданных для каждого чанка текста
-        metadatas = [{"source": pdf_path, "hash": file_hash} for _ in texts]
+        metadatas = [{"source": file_path, "hash": file_hash} for _ in texts]
         store.add_documents(texts, metadatas=metadatas)
         store.save_local(vector_store_path)
 else:
     print("Создание нового векторного хранилища...")
 
-    # Создание метаданных для каждого чанка текста
     metadatas = []
-    for pdf_path in pdf_paths:
-        file_hash = get_file_hash(pdf_path)
-        loader = PyPDFLoader(pdf_path)
+    for file_path in file_paths:
+        file_hash = get_file_hash(file_path)
+        loader = get_loader_for_file(file_path)
         pages = loader.load_and_split()
         texts_from_pdf = text_splitter.split_documents(pages)
 
-        # Добавляем метаданные для каждого чанка текста
         for doc in texts_from_pdf:
-            metadatas.append({"source": pdf_path, "hash": file_hash})
+            metadatas.append({"source": file_path, "hash": file_hash})
 
     store = FAISS.from_texts(
         [doc.page_content for doc in texts],
@@ -133,7 +142,16 @@ def clean_response(response):
     return response
 
 
-# 7. Цикл вопросов
+# 7. Сохранение истории запросов
+def save_to_history(question, answer):
+    """Сохраняет вопрос и ответ в файл истории."""
+    with open(history_file, "a", encoding="utf-8") as f:
+        f.write(f"Вопрос: {question}\n")
+        f.write(f"Ответ: {answer}\n")
+        f.write("-------------------------\n")
+
+
+# 8. Цикл вопросов
 print("\nГотово к вопросам!")
 while True:
     question = input('What do you want to learn from the document? (Type "exit" to quit)\n')
@@ -156,5 +174,8 @@ while True:
         # Этап 5: Постобработка ответа
         cleaned_response = clean_response(response)
         print(cleaned_response)
+
+        # Сохранение в историю
+        save_to_history(question, cleaned_response)
     except Exception as e:
         print(f"An error occurred: {e}")
