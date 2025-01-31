@@ -680,29 +680,37 @@ class TrafficGenerator:
         icmp_id = 12345
         icmp_sequence = 0
 
+        # Формируем TOS (DSCP + IP Precedence + ECN)
         dscp = self.config['qos']['dscp'] or 0
         ip_prec = self.config['qos']['ip_precedence'] or 0
         ecn = self.config['qos']['ecn'] or 0
+        tos = (ip_prec << 5) | (dscp << 2) | ecn  # Корректный расчет
 
-        tos = (dscp << 2) | (ip_prec << 5) | (ecn)  # Combine DSCP, IP Precedence, and ECN into TOS
-
+        # Создаем IP-заголовок
         ip_header = struct.pack("!BBHHHBBH4s4s",
-                                0x45,  # Version and IHL
-                                tos,  # Type of Service
-                                20 + packet_size,  # Total Length
-                                12345,  # Identification
-                                0,  # Flags and Fragment Offset
-                                64,  # Time to Live
-                                1,  # Protocol (ICMP)
-                                0,  # Header Checksum
-                                socket.inet_aton('0.0.0.0'),
+                                0x45, tos, 20 + packet_size, 12345, 0, 64, 1,
+                                0,  # Checksum (будет рассчитан позже)
+                                socket.inet_aton(self.config['source_address']),
                                 socket.inet_aton(self.config['destination_address'])
                                 )
 
+        # Добавляем контрольную сумму для IP-заголовка (необязательно на Windows)
+        ip_checksum = self.calculate_checksum(ip_header)
+        ip_header = struct.pack("!BBHHHBBH4s4s",
+                                0x45, tos, 20 + packet_size, 12345, 0, 64, 1,
+                                ip_checksum,
+                                socket.inet_aton(self.config['source_address']),
+                                socket.inet_aton(self.config['destination_address'])
+                                )
+
+        # Создаем ICMP-заголовок
         header = struct.pack("!BBHHH", icmp_type, icmp_code, icmp_checksum, icmp_id, icmp_sequence)
         data = os.urandom(packet_size - len(header) - len(ip_header))
+
+        # Вычисляем ICMP-чек-сумму
         icmp_checksum = self.calculate_checksum(header + data)
         header = struct.pack("!BBHHH", icmp_type, icmp_code, icmp_checksum, icmp_id, icmp_sequence)
+
         return ip_header + header + data
 
     def calculate_checksum(self, data):
