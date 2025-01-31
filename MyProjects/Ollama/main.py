@@ -72,8 +72,8 @@ if os.path.exists(vector_store_path):
         store.save_local(vector_store_path)
 else:
     print("Создание нового векторного хранилища...")
-    store = FAISS.from_documents(
-        texts,
+    store = FAISS.from_texts(
+        [doc.page_content for doc in texts],
         embedding=embeddings,
         metadatas=[{"source": pdf_path, "hash": get_file_hash(pdf_path)} for pdf_path in pdf_paths for _ in texts]
     )
