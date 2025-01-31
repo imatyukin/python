@@ -157,10 +157,13 @@ def answer_question_qwen(question, text):
 
 def save_to_history(history_file, question, answer):
     """Сохраняет вопрос и ответ в файл истории."""
-    with open(history_file, "a", encoding="utf-8") as f:
-        f.write(f"Вопрос: {question}\n")
-        f.write(f"Ответ: {answer}\n")
-        f.write("-------------------------\n")
+    try:
+        with open(history_file, "a", encoding="utf-8") as f:
+            f.write(f"Вопрос: {question}\n")
+            f.write(f"Ответ: {answer}\n")
+            f.write("-------------------------\n")
+    except Exception as e:
+        print(f"Ошибка при сохранении истории: {e}")
 
 
 class HistoryDialog(QDialog):
@@ -171,8 +174,8 @@ class HistoryDialog(QDialog):
 
         layout = QVBoxLayout()
         self.text_edit = QTextEdit()
-        self.text_edit.setPlainText(history_text)
-        self.text_edit.setReadOnly(True)
+        self.text_edit.setPlainText(history_text)  # Устанавливаем текст истории
+        self.text_edit.setReadOnly(True)  # Только для чтения
         layout.addWidget(self.text_edit)
 
         self.setLayout(layout)
@@ -325,28 +328,45 @@ class MainWindow(QMainWindow):
             self.progress_bar.setValue(0)
 
     def show_history(self):
+        # Определяем, какой файл истории использовать
         mode = self.mode_combo.currentText()
         history_file = local_history_file if mode == "Локальный" else qwen_history_file
 
+        # Проверяем, существует ли файл
         if not os.path.exists(history_file):
-            QMessageBox.information(self, "История", "История запросов пуста.")
+            QMessageBox.information(self, "История", f"История запросов для режима '{mode}' пуста.")
             return
 
-        with open(history_file, "r", encoding="utf-8") as f:
-            history_text = f.read()
+        try:
+            # Читаем содержимое файла
+            with open(history_file, "r", encoding="utf-8") as f:
+                history_text = f.read()
 
-        dialog = HistoryDialog(history_text)
-        dialog.exec_()
+            # Если файл пуст, показываем сообщение
+            if not history_text.strip():
+                QMessageBox.information(self, "История", f"История запросов для режима '{mode}' пуста.")
+                return
+
+            # Открываем диалоговое окно с историей
+            dialog = HistoryDialog(history_text)
+            dialog.exec_()
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", f"Не удалось прочитать историю: {e}")
 
     def clear_history(self):
+        # Определяем, какой файл истории использовать
         mode = self.mode_combo.currentText()
         history_file = local_history_file if mode == "Локальный" else qwen_history_file
 
+        # Проверяем, существует ли файл
         if os.path.exists(history_file):
-            os.remove(history_file)
-            QMessageBox.information(self, "История", "История запросов очищена.")
+            try:
+                os.remove(history_file)
+                QMessageBox.information(self, "История", f"История запросов для режима '{mode}' очищена.")
+            except Exception as e:
+                QMessageBox.critical(self, "Ошибка", f"Не удалось очистить историю: {e}")
         else:
-            QMessageBox.information(self, "История", "История запросов уже пуста.")
+            QMessageBox.information(self, "История", f"История запросов для режима '{mode}' уже пуста.")
 
 
 # Запуск приложения
