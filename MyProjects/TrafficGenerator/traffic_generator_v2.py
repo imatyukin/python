@@ -58,7 +58,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         self.protocol_type.currentIndexChanged.connect(self.update_protocol)
 
         self.source_ip = QtWidgets.QLineEdit()
-        self.source_port = QtWidgets.QLineEdit()  # Добавляем поле для Source Port
+        self.source_port = QtWidgets.QLineEdit()
         self.destination_ip = QtWidgets.QLineEdit()
         self.dest_port = QtWidgets.QLineEdit()
         self.packet_size = QtWidgets.QLineEdit()
@@ -71,7 +71,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
         self.all_fields = {
             "Source IP:": self.source_ip,
-            "Source Port:": self.source_port,  # Добавляем поле для Source Port
+            "Source Port:": self.source_port,
             "Destination IP:": self.destination_ip,
             "Destination Port:": self.dest_port,
             "Packet Size:": self.packet_size,
@@ -199,7 +199,6 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                 'traffic_type': self.traffic_type.currentText(),
                 'source_address': self.source_ip.text(),
                 'source_port': self.validate_port(self.source_port.text()) if self.protocol == 'UDP' else 0,
-                # Получаем Source Port
                 'destination_address': self.destination_ip.text(),
                 'destination_port': self.validate_port(self.dest_port.text()) if self.protocol == 'UDP' else 0,
                 'packet_size': self.validate_packet_size(self.packet_size.text()),
@@ -236,6 +235,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         except Exception as e:
             self.statusBar.showMessage(f"Error: {e}")
             self.running = False
+            return  # Прерываем выполнение метода в случае ошибки
 
     @asyncSlot()
     async def stop_traffic(self):
@@ -312,7 +312,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             'protocol': self.protocol,
             'traffic_type': self.traffic_type.currentText(),
             'source_address': self.source_ip.text(),
-            'source_port': self.source_port.text() if self.protocol == 'UDP' else None,  # Добавляем Source Port
+            'source_port': self.source_port.text() if self.protocol == 'UDP' else None,
             'destination_address': self.destination_ip.text(),
             'destination_port': self.dest_port.text() if self.protocol == 'UDP' else None,
             'packet_size': self.packet_size.text(),
@@ -346,7 +346,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             self.validate_ip_address(config.get('destination_address'))
             if config.get('protocol') == 'UDP':
                 self.validate_port(config.get('destination_port'))
-                self.validate_port(config.get('source_port'))  # Валидируем Source Port
+                self.validate_port(config.get('source_port'))
 
             self.validate_packet_size(config.get('packet_size'))
             self.validate_threads(config.get('threads'))
@@ -416,9 +416,9 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             raise
 
     def validate_port(self, port_str):
+        if port_str is None or not isinstance(port_str, str) or port_str == "":
+            return 0
         try:
-            if port_str is None or port_str == "":
-                return 0  # Allow OS to assign port if no port is specified or if the field is empty
             port = int(port_str)
             if 0 <= port <= 65535:
                 return port
@@ -430,6 +430,9 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             raise
 
     def validate_packet_size(self, packet_size_str):
+        if packet_size_str is None or not isinstance(packet_size_str, str):
+            self.statusBar.showMessage("Error: Packet size must be a string")
+            raise ValueError("Invalid packet size")
         try:
             packet_size = int(packet_size_str)
             if 1 <= packet_size <= 65507:
@@ -484,7 +487,7 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
                     self.traffic_type.setCurrentText(config.get('traffic_type', 'unicast'))
                     self.update_destination_label()
                     self.source_ip.setText(config.get('source_address', '0.0.0.0'))
-                    self.source_port.setText(str(config.get('source_port', '0')))  # Загрузка Source Port
+                    self.source_port.setText(str(config.get('source_port', '0')))
                     self.destination_ip.setText(config.get('destination_address', ''))
                     if config.get('protocol', 'UDP') == 'UDP':
                         self.dest_port.setText(str(config.get('destination_port', '0')))
@@ -519,7 +522,7 @@ class TrafficGenerator:
         self.last_send_time = 0
         self.tcp_tasks = []
         self.app_instance = app_instance
-        self.sockets = []  # Сокеты для каждого потока
+        self.sockets = []
 
     def run(self):
         self.running = True
@@ -527,14 +530,14 @@ class TrafficGenerator:
         if self.config['speed_mode'] == 'interval':
             self.interval_time = 1 / self.config['speed_value']
 
-        # Создаем и биндим сокеты здесь один раз для каждого потока
+        # Создаем и биндим сокеты для каждого потока
         for _ in range(self.config['threads']):
             sock = self.create_and_bind_socket()
             if sock:
                 self.sockets.append(sock)
             else:
-                 self.running = False
-                 return
+                self.running = False
+                return
 
         # Обновление реальных значений в UI перед запуском потоков
         if self.sockets:
@@ -568,7 +571,8 @@ class TrafficGenerator:
         finally:
             print("Generator stopped.")
             for sock in self.sockets:
-                sock.close()
+                if sock:
+                    sock.close()
 
     def stats_update(self, current_time, pps, mbps):
         if isinstance(current_time, float) and isinstance(pps, (int, float)) and isinstance(mbps, (int, float)):
@@ -623,7 +627,6 @@ class TrafficGenerator:
         except Exception as e:
             self.app_instance.statusBar.showMessage(f"Error creating and binding socket: {e}")
             return None
-
 
     def send_packet(self, sock):
         try:
