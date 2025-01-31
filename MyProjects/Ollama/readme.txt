@@ -1,94 +1,77 @@
-Документация программы
+Документация к скрипту
 Описание программы
 Программа предназначена для анализа PDF-документов с помощью векторного поиска и языковой модели (LLM).
-Она позволяет задавать вопросы по содержимому документа и получать ответы на основе релевантных фрагментов текста.
+Она позволяет задавать вопросы по содержимому документов и получать ответы на основе релевантных фрагментов текста.
 
-Основные функции
-1. Загрузка PDF-файлов:
+Основные возможности
+Загрузка PDF-файлов:
 Программа загружает PDF-документы и разбивает их на страницы.
-2. Создание векторного хранилища:
+Создание векторного хранилища:
 Тексты из документов преобразуются в эмбеддинги (векторные представления) с помощью модели
-sentence-transformers/all-MiniLM-L6-v2.
+sentence-transformers/all-MiniLM-L12-v2.
 Эмбеддинги сохраняются в локальное хранилище (FAISS).
-3. Поиск релевантных фрагментов:
+Поиск релевантных фрагментов:
 На основе вопроса пользователя программа использует векторный поиск для извлечения релевантных фрагментов текста.
-4. Генерация ответа:
+Генерация ответа:
 Релевантные фрагменты передаются языковой модели (например, deepseek-r1:32b), которая генерирует ответ на вопрос.
 
 Установка и запуск
 Требования
-1. Python 3.8 или выше.
-2. Установленные библиотеки:
-
+Python 3.8 или выше.
+Установленные библиотеки:
 pip install langchain langchain_community langchain_core sentence-transformers faiss-cpu
-
 Запуск программы
 Сохраните программу в файл, например, main.py.
-Запустите программу, указав путь к PDF-файлу:
-python main.py Quality_of_Service_Guide_24.7.R1.pdf
+Запустите программу, указав путь к PDF-файлам:
+python main.py file1.pdf file2.pdf
 Введите вопрос в консоль. Например:
 What do you want to learn from the document? (Type "exit" to quit)
-what is queue-group?
+How to configure BGP on Nokia routers?
 
 Как работает программа
 1. Инициализация модели и эмбеддингов
-
 llm = Ollama(model='deepseek-r1:32b')
-embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
-Модель LLM : Используется модель deepseek-r1:32b для генерации ответов.
-Эмбеддинги : Модель sentence-transformers/all-MiniLM-L6-v2 преобразует тексты в векторы для векторного поиска.
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L12-v2")
+Модель LLM: Используется модель deepseek-r1:32b для генерации ответов.
+Эмбеддинги: Модель sentence-transformers/all-MiniLM-L12-v2 преобразует тексты в векторы для векторного поиска.
 
 2. Загрузка PDF-файлов
-
 loader = PyPDFLoader(pdf_path)
 pages = loader.load_and_split()
 all_pages.extend(pages)
-
 PyPDFLoader : Разбивает PDF-документ на страницы.
 Каждая страница преобразуется в объект типа Document, содержащий текст (page_content) и метаданные (metadata).
 
-3. Создание векторного хранилища
-
-store = FAISS.from_embeddings(
-    [(text, embedding) for text, embedding in zip(texts, embeddings_vectors)],
-    embedding=embeddings,
-    metadatas=[doc.metadata for doc in all_pages]
+3. Разбиение текста на чанки
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=500,
+    chunk_overlap=100,
+    separators=["\n\n", "\n", ".", " ", ""]
 )
+texts = text_splitter.split_documents(all_pages)
+RecursiveCharacterTextSplitter : Разбивает текст на небольшие фрагменты (чанки) для более точного поиска.
+Параметры:
+chunk_size: Размер каждого чанка (500 символов).
+chunk_overlap: Перекрытие между чанками (100 символов).
+separators: Символы, по которым происходит разбиение текста.
+
+4. Создание векторного хранилища
+store = FAISS.from_documents(texts, embedding=embeddings)
 store.save_local(vector_store_path)
-
-FAISS : Библиотека для быстрого векторного поиска.
+FAISS: Библиотека для быстрого векторного поиска.
 Тексты и их эмбеддинги сохраняются в локальном хранилище (vector_store).
+Если хранилище уже существует, программа загружает его:
+store = FAISS.load_local(vector_store_path, embeddings=embeddings, allow_dangerous_deserialization=True)
 
-4. Поиск релевантных фрагментов
-
-retriever = store.as_retriever()
+5. Поиск релевантных фрагментов
+retriever = store.as_retriever(search_kwargs={"k": 3})
 relevant_docs = retriever.invoke(question)
-
-Ретривер: Находит документы, наиболее релевантные вопросу пользователя.
+Ретривер: Находит до 3 самых релевантных фрагментов текста на основе вопроса пользователя.
 Результат — список объектов типа Document.
 
-5. Обработка данных
-a) Исправление вывода ретривера
-
-def fix_retriever_output(docs):
-    ...
-
-Преобразует данные, возвращаемые ретривером, в список объектов типа Document.
-Удаляет дубликаты документов.
-
-b) Форматирование контекста
-
-def format_docs(docs):
-    ...
-
-Объединяет тексты документов в одну строку.
-Удаляет дубликаты текстов.
-
 6. Генерация ответа
-
 template = """
-You are an expert in interpreting technical documentation. Answer the question based ONLY on the context provided below.
+Answer the question based ONLY on the context provided below.
 If the context does not contain sufficient information to answer the question, reply with "I don't know."
 
 Context:
@@ -96,44 +79,64 @@ Context:
 
 Question:
 {question}
+
+Instructions:
+- Focus only on the most relevant parts of the context.
+- Provide a concise and clear answer.
+- If the question requires multiple steps, explain them step by step.
+- Ignore any irrelevant or repetitive information in the context.
+
+Answer:
 """
 prompt = PromptTemplate.from_template(template)
 response = llm.invoke(full_prompt)
+Шаблон запроса : Формирует полный запрос для модели LLM.
+Модель LLM : Генерирует ответ на основе предоставленного контекста.
 
-Шаблон запроса: Формирует полный запрос для модели LLM.
-Модель LLM: Генерирует ответ на основе предоставленного контекста.
+7. Обработка изменений в файлах
+def get_file_hash(file_path):
+    hasher = hashlib.md5()
+    with open(file_path, "rb") as f:
+        buf = f.read()
+        hasher.update(buf)
+    return hasher.hexdigest()
+Хэширование: Вычисляет MD5-хэш файла для проверки изменений.
+Если файл был изменён, его эмбеддинги обновляются в хранилище.
 
-Отладочный вывод
-Программа выводит отладочную информацию для каждого этапа:
+8. Постобработка ответа
+def clean_response(response):
+    if "Answer:" in response:
+        response = response.split("Answer:")[1].strip()
+    response = response.replace("<think>", "").replace("</think>", "")
+    return response
+Удаляет лишние теги (<think>, </think>) и форматирует ответ.
 
-Retriever output:
-Документы, найденные ретривером.
-Fixed retriever output:
-Исправленные документы после обработки функцией fix_retriever_output.
-Formatted context:
-Контекст, передаваемый модели LLM.
-Full prompt:
-Полный запрос, отправляемый модели.
-LLM response:
-Ответ, сгенерированный моделью.
+Инструкции по использованию
+1. Первый запуск
+Если вы запускаете программу впервые:
 
-Обработка ошибок
-Программа обрабатывает следующие случаи:
-
-Если файл не найден:
-
-Файл не найден: <file_path>
-
-Если контекст пуст:
-
-No relevant information found in the document.
-
-Если возникает ошибка:
-
-An error occurred: <error_message>
-
-Добавление новых PDF-файлов:
-
-Просто укажите их пути при запуске программы:
-
+Укажите пути к PDF-файлам:
 python main.py file1.pdf file2.pdf
+Программа создаст векторное хранилище и добавит файлы в него.
+
+2. Повторный запуск
+Если хранилище уже существует:
+
+Укажите новые файлы, если нужно добавить их:
+python main.py new_file.pdf
+Программа проверит, какие файлы уже добавлены, и добавит только новые или изменённые.
+
+3. Задавайте вопросы
+Введите вопрос в консоль. Например:
+What do you want to learn from the document? (Type "exit" to quit)
+How to configure OSPF on Huawei routers?
+
+Рекомендации
+Оптимизация контекста:
+Если контекст слишком длинный, можно увеличить параметр k для ретривера:
+retriever = store.as_retriever(search_kwargs={"k": 5})  # Вернуть 5 документов
+Добавление новых файлов:
+Просто укажите их пути при запуске программы:
+python main.py file1.pdf file2.pdf
+Обновление хранилища:
+Если файл был изменён, программа автоматически обновит его эмбеддинги благодаря хэшированию.

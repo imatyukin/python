@@ -6,6 +6,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sys import argv
 import os
+import hashlib
 
 # 1. Создание модели и эмбеддингов
 llm = Ollama(model='deepseek-r1:32b')  # Используем deepseek-r1:32b
@@ -42,12 +43,40 @@ texts = text_splitter.split_documents(all_pages)
 # 4. Создание или загрузка векторного хранилища
 vector_store_path = "vector_store"
 
+
+def get_file_hash(file_path):
+    """Вычисляет хэш файла для проверки изменений."""
+    hasher = hashlib.md5()
+    with open(file_path, "rb") as f:
+        buf = f.read()
+        hasher.update(buf)
+    return hasher.hexdigest()
+
+
 if os.path.exists(vector_store_path):
     print("Загрузка существующего векторного хранилища...")
     store = FAISS.load_local(vector_store_path, embeddings=embeddings, allow_dangerous_deserialization=True)
+
+    # Проверка и добавление новых файлов
+    for pdf_path in pdf_paths:
+        file_hash = get_file_hash(pdf_path)
+        if file_hash in [doc.metadata.get("hash") for doc in store.docs]:
+            print(f"Файл уже добавлен в хранилище: {pdf_path}")
+            continue
+
+        print(f"Добавление нового файла в хранилище: {pdf_path}")
+        loader = PyPDFLoader(pdf_path)
+        pages = loader.load_and_split()
+        texts = text_splitter.split_documents(pages)
+        store.add_documents(texts, metadatas=[{"source": pdf_path, "hash": file_hash} for _ in texts])
+        store.save_local(vector_store_path)
 else:
     print("Создание нового векторного хранилища...")
-    store = FAISS.from_documents(texts, embedding=embeddings)
+    store = FAISS.from_documents(
+        texts,
+        embedding=embeddings,
+        metadatas=[{"source": pdf_path, "hash": get_file_hash(pdf_path)} for pdf_path in pdf_paths for _ in texts]
+    )
     store.save_local(vector_store_path)
 
 retriever = store.as_retriever(search_kwargs={"k": 3})
@@ -67,6 +96,7 @@ Instructions:
 - Focus only on the most relevant parts of the context.
 - Provide a concise and clear answer.
 - If the question requires multiple steps, explain them step by step.
+- Ignore any irrelevant or repetitive information in the context.
 
 Answer:
 """
