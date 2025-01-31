@@ -6,7 +6,6 @@ from langchain_ollama import OllamaLLM as Ollama
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.prompts import PromptTemplate
 from langchain_community.vectorstores import FAISS  # Заменяем DocArrayInMemorySearch на FAISS
-from langchain_core.output_parsers import StrOutputParser
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from sys import argv
