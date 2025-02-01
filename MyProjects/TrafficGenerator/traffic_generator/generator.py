@@ -87,6 +87,10 @@ class TrafficGenerator:
             # Закрываем все сокеты
             for sock in self.sockets:
                 if sock:
+                    try:
+                        sock.shutdown(socket.SHUT_RDWR)  # Корректное завершение соединения
+                    except OSError:
+                        pass  # Если сокет уже закрыт, игнорируем ошибку
                     sock.close()
 
     def stats_update(self, current_time, pps, mbps):
