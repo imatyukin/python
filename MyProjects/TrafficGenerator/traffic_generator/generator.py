@@ -12,7 +12,7 @@ class TrafficGenerator:
 
         :param config: Конфигурация генератора (словарь с настройками).
         :param stats: Словарь для хранения статистики.
-        :param protocol: Протокол (UDP или ICMP).
+        :param protocol: Протокол (UDP, TCP или ICMP).
         :param app_instance: Экземпляр приложения для обновления UI.
         """
         self.config = config
@@ -140,6 +140,34 @@ class TrafficGenerator:
                 self.real_destination_port = self.config['destination_port']
 
                 return sock
+            elif self.protocol == "TCP":
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(5)  # Таймаут на подключение 5 секунд
+                source_port = int(self.config.get('source_port', 0))
+                source_address = self.config.get('source_address', '0.0.0.0')
+
+                try:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    sock.bind((source_address, source_port))
+                    self.real_source_address, self.real_source_port = sock.getsockname()
+                except OSError as e:
+                    self.app_instance.statusBar.showMessage(
+                        f"Warning: Could not bind to {source_address}:{source_port}, letting OS choose. Error: {e}"
+                    )
+                    sock.close()
+                    return None
+
+                self.real_destination_address = self.config['destination_address']
+                self.real_destination_port = self.config['destination_port']
+
+                try:
+                    sock.connect((self.real_destination_address, self.real_destination_port))
+                except socket.timeout:
+                    self.app_instance.statusBar.showMessage("TCP connection timeout")
+                    sock.close()
+                    return None
+
+                return sock
             elif self.protocol == "ICMP":
                 sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
                 if self.config['source_address'] == '0.0.0.0':
@@ -164,6 +192,8 @@ class TrafficGenerator:
         try:
             message = None
             if self.protocol == "UDP":
+                message = os.urandom(self.config['packet_size'])  # Генерация случайных данных
+            elif self.protocol == "TCP":
                 message = os.urandom(self.config['packet_size'])  # Генерация случайных данных
             elif self.protocol == "ICMP":
                 message = self.create_icmp_packet(self.config['packet_size'])  # Создание ICMP пакета
@@ -190,6 +220,12 @@ class TrafficGenerator:
             while self.running:
                 if self.protocol == "UDP":
                     sock.sendto(message, (self.real_destination_address, self.config['destination_port']))
+                elif self.protocol == "TCP":
+                    try:
+                        sock.sendall(message)  # Отправка всего сообщения
+                    except (socket.error, BrokenPipeError) as e:
+                        print(f"TCP send error: {e}")
+                        self.running = False
                 elif self.protocol == "ICMP":
                     sock.sendto(message, (self.real_destination_address, 0))
 

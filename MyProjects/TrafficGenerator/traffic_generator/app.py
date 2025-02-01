@@ -1,6 +1,5 @@
 from PyQt5 import QtWidgets, QtGui, QtCore
 import time
-import yaml
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from qasync import asyncSlot
@@ -10,25 +9,31 @@ from utils import (  # Импортируем вспомогательные ф�
     validate_ip_address, validate_port, validate_packet_size,
     validate_threads, validate_range
 )
+from config import save_config, load_config  # Импортируем функции для работы с конфигурацией
 
 class TrafficGeneratorApp(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Traffic Generator v.2.0")
+        self.setWindowTitle("Traffic Generator v.3")
         self.setGeometry(100, 100, 1000, 800)
-        self.running = False  # Флаг для отслеживания состояния генератора
-        self.generator = None  # Экземпляр генератора трафика
-        self.stats = {'sent': 0, 'errors': 0, 'bytes': 0}  # Статистика
-        self.history = {'time': [], 'pps': [], 'mbps': []}  # История для графиков
-        self.start_time = 0  # Время начала генерации
-        self.protocol = 'UDP'  # Протокол по умолчанию
-        self.last_stats_text = ""  # Последний текст статистики
-        self.saved_ip_prec = 0  # Сохраненное значение IP Precedence
-        self.real_source_address = None  # Реальный IP-адрес источника
-        self.real_source_port = None  # Реальный порт источника
-        self.real_destination_address = None  # Реальный IP-адрес назначения
-        self.real_destination_port = None  # Реальный порт назначения
-        self.initUI()  # Инициализация интерфейса
+
+        self.running = False
+        self.generator = None
+        self.stats = {'sent': 0, 'errors': 0, 'bytes': 0}
+        self.history = {'time': [], 'pps': [], 'mbps': []}
+        self.start_time = 0
+        self.protocol = 'UDP'
+        self.last_stats_text = ""
+        self.saved_ip_prec = 0
+        self.real_source_address = None
+        self.real_source_port = None
+        self.real_destination_address = None
+        self.real_destination_port = None
+
+        # Инициализируем поле перед вызовом initUI()
+        self.field_widgets = {}
+
+        self.initUI()
 
     def initUI(self):
         """
@@ -57,10 +62,14 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
 
         # Выбор протокола
         self.protocol_type = QtWidgets.QComboBox()
-        self.protocol_type.addItems(["UDP", "ICMP"])
+        self.protocol_type.addItems(["UDP", "TCP", "ICMP"])  # Добавляем TCP
         settings_layout.addWidget(QtWidgets.QLabel("Protocol:"), 1, 0)
         settings_layout.addWidget(self.protocol_type, 1, 1)
         self.protocol_type.currentIndexChanged.connect(self.update_protocol)
+
+        self.traffic_type.currentIndexChanged.connect(self.update_protocol_options)
+        self.protocol_type.currentIndexChanged.connect(self.update_protocol)
+        self.update_protocol_options()
 
         # Поля для ввода данных
         self.source_ip = QtWidgets.QLineEdit()
@@ -90,6 +99,8 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         self.protocol_fields = {
             "udp": ["Source IP:", "Source Port:", "Destination IP:", "Destination Port:", "Packet Size:", "Threads:",
                     "DSCP (0-63):", "IP Precedence (0-7):", "ECN (0-3):"],
+            "tcp": ["Source IP:", "Source Port:", "Destination IP:", "Destination Port:", "Packet Size:", "Threads:",
+                    "DSCP (0-63):", "IP Precedence (0-7):", "ECN (0-3):"],  # Добавляем TCP
             "icmp": ["Source IP:", "Destination IP:", "Packet Size:", "Threads:", "DSCP (0-63):",
                      "IP Precedence (0-7):", "ECN (0-3):"]
         }
@@ -168,6 +179,24 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         """
         self.protocol = self.protocol_type.currentText()
         self.update_visible_fields()
+
+    def update_protocol_options(self):
+        """
+        Обновление доступных протоколов в зависимости от выбранного типа трафика.
+        """
+        current_traffic_type = self.traffic_type.currentText()
+        self.protocol_type.clear()
+
+        if current_traffic_type in ["multicast", "broadcast"]:
+            self.protocol_type.addItems(["UDP", "ICMP"])
+        else:
+            self.protocol_type.addItems(["UDP", "TCP", "ICMP"])
+
+        # Проверяем, если текущий выбранный протокол недоступен, переключаем на первый доступный
+        if self.protocol not in [self.protocol_type.itemText(i) for i in range(self.protocol_type.count())]:
+            self.protocol_type.setCurrentIndex(0)
+
+        self.update_protocol()
 
     def update_visible_fields(self):
         """
@@ -349,19 +378,35 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
             }
         }
 
-        if not self.validate_config(config):
-            return
+        save_config(config, self)  # Передаем self как parent_widget
 
-        options = QtWidgets.QFileDialog.Options()
-        file_name, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save YAML Config", "",
-                                                             "YAML Files (*.yaml);;All Files (*)", options=options)
-        if file_name:
-            try:
-                with open(file_name, 'w', encoding="utf-8") as file:
-                    yaml.dump(config, file, indent=2)
-                self.statusBar.showMessage(f"Config saved to {file_name}")
-            except Exception as e:
-                self.statusBar.showMessage(f"Error saving config {e}")
+    def load_config(self):
+        """
+        Загрузка конфигурации из YAML файла.
+        """
+        config = load_config(self)  # Передаем self как parent_widget
+        if config:
+            print("Loaded config:", config)
+            self.protocol_type.setCurrentText(config.get('protocol', 'UDP'))
+            self.update_protocol()
+            self.traffic_type.setCurrentText(config.get('traffic_type', 'unicast'))
+            self.update_destination_label()
+            self.source_ip.setText(config.get('source_address', '0.0.0.0'))
+            self.source_port.setText(str(config.get('source_port', '0')))
+            self.destination_ip.setText(config.get('destination_address', ''))
+            if config.get('protocol', 'UDP') == 'UDP':
+                self.dest_port.setText(str(config.get('destination_port', '0')))
+            else:
+                self.dest_port.setText("")
+            self.packet_size.setText(str(config.get('packet_size', '512')))
+            self.threads.setText(str(config.get('threads', '1')))
+            self.speed_mode.setCurrentText(config.get('speed_mode', 'mbps'))
+            self.speed_value.setText(str(config.get('speed_value', '1.0')))
+
+            qos = config.get('qos', {})
+            self.dscp.setText(str(qos.get('dscp', '')))
+            self.ip_prec.setText(str(qos.get('ip_precedence', '')))
+            self.ecn.setText(str(qos.get('ecn', '')))
 
     def validate_config(self, config):
         """
@@ -393,42 +438,3 @@ class TrafficGeneratorApp(QtWidgets.QMainWindow):
         except Exception as e:
             self.statusBar.showMessage(f"Error in config: {e}")
             return False
-
-    def load_config(self):
-        """
-        Загрузка конфигурации из YAML файла.
-        """
-        options = QtWidgets.QFileDialog.Options()
-        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Open YAML Config", "",
-                                                             "YAML Files (*.yaml);;All Files (*)", options=options)
-        if file_name:
-            try:
-                with open(file_name, 'r', encoding='utf-8') as file:
-                    config = yaml.safe_load(file)
-                    if not config:
-                        raise ValueError("Empty or invalid YAML file.")
-                    if not self.validate_config(config):
-                        return
-                    print("Loaded config:", config)
-                    self.protocol_type.setCurrentText(config.get('protocol', 'UDP'))
-                    self.update_protocol()
-                    self.traffic_type.setCurrentText(config.get('traffic_type', 'unicast'))
-                    self.update_destination_label()
-                    self.source_ip.setText(config.get('source_address', '0.0.0.0'))
-                    self.source_port.setText(str(config.get('source_port', '0')))
-                    self.destination_ip.setText(config.get('destination_address', ''))
-                    if config.get('protocol', 'UDP') == 'UDP':
-                        self.dest_port.setText(str(config.get('destination_port', '0')))
-                    else:
-                        self.dest_port.setText("")
-                    self.packet_size.setText(str(config.get('packet_size', '512')))
-                    self.threads.setText(str(config.get('threads', '1')))
-                    self.speed_mode.setCurrentText(config.get('speed_mode', 'mbps'))
-                    self.speed_value.setText(str(config.get('speed_value', '1.0')))
-
-                    qos = config.get('qos', {})
-                    self.dscp.setText(str(qos.get('dscp', '')))
-                    self.ip_prec.setText(str(qos.get('ip_precedence', '')))
-                    self.ecn.setText(str(qos.get('ecn', '')))
-            except Exception as e:
-                self.statusBar.showMessage(f"Failed to load config: {e}")
