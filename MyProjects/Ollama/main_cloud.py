@@ -27,6 +27,9 @@ qwen_history_file = "qwen_history.txt"
 QWEN_API_URL = "https://dashscope.aliyuncs.com/api/v1/services/qwen/generate"
 QWEN_API_KEY = "YOUR_QWEN_API_KEY"  # Замените на ваш API ключ
 
+# 4. Конфигурация API Deepseek
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"  # Пример URL, уточните у документации Deepseek
+DEEPSEEK_API_KEY = "YOUR_DEEPSEEK_API_KEY"  # Замените на ваш API ключ
 
 def get_loader_for_file(file_path):
     """Выбирает загрузчик в зависимости от формата файла."""
@@ -154,6 +157,23 @@ def answer_question_qwen(question, text):
     response = requests.post(url, headers=headers, json=data)
     return response.json().get("output", {}).get("text", "Ошибка при получении ответа.")
 
+def answer_question_deepseek(question, text):
+    """Ответ на вопрос с использованием API Deepseek."""
+    url = DEEPSEEK_API_URL
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": "deepseek-chat",  # Уточните модель в документации Deepseek
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": f"{text}\n\nQuestion: {question}"}
+        ],
+        "max_tokens": 100
+    }
+    response = requests.post(url, headers=headers, json=data)
+    return response.json().get("choices", [{}])[0].get("message", {}).get("content", "Ошибка при получении ответа.")
 
 def save_to_history(history_file, question, answer):
     """Сохраняет вопрос и ответ в файл истории."""
@@ -198,7 +218,7 @@ class MainWindow(QMainWindow):
         self.layout.addWidget(self.mode_label)
 
         self.mode_combo = QComboBox()
-        self.mode_combo.addItems(["Локальный", "Qwen"])
+        self.mode_combo.addItems(["Локальный", "Qwen", "Deepseek"])
         self.layout.addWidget(self.mode_combo)
 
         # Выбор файлов
@@ -306,9 +326,14 @@ class MainWindow(QMainWindow):
             if mode == "Локальный":
                 answer = answer_question_local(question)
                 history_file = local_history_file
-            else:
+            elif mode == "Qwen":
                 answer = answer_question_qwen(question, text)
                 history_file = qwen_history_file
+            elif mode == "Deepseek":
+                answer = answer_question_deepseek(question, text)
+                history_file = "deepseek_history.txt"  # Добавьте новый файл для истории Deepseek
+            else:
+                raise ValueError("Неизвестный режим работы")
 
             self.answer_output.setText(answer)
 
@@ -330,7 +355,15 @@ class MainWindow(QMainWindow):
     def show_history(self):
         # Определяем, какой файл истории использовать
         mode = self.mode_combo.currentText()
-        history_file = local_history_file if mode == "Локальный" else qwen_history_file
+        if mode == "Локальный":
+            history_file = local_history_file
+        elif mode == "Qwen":
+            history_file = qwen_history_file
+        elif mode == "Deepseek":
+            history_file = "deepseek_history.txt"
+        else:
+            QMessageBox.warning(self, "Ошибка", "Неизвестный режим работы")
+            return
 
         # Проверяем, существует ли файл
         if not os.path.exists(history_file):
@@ -352,6 +385,29 @@ class MainWindow(QMainWindow):
             dialog.exec_()
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", f"Не удалось прочитать историю: {e}")
+
+    def clear_history(self):
+        # Определяем, какой файл истории использовать
+        mode = self.mode_combo.currentText()
+        if mode == "Локальный":
+            history_file = local_history_file
+        elif mode == "Qwen":
+            history_file = qwen_history_file
+        elif mode == "Deepseek":
+            history_file = "deepseek_history.txt"
+        else:
+            QMessageBox.warning(self, "Ошибка", "Неизвестный режим работы")
+            return
+
+        # Проверяем, существует ли файл
+        if os.path.exists(history_file):
+            try:
+                os.remove(history_file)
+                QMessageBox.information(self, "История", f"История запросов для режима '{mode}' очищена.")
+            except Exception as e:
+                QMessageBox.critical(self, "Ошибка", f"Не удалось очистить историю: {e}")
+        else:
+            QMessageBox.information(self, "История", f"История запросов для режима '{mode}' уже пуста.")
 
     def clear_history(self):
         # Определяем, какой файл истории использовать
