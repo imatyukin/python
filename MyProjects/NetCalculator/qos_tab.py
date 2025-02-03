@@ -12,10 +12,10 @@ class QoSTab(QWidget):
 
         # Таблица с данными о QoS
         self.qos_table = QTableWidget()
-        self.qos_table.setColumnCount(15)  # Количество столбцов согласно файлу
+        self.qos_table.setColumnCount(16)  # Увеличиваем количество столбцов на 1 для DSCP HEX
         self.qos_table.setHorizontalHeaderLabels([
-            "Application", "CoS=IPP", "Traffic Class", "DSCP", "ToS", "ToS HEX",
-            "Drop Precedence", "8th bit", "7th bit", "6th bit", "5th bit", "4th bit", "3rd bit", "2nd bit", "1st bit"
+            "Application", "CoS=IPP", "Traffic Class", "DSCP", "DSCP HEX", "ToS", "ToS HEX",
+            "DP", "8th bit", "7th bit", "6th bit", "5th bit", "4th bit", "3rd bit", "2nd bit", "1st bit"
         ])
         self.qos_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.qos_table.setEditTriggers(QTableWidget.NoEditTriggers)  # Только для чтения
@@ -61,7 +61,7 @@ class QoSTab(QWidget):
 
     def generate_qos_data(self):
         """
-        Генерирует данные для таблицы QoS согласно содержимому Excel-файла.
+        Генерирует данные для таблицы QoS.
         """
         qos_data = []
 
@@ -97,6 +97,7 @@ class QoSTab(QWidget):
                 dscp_name = f"AF{class_num}{drop_prob}"
                 ds_field_dec = (class_num << 3) | (drop_prob << 1)  # Корректная формула
                 ds_field_bin = f"{ds_field_dec:06b}"  # Бинарное значение DS Field
+                ds_field_hex = f"0x{ds_field_dec:02X}"  # Шестнадцатеричное значение DSCP
 
                 # ToS Decimal (полное значение TOS)
                 tos_decimal = calculate_tos_decimal(ds_field_bin)
@@ -117,6 +118,7 @@ class QoSTab(QWidget):
                     cos_ipp,  # CoS=IPP
                     dscp_name,  # Traffic Class
                     ds_field_dec,  # DSCP
+                    ds_field_hex,  # DSCP HEX (новый столбец)
                     tos_decimal,  # ToS
                     tos_hex,  # ToS HEX
                     dp,  # Drop Precedence
@@ -125,15 +127,16 @@ class QoSTab(QWidget):
                     int(ds_field_bin[2]),  # 6th bit
                     int(ds_field_bin[3]),  # 5th bit
                     int(ds_field_bin[4]),  # 4th bit
-                    int(ds_field_bin[5]),  # 3th bit
-                    0,  # 2th bit (ECN)
-                    0  # 1th bit (ECN)
+                    int(ds_field_bin[5]),  # 3rd bit
+                    0,  # 2nd bit (ECN)
+                    0  # 1st bit (ECN)
                 ])
 
         # Expedited Forwarding (EF)
         ef_dscp = "EF"
         ef_ds_field_bin = "101110"
         ef_ds_field_dec = int(ef_ds_field_bin, 2)
+        ef_ds_field_hex = f"0x{ef_ds_field_dec:02X}"  # Шестнадцатеричное значение DSCP
 
         # ToS Decimal для EF
         ef_tos_decimal = calculate_tos_decimal(ef_ds_field_bin)
@@ -149,6 +152,7 @@ class QoSTab(QWidget):
             5,  # CoS=IPP
             ef_dscp,  # Traffic Class
             ef_ds_field_dec,  # DSCP
+            ef_ds_field_hex,  # DSCP HEX (новый столбец)
             ef_tos_decimal,  # ToS
             ef_tos_hex,  # ToS HEX
             "",  # Drop Precedence
@@ -157,15 +161,16 @@ class QoSTab(QWidget):
             int(ef_ds_field_bin[2]),  # 6th bit
             int(ef_ds_field_bin[3]),  # 5th bit
             int(ef_ds_field_bin[4]),  # 4th bit
-            int(ef_ds_field_bin[5]),  # 3th bit
-            1,  # 2th bit (ECN)
-            0  # 1th bit (ECN)
+            int(ef_ds_field_bin[5]),  # 3rd bit
+            1,  # 2nd bit (ECN)
+            0  # 1st bit (ECN)
         ])
 
         # Best Effort (BE)
         be_dscp = "BE"
         be_ds_field_bin = "000000"
         be_ds_field_dec = int(be_ds_field_bin, 2)
+        be_ds_field_hex = f"0x{be_ds_field_dec:02X}"  # Шестнадцатеричное значение DSCP
 
         # ToS Decimal для BE
         be_tos_decimal = calculate_tos_decimal(be_ds_field_bin)
@@ -181,6 +186,7 @@ class QoSTab(QWidget):
             0,  # CoS=IPP
             be_dscp,  # Traffic Class
             be_ds_field_dec,  # DSCP
+            be_ds_field_hex,  # DSCP HEX (новый столбец)
             be_tos_decimal,  # ToS
             be_tos_hex,  # ToS HEX
             "",  # Drop Precedence
@@ -189,16 +195,17 @@ class QoSTab(QWidget):
             int(be_ds_field_bin[2]),  # 6th bit
             int(be_ds_field_bin[3]),  # 5th bit
             int(be_ds_field_bin[4]),  # 4th bit
-            int(be_ds_field_bin[5]),  # 3th bit
-            0,  # 2th bit (ECN)
-            0  # 1th bit (ECN)
+            int(be_ds_field_bin[5]),  # 3rd bit
+            0,  # 2nd bit (ECN)
+            0  # 1st bit (ECN)
         ])
 
         # Class Selector (CS)
         for class_num in range(8):  # Классы CS0–CS7
             cs_dscp = f"CS{class_num}"
-            cs_ds_field_bin = f"{class_num << 3:06b}"  # Корректная формула
+            cs_ds_field_bin = f"{class_num << 3:06b}"
             cs_ds_field_dec = int(cs_ds_field_bin, 2)
+            cs_ds_field_hex = f"0x{cs_ds_field_dec:02X}"  # Шестнадцатеричное значение DSCP
 
             # ToS Decimal для CS
             cs_tos_decimal = calculate_tos_decimal(cs_ds_field_bin)
@@ -214,6 +221,7 @@ class QoSTab(QWidget):
                 class_num,  # CoS=IPP
                 cs_dscp,  # Traffic Class
                 cs_ds_field_dec,  # DSCP
+                cs_ds_field_hex,  # DSCP HEX (новый столбец)
                 cs_tos_decimal,  # ToS
                 cs_tos_hex,  # ToS HEX
                 "",  # Drop Precedence
@@ -222,9 +230,9 @@ class QoSTab(QWidget):
                 int(cs_ds_field_bin[2]),  # 6th bit
                 int(cs_ds_field_bin[3]),  # 5th bit
                 int(cs_ds_field_bin[4]),  # 4th bit
-                int(cs_ds_field_bin[5]),  # 3th bit
-                0,  # 2th bit (ECN)
-                0  # 1th bit (ECN)
+                int(cs_ds_field_bin[5]),  # 3rd bit
+                0,  # 2nd bit (ECN)
+                0  # 1st bit (ECN)
             ])
 
         return qos_data
