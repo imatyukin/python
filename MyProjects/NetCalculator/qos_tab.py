@@ -20,13 +20,17 @@ class QoSTab(QWidget):
         self.qos_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.qos_table.setEditTriggers(QTableWidget.NoEditTriggers)  # Только для чтения
         self.qos_table.verticalHeader().setVisible(False)  # Убираем номера строк
+        self.qos_table.setSelectionBehavior(QTableWidget.SelectRows)  # Выделение целых строк
+        self.qos_table.setSelectionMode(QTableWidget.SingleSelection)  # Одиночное выделение
 
         # Добавляем данные в таблицу
         qos_data = self.generate_qos_data()
         self.qos_table.setRowCount(len(qos_data))
         for row, data_row in enumerate(qos_data):
             for col, value in enumerate(data_row):
-                self.qos_table.setItem(row, col, QTableWidgetItem(str(value)))
+                item = QTableWidgetItem(str(value))
+                item.setFlags(item.flags() & ~Qt.ItemIsEditable)  # Запрещаем редактирование
+                self.qos_table.setItem(row, col, item)
 
         layout.addWidget(self.qos_table)
 
@@ -77,7 +81,7 @@ class QoSTab(QWidget):
             "AF43": ("High-Priority", "High"),
         }
 
-        # Функция для расчета ToS (DEC)
+        # Функция для расчета ToS Decimal
         def calculate_tos_decimal(ds_field_bin):
             """
             Рассчитывает полное значение ToS Decimal из DS Field Binary.
@@ -104,10 +108,13 @@ class QoSTab(QWidget):
                 # Application и Drop Precedence
                 application, dp = af_applications.get(dscp_name, ("", ""))
 
+                # CoS=IPP для AF-классов всегда равен номеру класса
+                cos_ipp = class_num  # IPP = class_num для AF-классов
+
                 # Добавляем данные в таблицу
                 qos_data.append([
                     application,  # Application
-                    class_num - 1,  # CoS=IPP
+                    cos_ipp,  # CoS=IPP
                     dscp_name,  # Traffic Class
                     ds_field_dec,  # DSCP
                     tos_decimal,  # ToS
@@ -119,8 +126,8 @@ class QoSTab(QWidget):
                     int(ds_field_bin[3]),  # 5th bit
                     int(ds_field_bin[4]),  # 4th bit
                     int(ds_field_bin[5]),  # 3th bit
-                    0,  # 2th bit (всегда 0 для AF)
-                    0  # 1th bit (всегда 0 для AF)
+                    0,  # 2th bit (ECN)
+                    0  # 1th bit (ECN)
                 ])
 
         # Expedited Forwarding (EF)
