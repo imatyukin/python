@@ -1,3 +1,5 @@
+import socket  # Добавляем импорт модуля socket
+
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QGridLayout, QLabel, QLineEdit, QPushButton,
     QComboBox, QTableWidget, QTableWidgetItem, QHeaderView, QMenu, QApplication
@@ -58,6 +60,13 @@ class IPv4Calculator(QWidget):
         self.ip_label = QLabel("IP адрес:")
         grid_layout.addWidget(self.ip_label, 0, 0)
         grid_layout.addWidget(self.ip_input, 0, 1)
+
+        # Автоматическая вставка IP-адреса системы
+        try:
+            host_ip = socket.gethostbyname(socket.gethostname())  # Получаем IP-адрес хоста
+            self.ip_input.setText(host_ip)  # Вставляем его в поле ввода
+        except Exception as e:
+            print(f"Ошибка при получении IP-адреса: {e}")
 
         # Маска
         self.mask_combo = QComboBox()
@@ -129,8 +138,7 @@ class IPv4Calculator(QWidget):
         layout.addWidget(self.info_label)
 
         # Подсказка о формате ввода
-        self.input_hint_label = QLabel(
-            "В поле IP адреса можно так же вводить данные в формате IP/mask, например 192.168.0.1/16")
+        self.input_hint_label = QLabel("В поле IP адреса можно так же вводить данные в формате IP/mask, например 192.168.0.1/16")
         self.input_hint_label.setWordWrap(True)  # Включаем перенос текста
         layout.addWidget(self.input_hint_label)  # Добавляем подсказку в макет
 
@@ -179,14 +187,10 @@ class IPv4Calculator(QWidget):
                 ("Bitmask", str(prefix), "", ""),
                 ("Netmask", str(netmask), ipv4_hex(str(netmask)), ipv4_binary(str(netmask), prefix)),
                 ("Wildcard", str(wildcard), ipv4_hex(str(wildcard)), ipv4_binary(str(wildcard), prefix)),
-                ("Network", str(network.network_address), ipv4_hex(str(network.network_address)),
-                 ipv4_binary(str(network.network_address), prefix)),
-                ("Broadcast", str(network.broadcast_address), ipv4_hex(str(network.broadcast_address)),
-                 ipv4_binary(str(network.broadcast_address), prefix)),
-                ("Hostmin", hostmin, ipv4_hex(hostmin) if hostmin else "",
-                 ipv4_binary(hostmin, prefix) if hostmin else ""),
-                ("Hostmax", hostmax, ipv4_hex(hostmax) if hostmax else "",
-                 ipv4_binary(hostmax, prefix) if hostmax else ""),
+                ("Network", str(network.network_address), ipv4_hex(str(network.network_address)), ipv4_binary(str(network.network_address), prefix)),
+                ("Broadcast", str(network.broadcast_address), ipv4_hex(str(network.broadcast_address)), ipv4_binary(str(network.broadcast_address), prefix)),
+                ("Hostmin", hostmin, ipv4_hex(hostmin) if hostmin else "", ipv4_binary(hostmin, prefix) if hostmin else ""),
+                ("Hostmax", hostmax, ipv4_hex(hostmax) if hostmax else "", ipv4_binary(hostmax, prefix) if hostmax else ""),
                 ("Hosts", f"{total_hosts:,}" if total_hosts >= 0 else "0", "", "")
             ]
 
@@ -226,6 +230,7 @@ class IPv4Calculator(QWidget):
             selected_item = self.result_table.itemAt(pos)
             if selected_item:
                 QApplication.clipboard().setText(selected_item.text())
+
 
 if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication
