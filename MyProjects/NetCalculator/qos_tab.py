@@ -83,10 +83,10 @@ class QoSTab(QWidget):
 
         # AF-классы (Assured Forwarding)
         for class_num in range(1, 5):  # Классы AF1–AF4
-            for drop_prob in range(0, 3):  # Уровни надежности (0-2)
-                dscp_name = f"AF{class_num}{drop_prob + 1}"
-                ds_field_dec = (class_num << 3) + (drop_prob << 1)  # **Correct Formula**
-                ds_field_bin = f"{ds_field_dec:06b}"
+            for drop_prob in range(1, 4):  # Уровни надежности (1–3)
+                dscp_name = f"AF{class_num}{drop_prob}"
+                ds_field_dec = (class_num << 3) | (drop_prob << 1)  # **Correct Formula**
+                ds_field_bin = f"{ds_field_dec:06b}"  # Бинарное значение DS Field
                 ds_field_hex = f"0x{ds_field_dec:02X}"  # Шестнадцатеричное значение DS Field
 
                 # TOS Precedence (первые 3 бита из DS Field)
@@ -113,6 +113,7 @@ class QoSTab(QWidget):
                     str(tos_precedence), tos_hex, str(tos_full_decimal), tos_full_bin,
                     tos_name, service_class_name, str(mpls_exp), mpls_exp_bin
                 ))
+
         # Expedited Forwarding (EF)
         ef_dscp = "EF"
         ef_ds_field_bin = "101110"
@@ -172,8 +173,8 @@ class QoSTab(QWidget):
         # CS-классы (Class Selector)
         for class_num in range(8):  # Классы CS0–CS7
             cs_dscp = f"CS{class_num}"
-            cs_ds_field_bin = f"{class_num << 3:06b}"  # Бинарное значение DS Field (6 бит)
-            cs_ds_field_dec = int(cs_ds_field_bin, 2)  # Десятичное значение DS Field
+            cs_ds_field_dec = class_num << 3  # **Correct Formula** для CS-классов
+            cs_ds_field_bin = f"{cs_ds_field_dec:06b}"  # Бинарное значение DS Field (6 бит)
             cs_ds_field_hex = f"0x{cs_ds_field_dec:02X}"  # Шестнадцатеричное значение DS Field
 
             # TOS Precedence (равно первым 3 битам DS Field)
