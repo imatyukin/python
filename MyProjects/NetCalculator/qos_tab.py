@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QHeaderView, QLineEdit, QHBoxLayout
 from PyQt5.QtCore import Qt
 
+
 class QoSTab(QWidget):
     def __init__(self):
         super().__init__()
@@ -11,195 +12,212 @@ class QoSTab(QWidget):
 
         # Таблица с данными о QoS
         self.qos_table = QTableWidget()
-        self.qos_table.setColumnCount(12)  # 12 столбцов
+        self.qos_table.setColumnCount(15)  # Количество столбцов согласно файлу
         self.qos_table.setHorizontalHeaderLabels([
-            "DSCP Name", "DS Field Binary", "DS Field Decimal", "DS Hex",
-            "TOS Precedence (dec)", "ToS Hexadecimal", "ToS Decimal", "ToS Binary",
-            "ToS Name", "Service Class Name", "MPLS EXP", "MPLS EXP Binary"
+            "Application", "CoS=IPP", "Traffic Class", "DSCP", "ToS", "ToS HEX",
+            "Drop Precedence", "8th bit", "7th bit", "6th bit", "5th bit", "4th bit", "3th bit", "2th bit", "1th bit"
         ])
         self.qos_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.qos_table.setEditTriggers(QTableWidget.NoEditTriggers)  # Только для чтения
         self.qos_table.verticalHeader().setVisible(False)  # Убираем номера строк
-        self.qos_table.setSortingEnabled(True)  # Включаем сортировку
 
         # Добавляем данные в таблицу
         qos_data = self.generate_qos_data()
-        qos_data.sort(key=lambda x: int(x[2]))  # Сортируем по DS Field Decimal (третий элемент кортежа)
         self.qos_table.setRowCount(len(qos_data))
         for row, data_row in enumerate(qos_data):
             for col, value in enumerate(data_row):
-                self.qos_table.setItem(row, col, QTableWidgetItem(value))
+                self.qos_table.setItem(row, col, QTableWidgetItem(str(value)))
 
-        # Добавляем фильтры под таблицей
+        layout.addWidget(self.qos_table)
+
+        # Добавляем фильтры под каждым столбцом
         filter_layout = QHBoxLayout()
         self.filter_widgets = []
         for col in range(self.qos_table.columnCount()):
             filter_widget = QLineEdit()
-            filter_widget.setPlaceholderText(f"Filter by {self.qos_table.horizontalHeaderItem(col).text()}")
-            filter_widget.textChanged.connect(self.filter_table)
+            filter_widget.setPlaceholderText(f"Filter {self.qos_table.horizontalHeaderItem(col).text()}")
+            filter_widget.textChanged.connect(lambda text, c=col: self.filter_table(c, text))
             filter_layout.addWidget(filter_widget)
             self.filter_widgets.append(filter_widget)
 
-        layout.addWidget(self.qos_table)
         layout.addLayout(filter_layout)
         self.setLayout(layout)
 
-    def filter_table(self):
+    def filter_table(self, column, text):
+        """
+        Фильтрует таблицу по указанному столбцу и тексту.
+        """
+        text = text.lower()
         for row in range(self.qos_table.rowCount()):
-            match = True
-            for col in range(self.qos_table.columnCount()):
-                filter_text = self.filter_widgets[col].text().lower()
-                item = self.qos_table.item(row, col)
-                if item and filter_text:
-                    if filter_text not in item.text().lower():
-                        match = False
-                        break
-            self.qos_table.setRowHidden(row, not match)
+            item = self.qos_table.item(row, column)
+            if item and text in item.text().lower():
+                self.qos_table.setRowHidden(row, False)
+            else:
+                self.qos_table.setRowHidden(row, True)
 
     def generate_qos_data(self):
         """
-        Генерирует данные для таблицы QoS согласно RFC 2474, RFC 2475 и спецификации MPLS EXP.
-        Включает AF-классы (AF11–AF43), EF, BE и CS-классы (CS0–CS7).
+        Генерирует данные для таблицы QoS согласно содержимому Excel-файла.
         """
         qos_data = []
 
-        # Функции для преобразования значений
-        def tos_to_hex(tos_decimal):
-            return f"0x{tos_decimal:02X}"
+        # Сопоставление AF-классов с приложениями
+        af_applications = {
+            "AF11": ("Low-Priority", "Low"),
+            "AF12": ("Low-Priority", "Medium"),
+            "AF13": ("Low-Priority", "High"),
+            "AF21": ("Business-Critical", "Low"),
+            "AF22": ("Business-Critical", "Medium"),
+            "AF23": ("Business-Critical", "High"),
+            "AF31": ("Interactive", "Low"),
+            "AF32": ("Interactive", "Medium"),
+            "AF33": ("Interactive", "High"),
+            "AF41": ("High-Priority", "Low"),
+            "AF42": ("High-Priority", "Medium"),
+            "AF43": ("High-Priority", "High"),
+        }
 
-        def tos_to_binary(tos_decimal):
-            return format(tos_decimal, '08b')
-
-        def mpls_exp_to_binary(exp_decimal):
-            return format(exp_decimal, '03b')
-
+        # Функция для расчета ToS (DEC)
         def calculate_tos_decimal(ds_field_bin):
             """
             Рассчитывает полное значение ToS Decimal из DS Field Binary.
-            Первые 3 бита маппируются на TOS Precedence, остальные 5 битов заполняются нулями.
+            Первые 3 бита маппируются на IPP, следующие 3 бита — на Drop Probability.
             """
-            tos_precedence = int(ds_field_bin[:3], 2)  # Первые 3 бита DS Field
-            return tos_precedence << 5  # Сдвигаем на 5 битов влево
+            ipp = int(ds_field_bin[:3], 2)  # Первые 3 бита DS Field
+            drop_probability = int(ds_field_bin[3:], 2)  # Следующие 3 бита DS Field
+            return (ipp << 5) | (drop_probability << 2)  # Объединяем значения
 
         # AF-классы (Assured Forwarding)
         for class_num in range(1, 5):  # Классы AF1–AF4
             for drop_prob in range(1, 4):  # Уровни надежности (1–3)
                 dscp_name = f"AF{class_num}{drop_prob}"
-                ds_field_dec = (class_num << 3) | (drop_prob << 1)  # **Correct Formula**
+                ds_field_dec = (class_num << 3) | (drop_prob << 1)  # Корректная формула
                 ds_field_bin = f"{ds_field_dec:06b}"  # Бинарное значение DS Field
-                ds_field_hex = f"0x{ds_field_dec:02X}"  # Шестнадцатеричное значение DS Field
-
-                # TOS Precedence (первые 3 бита из DS Field)
-                tos_precedence = (class_num - 1) * 8  # Преобразование класса в приоритет TOS
-                tos_hex = tos_to_hex(tos_precedence)
-                tos_dec = tos_precedence
-                tos_bin = tos_to_binary(tos_precedence)
 
                 # ToS Decimal (полное значение TOS)
-                tos_full_decimal = calculate_tos_decimal(ds_field_bin)
-                tos_full_bin = format(tos_full_decimal, '08b')
-                tos_full_hex = tos_to_hex(tos_full_decimal)
+                tos_decimal = calculate_tos_decimal(ds_field_bin)
+                tos_hex = f"0x{tos_decimal:02X}"
 
-                # ToS Name和服务 Class Name
-                tos_name = f"Precedence {class_num - 1}"
-                service_class_name = "Assured Forwarding"
+                # ECN (Explicit Congestion Notification)
+                ecn = ds_field_bin[-2:]
 
-                # MPLS EXP (первые 3 бита DS Field)
-                mpls_exp = (ds_field_dec >> 3) & 0b111  # Извлекаем первые 3 бита для MPLS EXP
-                mpls_exp_bin = mpls_exp_to_binary(mpls_exp)
+                # Application и Drop Precedence
+                application, dp = af_applications.get(dscp_name, ("", ""))
 
-                qos_data.append((
-                    dscp_name, ds_field_bin, str(ds_field_dec), ds_field_hex,
-                    str(tos_precedence), tos_hex, str(tos_full_decimal), tos_full_bin,
-                    tos_name, service_class_name, str(mpls_exp), mpls_exp_bin
-                ))
+                # Добавляем данные в таблицу
+                qos_data.append([
+                    application,  # Application
+                    class_num - 1,  # CoS=IPP
+                    dscp_name,  # Traffic Class
+                    ds_field_dec,  # DSCP
+                    tos_decimal,  # ToS
+                    tos_hex,  # ToS HEX
+                    dp,  # Drop Precedence
+                    int(ds_field_bin[0]),  # 8th bit
+                    int(ds_field_bin[1]),  # 7th bit
+                    int(ds_field_bin[2]),  # 6th bit
+                    int(ds_field_bin[3]),  # 5th bit
+                    int(ds_field_bin[4]),  # 4th bit
+                    int(ds_field_bin[5]),  # 3th bit
+                    0,  # 2th bit (всегда 0 для AF)
+                    0  # 1th bit (всегда 0 для AF)
+                ])
 
         # Expedited Forwarding (EF)
         ef_dscp = "EF"
         ef_ds_field_bin = "101110"
         ef_ds_field_dec = int(ef_ds_field_bin, 2)
-        ef_ds_field_hex = f"0x{ef_ds_field_dec:02X}"
 
-        # TOS Precedence для EF (первые 3 бита DS Field)
-        ef_tos_precedence = (ef_ds_field_dec >> 5) & 0b111  # Первые 3 бита DS Field
-        ef_tos_hex = tos_to_hex(ef_tos_precedence)
-        ef_tos_dec = ef_tos_precedence
-        ef_tos_bin = tos_to_binary(ef_tos_precedence)
+        # ToS Decimal для EF
+        ef_tos_decimal = calculate_tos_decimal(ef_ds_field_bin)
+        ef_tos_hex = f"0x{ef_tos_decimal:02X}"
 
-        # ToS Decimal (полное значение TOS)
-        ef_tos_full_decimal = calculate_tos_decimal(ef_ds_field_bin)
-        ef_tos_full_bin = format(ef_tos_full_decimal, '08b')
-        ef_tos_full_hex = tos_to_hex(ef_tos_full_decimal)
+        # ECN для EF
+        ef_ecn = ef_ds_field_bin[-2:]
+        ef_application = "Voice"
 
-        ef_tos_name = "Expedited Forwarding"
-        ef_service_class_name = "Expedited Forwarding"
-        ef_mpls_exp = (ef_ds_field_dec >> 3) & 0b111  # Извлекаем MPLS EXP
-        ef_mpls_exp_bin = mpls_exp_to_binary(ef_mpls_exp)
-
-        qos_data.append((
-            ef_dscp, ef_ds_field_bin, str(ef_ds_field_dec), ef_ds_field_hex,
-            str(ef_tos_precedence), ef_tos_hex, str(ef_tos_full_decimal), ef_tos_full_bin,
-            ef_tos_name, ef_service_class_name, str(ef_mpls_exp), ef_mpls_exp_bin
-        ))
+        # Добавляем EF в таблицу
+        qos_data.append([
+            ef_application,  # Application
+            5,  # CoS=IPP
+            ef_dscp,  # Traffic Class
+            ef_ds_field_dec,  # DSCP
+            ef_tos_decimal,  # ToS
+            ef_tos_hex,  # ToS HEX
+            "",  # Drop Precedence
+            int(ef_ds_field_bin[0]),  # 8th bit
+            int(ef_ds_field_bin[1]),  # 7th bit
+            int(ef_ds_field_bin[2]),  # 6th bit
+            int(ef_ds_field_bin[3]),  # 5th bit
+            int(ef_ds_field_bin[4]),  # 4th bit
+            int(ef_ds_field_bin[5]),  # 3th bit
+            1,  # 2th bit (ECN)
+            0  # 1th bit (ECN)
+        ])
 
         # Best Effort (BE)
         be_dscp = "BE"
         be_ds_field_bin = "000000"
         be_ds_field_dec = int(be_ds_field_bin, 2)
-        be_ds_field_hex = f"0x{be_ds_field_dec:02X}"
 
-        # TOS Precedence для BE
-        be_tos_precedence = 0  # Приоритет TOS для BE
-        be_tos_hex = tos_to_hex(be_tos_precedence)
-        be_tos_dec = be_tos_precedence
-        be_tos_bin = tos_to_binary(be_tos_precedence)
+        # ToS Decimal для BE
+        be_tos_decimal = calculate_tos_decimal(be_ds_field_bin)
+        be_tos_hex = f"0x{be_tos_decimal:02X}"
 
-        # ToS Decimal (полное значение TOS)
-        be_tos_full_decimal = calculate_tos_decimal(be_ds_field_bin)
-        be_tos_full_bin = format(be_tos_full_decimal, '08b')
-        be_tos_full_hex = tos_to_hex(be_tos_full_decimal)
+        # ECN для BE
+        be_ecn = be_ds_field_bin[-2:]
+        be_application = "Best Effort"
 
-        be_tos_name = "Best Effort"
-        be_service_class_name = "Best Effort"
-        be_mpls_exp = (be_ds_field_dec >> 3) & 0b111  # Извлекаем MPLS EXP
-        be_mpls_exp_bin = mpls_exp_to_binary(be_mpls_exp)
+        # Добавляем BE в таблицу
+        qos_data.append([
+            be_application,  # Application
+            0,  # CoS=IPP
+            be_dscp,  # Traffic Class
+            be_ds_field_dec,  # DSCP
+            be_tos_decimal,  # ToS
+            be_tos_hex,  # ToS HEX
+            "",  # Drop Precedence
+            int(be_ds_field_bin[0]),  # 8th bit
+            int(be_ds_field_bin[1]),  # 7th bit
+            int(be_ds_field_bin[2]),  # 6th bit
+            int(be_ds_field_bin[3]),  # 5th bit
+            int(be_ds_field_bin[4]),  # 4th bit
+            int(be_ds_field_bin[5]),  # 3th bit
+            0,  # 2th bit (ECN)
+            0  # 1th bit (ECN)
+        ])
 
-        qos_data.append((
-            be_dscp, be_ds_field_bin, str(be_ds_field_dec), be_ds_field_hex,
-            str(be_tos_precedence), be_tos_hex, str(be_tos_full_decimal), be_tos_full_bin,
-            be_tos_name, be_service_class_name, str(be_mpls_exp), be_mpls_exp_bin
-        ))
-
-        # CS-классы (Class Selector)
+        # Class Selector (CS)
         for class_num in range(8):  # Классы CS0–CS7
             cs_dscp = f"CS{class_num}"
-            cs_ds_field_dec = class_num << 3  # **Correct Formula** для CS-классов
-            cs_ds_field_bin = f"{cs_ds_field_dec:06b}"  # Бинарное значение DS Field (6 бит)
-            cs_ds_field_hex = f"0x{cs_ds_field_dec:02X}"  # Шестнадцатеричное значение DS Field
+            cs_ds_field_bin = f"{class_num << 3:06b}"  # Корректная формула
+            cs_ds_field_dec = int(cs_ds_field_bin, 2)
 
-            # TOS Precedence (равно первым 3 битам DS Field)
-            tos_precedence = class_num * 8
-            tos_hex = tos_to_hex(tos_precedence)
-            tos_dec = tos_precedence
-            tos_bin = tos_to_binary(tos_precedence)
+            # ToS Decimal для CS
+            cs_tos_decimal = calculate_tos_decimal(cs_ds_field_bin)
+            cs_tos_hex = f"0x{cs_tos_decimal:02X}"
 
-            # ToS Decimal (полное значение TOS)
-            tos_full_decimal = calculate_tos_decimal(cs_ds_field_bin)
-            tos_full_bin = format(tos_full_decimal, '08b')
-            tos_full_hex = tos_to_hex(tos_full_decimal)
+            # ECN для CS
+            cs_ecn = cs_ds_field_bin[-2:]
+            cs_application = f"Class Selector {class_num}"
 
-            # ToS Name和服务 Class Name
-            tos_name = f"Class Selector {class_num}"
-            service_class_name = "Class Selector"
-
-            # MPLS EXP (первые 3 бита DS Field)
-            mpls_exp = class_num  # Для CS, EXP равен номеру класса
-            mpls_exp_bin = mpls_exp_to_binary(mpls_exp)
-
-            qos_data.append((
-                cs_dscp, cs_ds_field_bin, str(cs_ds_field_dec), cs_ds_field_hex,
-                str(tos_precedence), tos_hex, str(tos_full_decimal), tos_full_bin,
-                tos_name, service_class_name, str(mpls_exp), mpls_exp_bin
-            ))
+            # Добавляем CS в таблицу
+            qos_data.append([
+                cs_application,  # Application
+                class_num,  # CoS=IPP
+                cs_dscp,  # Traffic Class
+                cs_ds_field_dec,  # DSCP
+                cs_tos_decimal,  # ToS
+                cs_tos_hex,  # ToS HEX
+                "",  # Drop Precedence
+                int(cs_ds_field_bin[0]),  # 8th bit
+                int(cs_ds_field_bin[1]),  # 7th bit
+                int(cs_ds_field_bin[2]),  # 6th bit
+                int(cs_ds_field_bin[3]),  # 5th bit
+                int(cs_ds_field_bin[4]),  # 4th bit
+                int(cs_ds_field_bin[5]),  # 3th bit
+                0,  # 2th bit (ECN)
+                0  # 1th bit (ECN)
+            ])
 
         return qos_data
