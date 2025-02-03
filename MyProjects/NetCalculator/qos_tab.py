@@ -15,7 +15,7 @@ class QoSTab(QWidget):
         self.qos_table.setColumnCount(15)  # Количество столбцов согласно файлу
         self.qos_table.setHorizontalHeaderLabels([
             "Application", "CoS=IPP", "Traffic Class", "DSCP", "ToS", "ToS HEX",
-            "Drop Precedence", "8th bit", "7th bit", "6th bit", "5th bit", "4th bit", "3th bit", "2th bit", "1th bit"
+            "Drop Precedence", "8th bit", "7th bit", "6th bit", "5th bit", "4th bit", "3rd bit", "2nd bit", "1st bit"
         ])
         self.qos_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.qos_table.setEditTriggers(QTableWidget.NoEditTriggers)  # Только для чтения
