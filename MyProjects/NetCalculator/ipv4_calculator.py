@@ -7,10 +7,15 @@ from ipaddress import IPv4Address, IPv4Network
 
 
 def ipv4_hex(ip_str):
+    """Функция для преобразования IP-адреса в 16-ричный формат."""
     return ".".join(format(int(x), '02X') for x in ip_str.split("."))
 
 
 def ipv4_binary(ip_str, prefix):
+    """
+    Функция для преобразования IP-адреса в бинарный формат с разделителем '|'.
+    Разделитель ставится между сетевой и хостовой частями.
+    """
     binary_parts = [format(int(x), '08b') for x in ip_str.split(".")]
     if prefix == 32:
         return ".".join(binary_parts)  # Без разделителя для /32
@@ -35,6 +40,7 @@ def ipv4_binary(ip_str, prefix):
         binary_value = binary_value[1:]
 
     return binary_value
+
 
 class IPv4Calculator(QWidget):
     def __init__(self):
@@ -113,6 +119,8 @@ class IPv4Calculator(QWidget):
         self.result_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.result_table.setSelectionBehavior(QTableWidget.SelectItems)
         self.result_table.verticalHeader().setVisible(False)
+        self.result_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.result_table.customContextMenuRequested.connect(self.show_context_menu)
         layout.addWidget(self.result_table)
 
         # Информационная панель под таблицей
@@ -121,7 +129,6 @@ class IPv4Calculator(QWidget):
         layout.addWidget(self.info_label)
 
         self.setLayout(layout)
-
 
     def calculate_ipv4(self):
         try:
@@ -134,21 +141,22 @@ class IPv4Calculator(QWidget):
             wildcard = IPv4Address(~int(netmask) & 0xFFFFFFFF)
 
             # Вычисляем общее количество хостов
-            if prefix == 31 or prefix == 32:
-                total_hosts = 0
-            else:
-                total_hosts = 2 ** (32 - prefix) - 2
-
-            # Определяем hostmin и hostmax
-            if prefix == 31:  # Для /31
+            if prefix == 32:  # Для /32
+                total_hosts = 1  # Только один адрес
+                hostmin = str(network.network_address)  # Сетевой адрес
+                hostmax = str(network.broadcast_address)  # Широковещательный адрес (совпадает с сетевым)
+            elif prefix == 31:  # Для /31
+                total_hosts = 2  # Два адреса: сетевой и широковещательный
                 hostmin = str(network.network_address)  # Сетевой адрес
                 hostmax = str(network.broadcast_address)  # Широковещательный адрес
-            elif prefix < 31:  # Для /1–/30
-                hostmin = str(network.network_address + 1)
-                hostmax = str(network.broadcast_address - 1)
-            else:  # Для /32
-                hostmin = ""
-                hostmax = ""
+            else:  # Для остальных масок
+                total_hosts = 2 ** (32 - prefix) - 2
+                if prefix < 31:
+                    hostmin = str(network.network_address + 1)
+                    hostmax = str(network.broadcast_address - 1)
+                else:
+                    hostmin = ""
+                    hostmax = ""
 
             # Подготовка данных для таблицы
             data = [
@@ -156,10 +164,14 @@ class IPv4Calculator(QWidget):
                 ("Bitmask", str(prefix), "", ""),
                 ("Netmask", str(netmask), ipv4_hex(str(netmask)), ipv4_binary(str(netmask), prefix)),
                 ("Wildcard", str(wildcard), ipv4_hex(str(wildcard)), ipv4_binary(str(wildcard), prefix)),
-                ("Network", str(network.network_address), ipv4_hex(str(network.network_address)), ipv4_binary(str(network.network_address), prefix)),
-                ("Broadcast", str(network.broadcast_address), ipv4_hex(str(network.broadcast_address)), ipv4_binary(str(network.broadcast_address), prefix)),
-                ("Hostmin", hostmin, ipv4_hex(hostmin) if hostmin else "", ipv4_binary(hostmin, prefix) if hostmin else ""),
-                ("Hostmax", hostmax, ipv4_hex(hostmax) if hostmax else "", ipv4_binary(hostmax, prefix) if hostmax else ""),
+                ("Network", str(network.network_address), ipv4_hex(str(network.network_address)),
+                 ipv4_binary(str(network.network_address), prefix)),
+                ("Broadcast", str(network.broadcast_address), ipv4_hex(str(network.broadcast_address)),
+                 ipv4_binary(str(network.broadcast_address), prefix)),
+                ("Hostmin", hostmin, ipv4_hex(hostmin) if hostmin else "",
+                 ipv4_binary(hostmin, prefix) if hostmin else ""),
+                ("Hostmax", hostmax, ipv4_hex(hostmax) if hostmax else "",
+                 ipv4_binary(hostmax, prefix) if hostmax else ""),
                 ("Hosts", f"{total_hosts:,}" if total_hosts >= 0 else "0", "", "")
             ]
 
@@ -185,9 +197,13 @@ class IPv4Calculator(QWidget):
 
         except Exception as e:
             print(f"Ошибка: {e}")
-
+            self.info_label.setText(f"Ошибка: {str(e)}")
 
     def show_context_menu(self, pos):
+        """
+        Показывает контекстное меню при правом клике на таблице.
+        Позволяет скопировать содержимое выбранной ячейки.
+        """
         menu = QMenu(self)
         copy_action = menu.addAction("Копировать")
         action = menu.exec_(self.result_table.mapToGlobal(pos))
@@ -196,12 +212,13 @@ class IPv4Calculator(QWidget):
             if selected_item:
                 QApplication.clipboard().setText(selected_item.text())
 
-
 if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication
     import sys
 
     app = QApplication(sys.argv)
     window = IPv4Calculator()
+    window.setWindowTitle("IPv4 Calculator")
+    window.setGeometry(100, 100, 800, 600)
     window.show()
     sys.exit(app.exec_())

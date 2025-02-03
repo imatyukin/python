@@ -8,7 +8,7 @@ from qos_tab import QoSTab  # Модуль для QoS
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("IP Calculator")
+        self.setWindowTitle("Net Calculator")
         self.setGeometry(100, 100, 800, 600)
 
         # Создание вкладок
