@@ -128,27 +128,42 @@ class IPv4Calculator(QWidget):
         self.info_label.setWordWrap(True)  # Включаем автоматический перенос текста
         layout.addWidget(self.info_label)
 
+        # Подсказка о формате ввода
+        self.input_hint_label = QLabel(
+            "В поле IP адреса можно так же вводить данные в формате IP/mask, например 192.168.0.1/16")
+        self.input_hint_label.setWordWrap(True)  # Включаем перенос текста
+        layout.addWidget(self.input_hint_label)  # Добавляем подсказку в макет
+
         self.setLayout(layout)
 
     def calculate_ipv4(self):
         try:
-            ip = self.ip_input.text()
-            mask_text = self.mask_combo.currentText()
-            prefix = int(mask_text.split(" - ")[0])
+            ip_input = self.ip_input.text().strip()  # Получаем текст из поля ввода
 
+            # Проверяем, содержит ли ввод маску (/prefix)
+            if "/" in ip_input:
+                ip, prefix_str = ip_input.split("/", 1)  # Разделяем IP и маску
+                prefix = int(prefix_str.strip())  # Преобразуем маску в число
+                mask_text = f"{prefix} - {IPv4Network(f'0.0.0.0/{prefix}', strict=False).netmask}"  # Находим соответствующую маску
+            else:
+                ip = ip_input
+                mask_text = self.mask_combo.currentText()  # Используем выбранную маску из выпадающего списка
+                prefix = int(mask_text.split(" - ")[0])  # Получаем префикс из выбранной маски
+
+            # Создаем сеть
             network = IPv4Network(f"{ip}/{prefix}", strict=False)
             netmask = network.netmask
             wildcard = IPv4Address(~int(netmask) & 0xFFFFFFFF)
 
             # Вычисляем общее количество хостов
             if prefix == 32:  # Для /32
-                total_hosts = 1  # Только один адрес
-                hostmin = str(network.network_address)  # Сетевой адрес
-                hostmax = str(network.broadcast_address)  # Широковещательный адрес (совпадает с сетевым)
+                total_hosts = 1
+                hostmin = str(network.network_address)
+                hostmax = str(network.broadcast_address)
             elif prefix == 31:  # Для /31
-                total_hosts = 2  # Два адреса: сетевой и широковещательный
-                hostmin = str(network.network_address)  # Сетевой адрес
-                hostmax = str(network.broadcast_address)  # Широковещательный адрес
+                total_hosts = 2
+                hostmin = str(network.network_address)
+                hostmax = str(network.broadcast_address)
             else:  # Для остальных масок
                 total_hosts = 2 ** (32 - prefix) - 2
                 if prefix < 31:
