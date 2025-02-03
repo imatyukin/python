@@ -1,20 +1,16 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QGridLayout, QLabel, QLineEdit, QPushButton,
-    QComboBox, QTableWidget, QTableWidgetItem, QHeaderView
+    QComboBox, QTableWidget, QTableWidgetItem, QHeaderView, QMenu, QApplication
 )
+from PyQt5.QtCore import Qt
 from ipaddress import IPv4Address, IPv4Network
 
 
 def ipv4_hex(ip_str):
-    """Функция для преобразования IP-адреса в 16-ричный формат."""
     return ".".join(format(int(x), '02X') for x in ip_str.split("."))
 
 
 def ipv4_binary(ip_str, prefix):
-    """
-    Функция для преобразования IP-адреса в бинарный формат с разделителем '|'.
-    Разделитель ставится между сетевой и хостовой частями.
-    """
     binary_parts = [format(int(x), '08b') for x in ip_str.split(".")]
     if prefix == 32:
         return ".".join(binary_parts)  # Без разделителя для /32
@@ -39,7 +35,6 @@ def ipv4_binary(ip_str, prefix):
         binary_value = binary_value[1:]
 
     return binary_value
-
 
 class IPv4Calculator(QWidget):
     def __init__(self):
@@ -102,7 +97,7 @@ class IPv4Calculator(QWidget):
         grid_layout.addWidget(self.mask_label, 1, 0)
         grid_layout.addWidget(self.mask_combo, 1, 1)
 
-        # Кнопка "Подсчитать" с стрелочкой
+        # Кнопка "Подсчитать"
         self.calculate_button = QPushButton("Подсчитать →")
         self.calculate_button.clicked.connect(self.calculate_ipv4)
         grid_layout.addWidget(self.calculate_button, 0, 2, 2, 1)
@@ -115,9 +110,9 @@ class IPv4Calculator(QWidget):
         self.result_table.setColumnCount(4)
         self.result_table.setHorizontalHeaderLabels(["Имя", "Значение", "16-ричный код", "Бинарное значение"])
         self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.result_table.setEditTriggers(QTableWidget.NoEditTriggers)  # Только для чтения
-        self.result_table.setSelectionBehavior(QTableWidget.SelectItems)  # Выделение отдельных ячеек
-        self.result_table.verticalHeader().setVisible(False)  # Убираем номера строк
+        self.result_table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.result_table.setSelectionBehavior(QTableWidget.SelectItems)
+        self.result_table.verticalHeader().setVisible(False)
         layout.addWidget(self.result_table)
 
         # Информационная панель под таблицей
@@ -126,6 +121,7 @@ class IPv4Calculator(QWidget):
         layout.addWidget(self.info_label)
 
         self.setLayout(layout)
+
 
     def calculate_ipv4(self):
         try:
@@ -138,24 +134,19 @@ class IPv4Calculator(QWidget):
             wildcard = IPv4Address(~int(netmask) & 0xFFFFFFFF)
 
             # Вычисляем общее количество хостов
-            if prefix in [0, 32]:  # Для /0 и /32
+            if prefix == 31 or prefix == 32:
                 total_hosts = 0
-            elif prefix == 31:  # Для /31
-                total_hosts = 0
-            else:  # Для остальных масок
+            else:
                 total_hosts = 2 ** (32 - prefix) - 2
 
             # Определяем hostmin и hostmax
             if prefix == 31:  # Для /31
                 hostmin = str(network.network_address)  # Сетевой адрес
                 hostmax = str(network.broadcast_address)  # Широковещательный адрес
-            elif prefix == 32:  # Для /32
-                hostmin = str(IPv4Address(int(network.network_address) - 1))  # Предыдущий адрес
-                hostmax = str(IPv4Address(int(network.network_address) + 1))  # Следующий адрес
             elif prefix < 31:  # Для /1–/30
                 hostmin = str(network.network_address + 1)
                 hostmax = str(network.broadcast_address - 1)
-            else:  # Для других случаев
+            else:  # Для /32
                 hostmin = ""
                 hostmax = ""
 
@@ -181,7 +172,7 @@ class IPv4Calculator(QWidget):
                 self.result_table.setItem(row, 3, QTableWidgetItem(binary))
 
             # Расчет диапазона байтов
-            byte_range_info = "N/A"  # По умолчанию N/A для /0, /31 и /32
+            byte_range_info = "N/A"
             if 1 <= prefix <= 30:  # Только для масок /1–/30
                 last_byte_mask = int(netmask.exploded.split(".")[-1])  # Последний байт маски
                 step = 2 ** (8 - (prefix % 8)) if prefix % 8 != 0 else 256  # Размер каждого диапазона
@@ -194,3 +185,23 @@ class IPv4Calculator(QWidget):
 
         except Exception as e:
             print(f"Ошибка: {e}")
+
+
+    def show_context_menu(self, pos):
+        menu = QMenu(self)
+        copy_action = menu.addAction("Копировать")
+        action = menu.exec_(self.result_table.mapToGlobal(pos))
+        if action == copy_action:
+            selected_item = self.result_table.itemAt(pos)
+            if selected_item:
+                QApplication.clipboard().setText(selected_item.text())
+
+
+if __name__ == "__main__":
+    from PyQt5.QtWidgets import QApplication
+    import sys
+
+    app = QApplication(sys.argv)
+    window = IPv4Calculator()
+    window.show()
+    sys.exit(app.exec_())
