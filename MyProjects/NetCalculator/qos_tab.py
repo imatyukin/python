@@ -14,8 +14,8 @@ class QoSTab(QWidget):
         self.qos_table = QTableWidget()
         self.qos_table.setColumnCount(16)  # Увеличиваем количество столбцов на 1 для DSCP HEX
         self.qos_table.setHorizontalHeaderLabels([
-            "Application", "CoS=IPP", "Traffic Class", "DSCP", "DSCP HEX", "ToS", "ToS HEX",
-            "DP", "8th bit", "7th bit", "6th bit", "5th bit", "4th bit", "3rd bit", "2nd bit", "1st bit"
+            "Application", "CoS=IPP", "Traffic Class", "DSCP", "DSCP hex", "ToS", "ToS hex",
+            "DP", "8th bit", "7th bit", "6th bit", "5th bit", "4th bit", "3rd bit", "2nd bit ECT(0)", "1st bit ECT(1)"
         ])
         self.qos_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.qos_table.setEditTriggers(QTableWidget.NoEditTriggers)  # Только для чтения
