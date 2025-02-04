@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLineEdit, QPushButton, QTableWidget, QTableWidgetItem, QMessageBox, QComboBox, QLabel
 )
 import ipaddress
+import socket
 
 
 class IPv6Calculator(QWidget):
@@ -15,6 +16,10 @@ class IPv6Calculator(QWidget):
         # Input field for IPv6 address and prefix
         self.input_field = QLineEdit()
         self.input_field.setPlaceholderText("Enter IPv6 address/prefix (e.g., 2001:db8::/64)")
+
+        # Automatically insert the system's primary IPv6 address
+        self.insert_system_ipv6()
+
         layout.addWidget(self.input_field)
 
         # Display format selector
@@ -63,9 +68,22 @@ class IPv6Calculator(QWidget):
         # Store the last valid network for immediate updates
         self.last_valid_network = None
 
+    def insert_system_ipv6(self):
+        """
+        Inserts the system's primary IPv6 address into the input field.
+        """
+        try:
+            # Get all network interfaces and their addresses
+            for interface_name, _, _, _, addresses in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET6):
+                ipv6_address = addresses[0]  # Extract IPv6 address
+                if "%" not in ipv6_address:  # Ignore link-local addresses with '%'
+                    self.input_field.setText(f"{ipv6_address}/64")  # Default prefix /64
+                    break
+        except Exception as e:
+            print(f"Failed to retrieve system IPv6 address: {str(e)}")
+
     def calculate(self):
         input_text = self.input_field.text().strip()
-
         try:
             # Parse network with strict=False to accept host bits
             network = ipaddress.IPv6Network(input_text, strict=False)
@@ -73,7 +91,6 @@ class IPv6Calculator(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Invalid input: {str(e)}")
             return
-
         self.update_results()
 
     def update_results(self):
@@ -84,12 +101,14 @@ class IPv6Calculator(QWidget):
         display_format = self.display_format.currentText()
 
         try:
-            # Format CIDR notation
-            cidr_notation = self.format_ipv6(network.with_prefixlen, display_format)
-            self.results_table.item(0, 1).setText(cidr_notation)
+            # Format CIDR notation (используем нормализованный сетевой адрес)
+            cidr_str = f"{self.format_ipv6(str(network.network_address), display_format)}/{network.prefixlen}"
+            self.results_table.item(0, 1).setText(cidr_str)
 
-            # Format Address
-            address = self.format_ipv6(str(network.network_address), display_format)
+            # Остальной код остается без изменений...
+            # Format Address (original input address)
+            original_address = ipaddress.IPv6Address(self.input_field.text().split("/")[0])
+            address = self.format_ipv6(str(original_address), display_format)
             self.results_table.item(1, 1).setText(address)
 
             # Format Address Range Start
@@ -126,13 +145,20 @@ class IPv6Calculator(QWidget):
     def format_ipv6(self, ipv6_str, display_format):
         """
         Formats an IPv6 address based on the selected display format.
+        Сохраняет префикс если он присутствует
         """
-        ip = ipaddress.IPv6Address(ipv6_str.split("/")[0])  # Extract IP part if CIDR is present
-        if display_format == "Expanded":
-            return ip.exploded  # Full representation with leading zeros
-        elif display_format == "Compressed":
-            return ip.compressed  # Compressed representation
-        return ipv6_str
+        # Разделяем адрес и префикс если они есть
+        if '/' in ipv6_str:
+            ip_part, prefix = ipv6_str.split('/')
+            suffix = f'/{prefix}'
+        else:
+            ip_part = ipv6_str
+            suffix = ''
+
+        ip = ipaddress.IPv6Address(ip_part)
+
+        formatted_ip = ip.exploded if display_format == "Expanded" else ip.compressed
+        return f"{formatted_ip}{suffix}"
 
 
 if __name__ == "__main__":
