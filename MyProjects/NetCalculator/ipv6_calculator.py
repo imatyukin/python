@@ -101,9 +101,9 @@ class IPv6Calculator(QWidget):
         display_format = self.display_format.currentText()
 
         try:
-            # Format CIDR notation
-            cidr_notation = self.format_ipv6(f"{network.network_address}/{network.prefixlen}", display_format)
-            self.results_table.item(0, 1).setText(cidr_notation)
+            # Format CIDR notation (network address + prefix)
+            cidr_str = f"{self.format_ipv6(str(network.network_address), display_format)}/{network.prefixlen}"
+            self.results_table.item(0, 1).setText(cidr_str)
 
             # Format Address (original input address)
             original_address = ipaddress.IPv6Address(self.input_field.text().split("/")[0])
@@ -121,18 +121,18 @@ class IPv6Calculator(QWidget):
             # Mask Bits
             self.results_table.item(4, 1).setText(f"{network.prefixlen}")
 
-            # Usable Addresses
+            # Usable Addresses (только числовой формат с разделителями)
             usable_addrs = network.num_addresses
-            formatted_usable_addrs = f"{usable_addrs:,}" if usable_addrs < 10 ** 6 else f"2^{128 - network.prefixlen} ≈ {usable_addrs:.2e}"
+            formatted_usable_addrs = f"{usable_addrs:,}"  # Форматирование с запятыми
             self.results_table.item(5, 1).setText(formatted_usable_addrs)
 
-            # Available Subnets (обновленная логика)
+            # Available Subnets
             if network.prefixlen < 128:
                 try:
-                    target_prefix = 96 if network.prefixlen <= 96 else 128  # Автовыбор префикса
+                    target_prefix = 96 if network.prefixlen <= 96 else 128
                     if target_prefix > network.prefixlen:
                         subnets = 2 ** (target_prefix - network.prefixlen)
-                        subnet_info = f"/{target_prefix} ({subnets} network{'s' if subnets > 1 else ''})"
+                        subnet_info = f"/{target_prefix} ({subnets:,} network{'s' if subnets > 1 else ''})"
                     else:
                         subnet_info = "1 network (same prefix)"
                     self.results_table.item(6, 1).setText(subnet_info)
