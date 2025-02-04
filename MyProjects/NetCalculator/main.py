@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTabWidget
 from ipv4_calculator import IPv4Calculator  # Модуль для IPv4
-from ipv6_calculator import IPv6Calculator  # Заглушка для IPv6
+from ipv6_calculator import IPv6Calculator  # Модуль для IPv6
 from qos_tab import QoSTab  # Модуль для QoS
 
 
