@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
         self.ipv4_tab = IPv4Calculator()  # Импортируем класс из ipv4_calculator.py
         self.tab_widget.addTab(self.ipv4_tab, "IPv4")
 
-        # Вкладка IPv6 (заглушка)
+        # Вкладка IPv6
         self.ipv6_tab = IPv6Calculator()  # Импортируем класс из ipv6_calculator.py
         self.tab_widget.addTab(self.ipv6_tab, "IPv6")
 
