@@ -101,11 +101,10 @@ class IPv6Calculator(QWidget):
         display_format = self.display_format.currentText()
 
         try:
-            # Format CIDR notation (используем нормализованный сетевой адрес)
-            cidr_str = f"{self.format_ipv6(str(network.network_address), display_format)}/{network.prefixlen}"
-            self.results_table.item(0, 1).setText(cidr_str)
+            # Format CIDR notation
+            cidr_notation = self.format_ipv6(f"{network.network_address}/{network.prefixlen}", display_format)
+            self.results_table.item(0, 1).setText(cidr_notation)
 
-            # Остальной код остается без изменений...
             # Format Address (original input address)
             original_address = ipaddress.IPv6Address(self.input_field.text().split("/")[0])
             address = self.format_ipv6(str(original_address), display_format)
@@ -124,20 +123,23 @@ class IPv6Calculator(QWidget):
 
             # Usable Addresses
             usable_addrs = network.num_addresses
-            formatted_usable_addrs = f"{usable_addrs:,}"  # Add commas for thousands separator
+            formatted_usable_addrs = f"{usable_addrs:,}" if usable_addrs < 10 ** 6 else f"2^{128 - network.prefixlen} ≈ {usable_addrs:.2e}"
             self.results_table.item(5, 1).setText(formatted_usable_addrs)
 
-            # Available Subnets
+            # Available Subnets (обновленная логика)
             if network.prefixlen < 128:
-                standard_subnet_prefix = 64
-                if network.prefixlen <= standard_subnet_prefix:
-                    subnets = 2 ** (standard_subnet_prefix - network.prefixlen)
-                    formatted_subnets = f"/{standard_subnet_prefix} {subnets} network{'s' if subnets > 1 else ''}"
-                else:
-                    formatted_subnets = "N/A (prefix too large)"
-                self.results_table.item(6, 1).setText(formatted_subnets)
+                try:
+                    target_prefix = 96 if network.prefixlen <= 96 else 128  # Автовыбор префикса
+                    if target_prefix > network.prefixlen:
+                        subnets = 2 ** (target_prefix - network.prefixlen)
+                        subnet_info = f"/{target_prefix} ({subnets} network{'s' if subnets > 1 else ''})"
+                    else:
+                        subnet_info = "1 network (same prefix)"
+                    self.results_table.item(6, 1).setText(subnet_info)
+                except:
+                    self.results_table.item(6, 1).setText("N/A")
             else:
-                self.results_table.item(6, 1).setText("N/A")
+                self.results_table.item(6, 1).setText("N/A (single host)")
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Calculation error: {str(e)}")
